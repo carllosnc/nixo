@@ -26,3 +26,24 @@ pub fn create_default_backend() -> Box<dyn MediaBackend> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nixo_core::{PlaybackState, PlayerCommand};
+
+    #[test]
+    fn test_synthetic_backend_lifecycle() {
+        let mut backend = SyntheticBackend::new();
+        assert_eq!(backend.status().state, PlaybackState::Stopped);
+
+        backend.execute(PlayerCommand::Play).unwrap();
+        assert_eq!(backend.status().state, PlaybackState::Playing);
+
+        let frame = backend
+            .poll_video_frame((640, 360))
+            .expect("Deveria gerar VideoFrame sintético");
+        assert_eq!(frame.width, 640);
+        assert_eq!(frame.height, 360);
+    }
+}

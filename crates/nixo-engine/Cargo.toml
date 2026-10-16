@@ -8,3 +8,6 @@ license.workspace = true
 nixo-core.workspace = true
 libloading.workspace = true
 tracing.workspace = true
+
+[lints]
+workspace = true

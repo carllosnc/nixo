@@ -127,7 +127,8 @@ impl MediaBackend for SyntheticBackend {
                 self.dirty_frame = true;
             }
             PlayerCommand::SeekRelative(delta_secs) => {
-                let next = (self.position.as_secs_f64() + delta_secs).clamp(0.0, self.duration.as_secs_f64());
+                let next = (self.position.as_secs_f64() + delta_secs)
+                    .clamp(0.0, self.duration.as_secs_f64());
                 self.position = Duration::from_secs_f64(next);
                 self.dirty_frame = true;
             }
@@ -172,8 +173,8 @@ impl MediaBackend for SyntheticBackend {
         let height: u32 = 360;
         let mut rgba = vec![0u8; (width * height * 4) as usize];
         let t = self.position.as_secs_f32() * 2.2;
-        let progress = (self.position.as_secs_f32() / self.duration.as_secs_f32().max(1.0))
-            .clamp(0.0, 1.0);
+        let progress =
+            (self.position.as_secs_f32() / self.duration.as_secs_f32().max(1.0)).clamp(0.0, 1.0);
         let scan_x = ((width as f32) * progress) as u32;
 
         for y in 0..height {

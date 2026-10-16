@@ -5,9 +5,7 @@ use egui::{
     Align, Color32, ColorImage, Context, CornerRadius, FontId, Key, Layout, Margin, Pos2, Rect,
     RichText, Sense, Stroke, TextureHandle, TextureOptions, Ui, Vec2, ViewportCommand,
 };
-use nixo_core::{
-    MediaBackend, PlaybackState, PlayerCommand, PlayerStatus, format_duration,
-};
+use nixo_core::{MediaBackend, PlaybackState, PlayerCommand, PlayerStatus, format_duration};
 use tracing::error;
 
 const ACCENT_COLOR: Color32 = Color32::from_rgb(255, 107, 53);
@@ -28,14 +26,15 @@ pub struct NixoApp {
 impl NixoApp {
     pub fn new(cc: &eframe::CreationContext<'_>, initial_file: Option<PathBuf>) -> Self {
         Self::configure_theme(&cc.egui_ctx);
-        cc.egui_ctx.send_viewport_cmd(ViewportCommand::Visible(true));
+        cc.egui_ctx
+            .send_viewport_cmd(ViewportCommand::Visible(true));
         cc.egui_ctx.send_viewport_cmd(ViewportCommand::Focus);
 
         let mut backend = nixo_engine::create_default_backend();
-        if let Some(path) = initial_file {
-            if let Err(err) = backend.execute(PlayerCommand::LoadFile(path)) {
-                error!("Erro ao abrir arquivo inicial: {err}");
-            }
+        if let Some(path) = initial_file
+            && let Err(err) = backend.execute(PlayerCommand::LoadFile(path))
+        {
+            error!("Erro ao abrir arquivo inicial: {err}");
         }
 
         let status = backend.status();
@@ -155,8 +154,7 @@ impl NixoApp {
             match &mut self.video_texture {
                 Some(tex) => tex.set(image, TextureOptions::LINEAR),
                 None => {
-                    let tex =
-                        ctx.load_texture("nixo-video-surface", image, TextureOptions::LINEAR);
+                    let tex = ctx.load_texture("nixo-video-surface", image, TextureOptions::LINEAR);
                     self.video_texture = Some(tex);
                 }
             }
@@ -227,13 +225,20 @@ impl NixoApp {
             };
 
             if ui
-                .add_sized([110.0, 30.0], egui::Button::new(RichText::new(play_label).strong()))
+                .add_sized(
+                    [110.0, 30.0],
+                    egui::Button::new(RichText::new(play_label).strong()),
+                )
                 .clicked()
             {
                 self.dispatch(PlayerCommand::TogglePlayPause);
             }
 
-            if ui.add_sized([40.0, 30.0], egui::Button::new("⏹")).on_hover_text("Parar").clicked() {
+            if ui
+                .add_sized([40.0, 30.0], egui::Button::new("⏹"))
+                .on_hover_text("Parar")
+                .clicked()
+            {
                 self.dispatch(PlayerCommand::Stop);
                 self.video_texture = None;
             }
@@ -266,8 +271,16 @@ impl NixoApp {
             );
 
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                let fs_label = if self.is_fullscreen { "🗗 Sair" } else { "⛶ Tela Cheia" };
-                if ui.button(fs_label).on_hover_text("Atalho: F ou F11").clicked() {
+                let fs_label = if self.is_fullscreen {
+                    "🗗 Sair"
+                } else {
+                    "⛶ Tela Cheia"
+                };
+                if ui
+                    .button(fs_label)
+                    .on_hover_text("Atalho: F ou F11")
+                    .clicked()
+                {
                     self.toggle_fullscreen(ctx);
                 }
 
@@ -292,7 +305,11 @@ impl NixoApp {
                 ui.separator();
 
                 // Controle de Volume
-                let mut vol = if self.status.muted { 0.0 } else { self.status.volume };
+                let mut vol = if self.status.muted {
+                    0.0
+                } else {
+                    self.status.volume
+                };
                 ui.spacing_mut().slider_width = 95.0;
                 if ui
                     .add(egui::Slider::new(&mut vol, 0.0..=100.0).show_value(false))
@@ -330,13 +347,21 @@ impl eframe::App for NixoApp {
 
         if !hide_osd {
             egui::TopBottomPanel::top("nixo_top_bar")
-                .frame(egui::Frame::NONE.fill(PANEL_BG).inner_margin(Margin::symmetric(14, 8)))
+                .frame(
+                    egui::Frame::NONE
+                        .fill(PANEL_BG)
+                        .inner_margin(Margin::symmetric(14, 8)),
+                )
                 .show(ctx, |ui| {
                     self.render_top_bar(ui);
                 });
 
             egui::TopBottomPanel::bottom("nixo_bottom_bar")
-                .frame(egui::Frame::NONE.fill(PANEL_BG).inner_margin(Margin::symmetric(16, 10)))
+                .frame(
+                    egui::Frame::NONE
+                        .fill(PANEL_BG)
+                        .inner_margin(Margin::symmetric(16, 10)),
+                )
                 .show(ctx, |ui| {
                     self.render_bottom_controls(ctx, ui);
                 });
@@ -400,9 +425,11 @@ impl eframe::App for NixoApp {
                     );
                     child_ui.add_space(8.0);
                     child_ui.label(
-                        RichText::new("Arraste um arquivo de vídeo para esta janela ou clique abaixo")
-                            .font(FontId::proportional(14.0))
-                            .color(Color32::from_gray(190)),
+                        RichText::new(
+                            "Arraste um arquivo de vídeo para esta janela ou clique abaixo",
+                        )
+                        .font(FontId::proportional(14.0))
+                        .color(Color32::from_gray(190)),
                     );
                     child_ui.add_space(18.0);
 
