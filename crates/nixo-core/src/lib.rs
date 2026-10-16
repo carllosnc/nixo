@@ -97,6 +97,12 @@ pub trait MediaBackend: Send {
     /// Solicita o próximo quadro de vídeo decodificado na resolução alvo `(largura, altura)`.
     /// Retorna `Some(VideoFrame)` apenas quando há um novo quadro para atualizar na GPU.
     fn poll_video_frame(&mut self, target_size: (u32, u32)) -> Option<VideoFrame>;
+
+    /// Solicita uma miniatura de pré-visualização (ex: 160x90) para o instante `position` (hover na seekbar).
+    /// Opera de forma não-bloqueante: dispara a busca em background e retorna a miniatura mais recente pronta.
+    fn poll_preview_frame(&mut self, _position: Duration) -> Option<VideoFrame> {
+        None
+    }
 }
 
 /// Formata um `Duration` como `MM:SS` ou `HH:MM:SS`.

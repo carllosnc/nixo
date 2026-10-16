@@ -212,4 +212,52 @@ impl MediaBackend for SyntheticBackend {
             frame_id: self.frame_counter,
         })
     }
+
+    fn poll_preview_frame(&mut self, position: Duration) -> Option<VideoFrame> {
+        if self.state == PlaybackState::Stopped && self.metadata.is_none() {
+            return None;
+        }
+
+        let width: u32 = 160;
+        let height: u32 = 90;
+        let mut rgba = vec![0u8; (width * height * 4) as usize];
+        let clamped_pos = position.min(self.duration);
+        let t = clamped_pos.as_secs_f32() * 2.2;
+        let progress =
+            (clamped_pos.as_secs_f32() / self.duration.as_secs_f32().max(1.0)).clamp(0.0, 1.0);
+        let scan_x = ((width as f32) * progress) as u32;
+
+        for y in 0..height {
+            let vf = (y as f32) / (height as f32);
+            for x in 0..width {
+                let uf = (x as f32) / (width as f32);
+                let idx = ((y * width + x) * 4) as usize;
+
+                let wave1 = (uf * 6.0 + t).sin() * 0.5 + 0.5;
+                let wave2 = (vf * 5.0 - t * 0.7).cos() * 0.5 + 0.5;
+                let mut r = (24.0 + 70.0 * wave1 * (1.0 - vf * 0.4)) as u8;
+                let mut g = (30.0 + 110.0 * wave2 * uf) as u8;
+                let mut b = (65.0 + 155.0 * (0.5 * wave1 + 0.5 * wave2)) as u8;
+
+                if x.abs_diff(scan_x) <= 1 {
+                    r = 255;
+                    g = 120;
+                    b = 60;
+                }
+
+                rgba[idx] = r;
+                rgba[idx + 1] = g;
+                rgba[idx + 2] = b;
+                rgba[idx + 3] = 255;
+            }
+        }
+
+        let bucket_id = (clamped_pos.as_millis() as u64 / 100).max(1);
+        Some(VideoFrame {
+            width,
+            height,
+            rgba,
+            frame_id: bucket_id,
+        })
+    }
 }
