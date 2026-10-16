@@ -21,7 +21,7 @@ fn main() -> eframe::Result<()> {
         .with_title("Nixo Media Player")
         .with_inner_size([1120.0, 680.0])
         .with_min_inner_size([640.0, 400.0])
-        .with_visible(false)
+        .with_visible(true)
         .with_active(true)
         .with_drag_and_drop(true);
 
