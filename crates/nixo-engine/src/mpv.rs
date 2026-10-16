@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::ptr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use libloading::Library;
 use nixo_core::{
@@ -214,6 +214,10 @@ pub struct MpvBackend {
     frame_counter: u64,
     first_frame_pending: bool,
     pixel_buffer: Vec<u8>,
+    cached_status: PlayerStatus,
+    last_status_poll: Instant,
+    status_dirty: bool,
+    cached_vid_size: (u32, u32),
 }
 
 // SAFETY: O handle do mpv é acessado de forma exclusiva através de `&mut self` protegido pela trait.
@@ -229,9 +233,15 @@ impl MpvBackend {
                 return Err(NixoError::InitError("mpv_create retornou nulo".into()));
             }
 
-            // Configura o mpv para renderizar no mpv_render_context sem bloquear a thread de UI
+            // Otimizado para baixa latência e alta taxa de quadros no pipeline de textura wgpu:
+            // - vd-lavc-threads=0 usa todos os núcleos da CPU evitando stalls de readback VRAM->RAM no renderer SW
+            // - sws-scaler=fast-bilinear + sws-fast=yes acelera a conversão YUV->RGB0 com SIMD AVX2
+            // - video-timing-offset=0 impede que mpv_render_context_render bloqueie a thread de UI
             Self::set_opt(&api, handle, c"vo", c"libmpv");
-            Self::set_opt(&api, handle, c"hwdec", c"auto-copy");
+            Self::set_opt(&api, handle, c"hwdec", c"no");
+            Self::set_opt(&api, handle, c"vd-lavc-threads", c"0");
+            Self::set_opt(&api, handle, c"sws-scaler", c"fast-bilinear");
+            Self::set_opt(&api, handle, c"sws-fast", c"yes");
             Self::set_opt(&api, handle, c"keep-open", c"yes");
             Self::set_opt(&api, handle, c"video-timing-offset", c"0");
 
@@ -281,6 +291,13 @@ impl MpvBackend {
                 frame_counter: 0,
                 first_frame_pending: false,
                 pixel_buffer: Vec::new(),
+                cached_status: PlayerStatus {
+                    backend_name: "libmpv",
+                    ..Default::default()
+                },
+                last_status_poll: Instant::now(),
+                status_dirty: true,
+                cached_vid_size: (1280, 720),
             })
         }
     }
@@ -304,6 +321,7 @@ impl MpvBackend {
         self.set_flag(c"pause", false);
         self.current_path = Some(display_path);
         self.first_frame_pending = true;
+        self.status_dirty = true;
         Ok(())
     }
 
@@ -369,6 +387,67 @@ impl MpvBackend {
             );
         }
     }
+
+    fn refresh_status(&mut self) {
+        let idle = self.get_flag(c"idle-active").unwrap_or(true);
+        let eof = self.get_flag(c"eof-reached").unwrap_or(false);
+        let paused = self.get_flag(c"pause").unwrap_or(false);
+
+        let state = if idle && self.current_path.is_none() {
+            PlaybackState::Stopped
+        } else if eof {
+            PlaybackState::Ended
+        } else if paused {
+            PlaybackState::Paused
+        } else {
+            PlaybackState::Playing
+        };
+
+        let pos_secs = self.get_double(c"time-pos").unwrap_or(0.0).max(0.0);
+        let dur_secs = self.get_double(c"duration").unwrap_or(0.0).max(0.0);
+        let volume = self.get_double(c"volume").unwrap_or(80.0) as f32;
+        let muted = self.get_flag(c"mute").unwrap_or(false);
+        let speed = self.get_double(c"speed").unwrap_or(1.0) as f32;
+
+        let width = self
+            .get_i64(c"dwidth")
+            .or_else(|| self.get_i64(c"width"))
+            .unwrap_or(0)
+            .max(0) as u32;
+        let height = self
+            .get_i64(c"dheight")
+            .or_else(|| self.get_i64(c"height"))
+            .unwrap_or(0)
+            .max(0) as u32;
+
+        if width >= 64 && height >= 64 {
+            self.cached_vid_size = (width, height);
+        }
+
+        let metadata = self.current_path.as_ref().map(|path| MediaMetadata {
+            title: path
+                .file_name()
+                .map(|s| s.to_string_lossy().into_owned())
+                .unwrap_or_else(|| "Vídeo".to_string()),
+            path: path.clone(),
+            duration: Duration::from_secs_f64(dur_secs),
+            video_width: width,
+            video_height: height,
+        });
+
+        self.cached_status = PlayerStatus {
+            state,
+            position: Duration::from_secs_f64(pos_secs),
+            duration: Duration::from_secs_f64(dur_secs),
+            volume,
+            muted,
+            speed,
+            metadata,
+            backend_name: self.name(),
+        };
+        self.last_status_poll = Instant::now();
+        self.status_dirty = false;
+    }
 }
 
 impl Drop for MpvBackend {
@@ -391,7 +470,7 @@ impl Drop for MpvBackend {
 
 impl MediaBackend for MpvBackend {
     fn name(&self) -> &'static str {
-        "libmpv (Hardware Accelerated)"
+        "libmpv"
     }
 
     fn execute(&mut self, command: PlayerCommand) -> Result<(), NixoError> {
@@ -403,7 +482,6 @@ impl MediaBackend for MpvBackend {
             }
             PlayerCommand::Play => {
                 if self.current_path.is_none() {
-                    // Sinal de teste FFmpeg lavfi integrado ao libmpv caso nenhum arquivo tenha sido aberto ainda
                     self.load_uri(
                         "av://lavfi:testsrc2=size=1280x720:rate=60:duration=300",
                         PathBuf::from("Sinal de Teste FFmpeg/libmpv (720p60)"),
@@ -459,57 +537,19 @@ impl MediaBackend for MpvBackend {
                 self.set_double(c"speed", f64::from(speed.clamp(0.25, 4.0)));
             }
         }
+        self.status_dirty = true;
         Ok(())
     }
 
     fn status(&mut self) -> PlayerStatus {
-        let idle = self.get_flag(c"idle-active").unwrap_or(true);
-        let eof = self.get_flag(c"eof-reached").unwrap_or(false);
-        let paused = self.get_flag(c"pause").unwrap_or(false);
-
-        let state = if idle && self.current_path.is_none() {
-            PlaybackState::Stopped
-        } else if eof {
-            PlaybackState::Ended
-        } else if paused {
-            PlaybackState::Paused
-        } else {
-            PlaybackState::Playing
-        };
-
-        let pos_secs = self.get_double(c"time-pos").unwrap_or(0.0).max(0.0);
-        let dur_secs = self.get_double(c"duration").unwrap_or(0.0).max(0.0);
-        let volume = self.get_double(c"volume").unwrap_or(80.0) as f32;
-        let muted = self.get_flag(c"mute").unwrap_or(false);
-        let speed = self.get_double(c"speed").unwrap_or(1.0) as f32;
-
-        let width = self.get_i64(c"width").unwrap_or(0).max(0) as u32;
-        let height = self.get_i64(c"height").unwrap_or(0).max(0) as u32;
-
-        let metadata = self.current_path.as_ref().map(|path| MediaMetadata {
-            title: path
-                .file_name()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or_else(|| "Vídeo".to_string()),
-            path: path.clone(),
-            duration: Duration::from_secs_f64(dur_secs),
-            video_width: width,
-            video_height: height,
-        });
-
-        PlayerStatus {
-            state,
-            position: Duration::from_secs_f64(pos_secs),
-            duration: Duration::from_secs_f64(dur_secs),
-            volume,
-            muted,
-            speed,
-            metadata,
-            backend_name: self.name(),
+        // Evita bloquear o mutex interno do libmpv 60+ vezes por segundo durante renderização
+        if self.status_dirty || self.last_status_poll.elapsed() >= Duration::from_millis(100) {
+            self.refresh_status();
         }
+        self.cached_status.clone()
     }
 
-    fn poll_video_frame(&mut self, target_size: (u32, u32)) -> Option<VideoFrame> {
+    fn poll_video_frame(&mut self, _target_size: (u32, u32)) -> Option<VideoFrame> {
         self.current_path.as_ref()?;
 
         let notified = self.has_update.swap(false, Ordering::AcqRel);
@@ -523,13 +563,14 @@ impl MediaBackend for MpvBackend {
             return None;
         }
 
-        // Calcula a resolução ideal preservando a proporção real do vídeo
-        let vid_w = self.get_i64(c"dwidth").or_else(|| self.get_i64(c"width")).unwrap_or(1280).max(16) as u32;
-        let vid_h = self.get_i64(c"dheight").or_else(|| self.get_i64(c"height")).unwrap_or(720).max(16) as u32;
-
-        let max_w = target_size.0.clamp(320, 1920).min(vid_w);
-        let width = (max_w & !3).max(64); // Múltiplo de 4 pixels
-        let height = (((width as f64) * (vid_h as f64) / (vid_w as f64)) as u32).clamp(64, 1080);
+        // Mantém resolução de textura fixa e alinhada a 16 pixels (stride múltiplo de 64 bytes para SIMD AVX2).
+        // O escalonamento para Fullscreen (1080p/1440p/4K) é feito gratuitamente pela GPU via shader wgpu!
+        let (vid_w, vid_h) = self.cached_vid_size;
+        let base_w = vid_w.clamp(320, 1280);
+        let width = ((base_w + 15) & !15).max(64); // Stride (width * 4) garantido múltiplo de 64 bytes
+        let height = (((width as f64) * (vid_h as f64) / (vid_w.max(1) as f64)) as u32)
+            .clamp(64, 1080)
+            & !1;
 
         let stride: usize = (width as usize) * 4;
         let total_bytes = stride * (height as usize);
@@ -538,7 +579,6 @@ impl MediaBackend for MpvBackend {
         }
 
         let mut size_param: [c_int; 2] = [width as c_int, height as c_int];
-        // mpv_render_param documenta "rgb0" como formato nativo de 4 bytes por pixel para SW renderer
         let format_cstr = c"rgb0";
         let mut stride_param: usize = stride;
         let mut block_for_target_time: c_int = 0;
@@ -576,7 +616,7 @@ impl MediaBackend for MpvBackend {
             return None;
         }
 
-        // Garante que o canal Alpha (byte 3 do formato rgb0) seja 255 (opaco) para a textura RGBA8 da GPU
+        // Define o canal Alpha = 255 em blocos de 4 bytes (vetorizado via SIMD com opt-level >= 2)
         for px in self.pixel_buffer.chunks_exact_mut(4) {
             px[3] = 255;
         }
@@ -599,14 +639,14 @@ mod tests {
 
     #[test]
     fn test_mpv_backend_loads_and_renders_frame() {
-        let mut backend = MpvBackend::try_new().expect("Deveria carregar libmpv-2.dll de vendor/mpv");
-        assert_eq!(backend.name(), "libmpv (Hardware Accelerated)");
+        let mut backend =
+            MpvBackend::try_new().expect("Deveria carregar libmpv-2.dll de vendor/mpv");
+        assert_eq!(backend.name(), "libmpv");
 
         backend
             .execute(PlayerCommand::Play)
             .expect("Deveria iniciar sinal lavfi testsrc2 no libmpv");
 
-        // Aguarda até 2 segundos para o primeiro frame ser decodificado pelo libmpv
         let mut rendered = None;
         for _ in 0..40 {
             if let Some(frame) = backend.poll_video_frame((640, 360)) {

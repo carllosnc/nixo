@@ -147,7 +147,7 @@ impl NixoApp {
 
         if let Some(frame) = self.backend.poll_video_frame((target_w, target_h)) {
             self.last_frame_id = frame.frame_id;
-            let image = ColorImage::from_rgba_unmultiplied(
+            let image = ColorImage::from_rgba_premultiplied(
                 [frame.width as usize, frame.height as usize],
                 &frame.rgba,
             );
@@ -427,9 +427,9 @@ impl eframe::App for NixoApp {
                 }
             });
 
-        // Enquanto o vídeo estiver reproduzindo, solicita repintura contínua a ~60 FPS
+        // Enquanto o vídeo estiver reproduzindo, sincroniza repintura direto com o VSync do wgpu
         if self.status.state == PlaybackState::Playing {
-            ctx.request_repaint_after(Duration::from_millis(16));
+            ctx.request_repaint();
         }
     }
 }
