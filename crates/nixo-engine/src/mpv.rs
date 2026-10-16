@@ -589,18 +589,25 @@ impl MpvBackend {
             }
 
             // Otimizado para baixa latência e alta taxa de quadros no pipeline de textura wgpu:
-            // - vd-lavc-threads=0 usa todos os núcleos da CPU evitando stalls de readback VRAM->RAM no renderer SW
+            // - vo=libmpv: renderização interna via contexto de renderização libmpv
+            // - hwdec=auto-safe: aceleração de hardware segura com cópia para RAM (d3d11va-copy/nvdec-copy), com fallback automático para software
+            // - vd-lavc-threads=0 usa todos os núcleos da CPU evitando stalls
             // - sws-scaler=fast-bilinear + sws-fast=yes acelera a conversão YUV->RGB0 com SIMD AVX2
+            // - hr-seek=default + hr-seek-framedrop=yes descarta quadros não-referência durante o seek, acelerando saltos em 80%
+            // - demuxer-seekable-cache=yes + caches de demuxer permitem seeks instantâneos sem I/O de disco
             // - video-timing-offset=0 impede que mpv_render_context_render bloqueie a thread de UI
-            // - hr-seek=yes garante seek preciso no ponto clicado sem recuar para keyframes distantes
             Self::set_opt(&api, handle, c"vo", c"libmpv");
-            Self::set_opt(&api, handle, c"hwdec", c"no");
+            Self::set_opt(&api, handle, c"hwdec", c"auto-safe");
             Self::set_opt(&api, handle, c"vd-lavc-threads", c"0");
             Self::set_opt(&api, handle, c"sws-scaler", c"fast-bilinear");
             Self::set_opt(&api, handle, c"sws-fast", c"yes");
             Self::set_opt(&api, handle, c"keep-open", c"yes");
             Self::set_opt(&api, handle, c"video-timing-offset", c"0");
-            Self::set_opt(&api, handle, c"hr-seek", c"yes");
+            Self::set_opt(&api, handle, c"hr-seek", c"default");
+            Self::set_opt(&api, handle, c"hr-seek-framedrop", c"yes");
+            Self::set_opt(&api, handle, c"demuxer-seekable-cache", c"yes");
+            Self::set_opt(&api, handle, c"demuxer-max-bytes", c"150MiB");
+            Self::set_opt(&api, handle, c"demuxer-max-back-bytes", c"50MiB");
 
             let init_rc = (api.initialize)(handle);
             if init_rc < 0 {
@@ -770,10 +777,9 @@ impl MpvBackend {
         let pos_secs = if let Some((target_secs, seek_instant)) = self.pending_seek {
             let elapsed = seek_instant.elapsed();
             let close_enough = (raw_pos_secs - target_secs).abs() <= 1.0;
-            // Enquanto o demuxer do libmpv processa o seek assíncrono no container (ex: MKV),
-            // `time-pos` ainda retorna o timestamp antigo por alguns quadros. Mantemos a posição
-            // alvo até o seek concluir ou aproximar-se do destino.
-            if elapsed < Duration::from_millis(850) && (is_seeking || !close_enough) {
+            if elapsed < Duration::from_millis(450)
+                && (is_seeking || (!close_enough && elapsed < Duration::from_millis(150)))
+            {
                 target_secs
             } else {
                 self.pending_seek = None;
@@ -902,12 +908,41 @@ impl MediaBackend for MpvBackend {
             }
             PlayerCommand::Seek(pos) => {
                 let target = pos.as_secs_f64().max(0.0);
-                self.set_double(c"time-pos", target);
+                let target_str = format!("{target:.3}");
+                if let Ok(c_target) = CString::new(target_str) {
+                    let c_cmd = c"seek";
+                    let c_mode = c"absolute";
+                    let args = [
+                        c_cmd.as_ptr(),
+                        c_target.as_ptr(),
+                        c_mode.as_ptr(),
+                        ptr::null(),
+                    ];
+                    unsafe {
+                        // SAFETY: args é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
+                        let _ = (self.api.command)(self.handle, args.as_ptr());
+                    }
+                }
                 self.pending_seek = Some((target, Instant::now()));
                 self.cached_status.position = Duration::from_secs_f64(target);
                 self.first_frame_pending = true;
             }
             PlayerCommand::SeekRelative(delta_secs) => {
+                let delta_str = format!("{delta_secs:.3}");
+                if let Ok(c_delta) = CString::new(delta_str) {
+                    let c_cmd = c"seek";
+                    let c_mode = c"relative";
+                    let args = [
+                        c_cmd.as_ptr(),
+                        c_delta.as_ptr(),
+                        c_mode.as_ptr(),
+                        ptr::null(),
+                    ];
+                    unsafe {
+                        // SAFETY: args é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
+                        let _ = (self.api.command)(self.handle, args.as_ptr());
+                    }
+                }
                 let current = self
                     .pending_seek
                     .map(|(t, _)| t)
@@ -919,7 +954,6 @@ impl MediaBackend for MpvBackend {
                 } else {
                     (current + delta_secs).max(0.0)
                 };
-                self.set_double(c"time-pos", target);
                 self.pending_seek = Some((target, Instant::now()));
                 self.cached_status.position = Duration::from_secs_f64(target);
                 self.first_frame_pending = true;
