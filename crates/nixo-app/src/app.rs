@@ -890,8 +890,8 @@ impl NixoApp {
         // Mantém a posição clicada/arrastada enquanto o demuxer do vídeo conclui o seek assíncrono,
         // impedindo que a barra laranja "volte" para o tempo antigo por alguns quadros.
         let mut current_secs = if let Some((target_secs, seek_instant)) = self.seek_override {
-            if seek_instant.elapsed() < Duration::from_millis(850)
-                && (backend_secs - target_secs).abs() > 1.0
+            if seek_instant.elapsed() < Duration::from_millis(400)
+                && (backend_secs - target_secs).abs() > 0.5
             {
                 target_secs.clamp(0.0, total_secs)
             } else {
@@ -908,29 +908,33 @@ impl NixoApp {
         let total_w = ui.available_width();
         let slider_resp =
             Self::render_compact_slider(ui, &mut current_secs, 0.0..=total_secs, total_w, 4.0, 6.0);
+        let is_dragging = slider_resp.dragged();
+        let drag_ended = slider_resp.drag_stopped();
+
         if slider_resp.changed() {
             let target_dur = Duration::from_secs_f64(current_secs);
             self.seek_override = Some((current_secs, Instant::now()));
             self.status.position = target_dur;
 
-            let pointer_edge =
-                ctx.input(|i| i.pointer.primary_pressed() || i.pointer.primary_released());
-            let should_dispatch = pointer_edge
-                || slider_resp.clicked()
-                || slider_resp.drag_started()
-                || slider_resp.drag_stopped()
-                || self.last_seek_dispatch.elapsed() >= Duration::from_millis(45);
+            // Se for um clique direto (não arrasto contínuo), dispara o seek imediatamente na hora.
+            // Se estiver arrastando (scrubbing), aplica throttling de 60ms para fluidez sem sobrecarregar o demuxer.
+            let should_dispatch = if is_dragging {
+                self.last_seek_dispatch.elapsed() >= Duration::from_millis(60)
+            } else {
+                true
+            };
+
             if should_dispatch {
                 self.last_seek_dispatch = Instant::now();
                 self.dispatch(PlayerCommand::Seek(target_dur));
             }
-        } else if (slider_resp.drag_stopped()
-            || (slider_resp.hovered() && ctx.input(|i| i.pointer.primary_released())))
-            && let Some((target_secs, _)) = self.seek_override
-        {
-            self.seek_override = Some((target_secs, Instant::now()));
-            self.last_seek_dispatch = Instant::now();
-            self.dispatch(PlayerCommand::Seek(Duration::from_secs_f64(target_secs)));
+        } else if drag_ended && let Some((target_secs, _)) = self.seek_override {
+            // Ao soltar o mouse após arrastar, garante que a posição final exata seja enviada
+            if self.last_seek_dispatch.elapsed() >= Duration::from_millis(30) {
+                self.seek_override = Some((target_secs, Instant::now()));
+                self.last_seek_dispatch = Instant::now();
+                self.dispatch(PlayerCommand::Seek(Duration::from_secs_f64(target_secs)));
+            }
         }
 
         // Pré-visualização de frame (160x90 + timestamp) estilo YouTube ao passar o mouse na seekbar
@@ -1119,86 +1123,145 @@ impl NixoApp {
         if gear_resp.clicked() {
             ctx.memory_mut(|mem| mem.toggle_popup(popup_id));
         }
-        egui::popup_above_or_below_widget(
-            &right_ui,
-            popup_id,
-            &gear_resp,
-            egui::AboveOrBelow::Above,
-            egui::PopupCloseBehavior::CloseOnClick,
-            |ui| {
-                ui.set_min_width(175.0);
-                ui.spacing_mut().item_spacing.y = 2.0;
 
-                // Título estilo YouTube
-                ui.horizontal(|ui| {
-                    ui.add_space(8.0);
-                    ui.label(
-                        RichText::new("Velocidade da reprodução")
-                            .font(FontId::proportional(12.5))
-                            .color(Color32::from_gray(175)),
-                    );
+        if ctx.memory(|mem| mem.is_popup_open(popup_id)) {
+            let screen = ctx.screen_rect();
+            let popup_w = 205.0;
+            // Posiciona a popup acima do botão de configurações, garantindo margem confortável de 18px da borda da janela
+            let clamped_x = (gear_resp.rect.center().x).clamp(
+                screen.left() + popup_w * 0.5 + 16.0,
+                screen.right() - popup_w * 0.5 - 18.0,
+            );
+            let anchor_pos = Pos2::new(clamped_x, gear_resp.rect.top() - 10.0);
+
+            let mut should_close = false;
+            let mut popup_rect = Rect::NOTHING;
+
+            egui::Area::new(popup_id)
+                .pivot(Align2::CENTER_BOTTOM)
+                .fixed_pos(anchor_pos)
+                .order(egui::Order::Foreground)
+                .show(ctx, |ui| {
+                    ui.set_width(popup_w);
+                    let frame_resp = egui::Frame::NONE
+                        .fill(Color32::from_rgba_premultiplied(26, 26, 26, 245))
+                        .stroke(Stroke::new(
+                            1.0_f32,
+                            Color32::from_rgba_unmultiplied(255, 255, 255, 28),
+                        ))
+                        .corner_radius(CornerRadius::same(12))
+                        .shadow(egui::Shadow {
+                            offset: [0, 8],
+                            blur: 16,
+                            spread: 0,
+                            color: Color32::from_black_alpha(160),
+                        })
+                        .inner_margin(Margin::symmetric(8, 8))
+                        .show(ui, |ui| {
+                            ui.spacing_mut().item_spacing.y = 2.0;
+
+                            // Título estilo YouTube
+                            ui.horizontal(|ui| {
+                                ui.add_space(8.0);
+                                ui.label(
+                                    RichText::new("Velocidade da reprodução")
+                                        .font(FontId::proportional(12.5))
+                                        .color(Color32::from_gray(175)),
+                                );
+                            });
+
+                            ui.add_space(4.0);
+                            ui.separator();
+                            ui.add_space(3.0);
+
+                            // Opções de velocidade no layout idêntico ao YouTube (check lateral vetorial + hover suave)
+                            for preset in [0.25_f32, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0] {
+                                let is_selected = (speed - preset).abs() < 0.01;
+                                let label_text = if (preset - 1.0).abs() < 0.01 {
+                                    "Normal".to_string()
+                                } else {
+                                    format!("{preset}")
+                                };
+
+                                let (row_rect, row_resp) = ui.allocate_exact_size(
+                                    vec2(ui.available_width(), 32.0),
+                                    Sense::click(),
+                                );
+                                let row_hovered = row_resp.hovered();
+
+                                if row_hovered {
+                                    ui.painter().rect_filled(
+                                        row_rect,
+                                        CornerRadius::same(7),
+                                        Color32::from_rgba_unmultiplied(255, 255, 255, 24),
+                                    );
+                                }
+
+                                let center_y = row_rect.center().y;
+                                let check_x = row_rect.left() + 16.0;
+                                let text_x = row_rect.left() + 34.0;
+
+                                // Ícone vetorial nítido de Checkmark (substitui o glifo Unicode ausente que causava o □ quadrado)
+                                if is_selected {
+                                    let stroke = Stroke::new(2.0_f32, Color32::WHITE);
+                                    let painter = ui.painter();
+                                    painter.line_segment(
+                                        [
+                                            Pos2::new(check_x - 5.0, center_y - 0.5),
+                                            Pos2::new(check_x - 1.5, center_y + 3.5),
+                                        ],
+                                        stroke,
+                                    );
+                                    painter.line_segment(
+                                        [
+                                            Pos2::new(check_x - 1.5, center_y + 3.5),
+                                            Pos2::new(check_x + 5.5, center_y - 4.5),
+                                        ],
+                                        stroke,
+                                    );
+                                }
+
+                                let text_color = if is_selected || row_hovered {
+                                    Color32::WHITE
+                                } else {
+                                    Color32::from_gray(220)
+                                };
+
+                                ui.painter().text(
+                                    Pos2::new(text_x, center_y),
+                                    Align2::LEFT_CENTER,
+                                    label_text,
+                                    FontId::proportional(13.5),
+                                    text_color,
+                                );
+
+                                let row_resp =
+                                    row_resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+                                if row_resp.clicked() {
+                                    self.dispatch(PlayerCommand::SetSpeed(preset));
+                                    should_close = true;
+                                }
+                            }
+                        });
+                    popup_rect = frame_resp.response.rect;
                 });
 
-                ui.add_space(3.0);
-                ui.separator();
-                ui.add_space(2.0);
+            // Fecha ao clicar fora ou pressionar Escape
+            if ctx.input(|i| i.key_pressed(Key::Escape)) {
+                should_close = true;
+            }
+            if ctx.input(|i| i.pointer.any_pressed())
+                && let Some(pos) = ctx.input(|i| i.pointer.interact_pos())
+                && !popup_rect.contains(pos)
+                && !gear_resp.rect.contains(pos)
+            {
+                should_close = true;
+            }
 
-                // Opções de velocidade no layout idêntico ao YouTube (check lateral + hover suave)
-                for preset in [0.25_f32, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0] {
-                    let is_selected = (speed - preset).abs() < 0.01;
-                    let label_text = if (preset - 1.0).abs() < 0.01 {
-                        "Normal".to_string()
-                    } else {
-                        format!("{preset}")
-                    };
-
-                    let (row_rect, row_resp) =
-                        ui.allocate_exact_size(vec2(ui.available_width(), 32.0), Sense::click());
-                    let row_hovered = row_resp.hovered();
-
-                    if row_hovered {
-                        ui.painter().rect_filled(
-                            row_rect,
-                            CornerRadius::same(6),
-                            Color32::from_rgba_unmultiplied(255, 255, 255, 24),
-                        );
-                    }
-
-                    let center_y = row_rect.center().y;
-                    let check_x = row_rect.left() + 14.0;
-                    let text_x = row_rect.left() + 32.0;
-
-                    if is_selected {
-                        ui.painter().text(
-                            Pos2::new(check_x, center_y),
-                            Align2::CENTER_CENTER,
-                            "✓",
-                            FontId::proportional(14.0),
-                            Color32::WHITE,
-                        );
-                    }
-
-                    let text_color = if is_selected || row_hovered {
-                        Color32::WHITE
-                    } else {
-                        Color32::from_gray(220)
-                    };
-
-                    ui.painter().text(
-                        Pos2::new(text_x, center_y),
-                        Align2::LEFT_CENTER,
-                        label_text,
-                        FontId::proportional(13.0),
-                        text_color,
-                    );
-
-                    let row_resp = row_resp.on_hover_cursor(egui::CursorIcon::PointingHand);
-                    if row_resp.clicked() {
-                        self.dispatch(PlayerCommand::SetSpeed(preset));
-                    }
-                }
-            },
-        );
+            if should_close {
+                ctx.memory_mut(|mem| mem.close_popup());
+            }
+        }
     }
 }
 
