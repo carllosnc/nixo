@@ -1,0 +1,18 @@
+[package]
+name = "nixo-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "nixo"
+path = "src/main.rs"
+
+[dependencies]
+nixo-core.workspace = true
+nixo-engine.workspace = true
+eframe.workspace = true
+egui.workspace = true
+rfd.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
