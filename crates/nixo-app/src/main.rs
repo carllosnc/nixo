@@ -17,14 +17,20 @@ fn main() -> eframe::Result<()> {
 
     let initial_file = std::env::args().nth(1).map(PathBuf::from);
 
+    let mut viewport = egui::ViewportBuilder::default()
+        .with_title("Nixo Media Player")
+        .with_inner_size([1120.0, 680.0])
+        .with_min_inner_size([640.0, 400.0])
+        .with_visible(true)
+        .with_active(true)
+        .with_drag_and_drop(true);
+
+    if let Some(icon) = load_app_icon() {
+        viewport = viewport.with_icon(icon);
+    }
+
     let native_options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_title("Nixo Media Player")
-            .with_inner_size([1120.0, 680.0])
-            .with_min_inner_size([640.0, 400.0])
-            .with_visible(true)
-            .with_active(true)
-            .with_drag_and_drop(true),
+        viewport,
         ..Default::default()
     };
 
@@ -33,4 +39,16 @@ fn main() -> eframe::Result<()> {
         native_options,
         Box::new(move |cc| Ok(Box::new(NixoApp::new(cc, initial_file)))),
     )
+}
+
+fn load_app_icon() -> Option<egui::IconData> {
+    let icon_bytes = include_bytes!("../../../assets/icon.png");
+    let img = image::load_from_memory_with_format(icon_bytes, image::ImageFormat::Png).ok()?;
+    let rgba = img.into_rgba8();
+    let (width, height) = rgba.dimensions();
+    Some(egui::IconData {
+        rgba: rgba.into_raw(),
+        width,
+        height,
+    })
 }

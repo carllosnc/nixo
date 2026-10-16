@@ -43,6 +43,15 @@ Ou passando um arquivo de vídeo diretamente via linha de comando:
 cargo run -p nixo-app -- caminho/para/video.mkv
 ```
 
+### 3. Gerar Pacote Distribuível (Release Portátil)
+
+Para gerar o pacote standalone (`.zip`) já otimizado com LTO e a DLL embutida:
+
+```powershell
+./scripts/package.ps1
+```
+*(O arquivo `.zip` e o respectivo `.sha256` serão gerados na pasta `dist/`).*
+
 ## Atalhos de Teclado
 
 | Atalho | Ação |

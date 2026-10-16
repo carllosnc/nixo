@@ -22,12 +22,20 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2.0"
 libloading = "0.8"
+winresource = "0.1"
+image = { version = "0.25", default-features = false, features = ["png"] }
 
 [profile.dev]
 opt-level = 2
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"
