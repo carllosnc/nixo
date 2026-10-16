@@ -10,7 +10,7 @@ use egui::{
 use nixo_core::{MediaBackend, PlaybackState, PlayerCommand, PlayerStatus, format_duration};
 use tracing::error;
 
-const ACCENT_COLOR: Color32 = Color32::from_rgb(255, 0, 0); // Vermelho característico do YouTube
+const ACCENT_COLOR: Color32 = Color32::from_rgb(47, 229, 11); // Verde vibrante da marca Nixo (#2FE50B)
 const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
 const OPAQUE_PANEL_BG: Color32 = Color32::from_rgb(12, 13, 17);
 /// Tempo para ocultar o OSD quando o mouse fica parado sobre o vídeo (estilo YouTube).
