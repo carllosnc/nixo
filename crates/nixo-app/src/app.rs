@@ -37,6 +37,7 @@ pub struct NixoApp {
 impl NixoApp {
     pub fn new(cc: &eframe::CreationContext<'_>, initial_file: Option<PathBuf>) -> Self {
         Self::configure_theme(&cc.egui_ctx);
+        let titlebar_configured = Self::apply_windows_dark_titlebar();
         cc.egui_ctx
             .send_viewport_cmd(ViewportCommand::Visible(true));
         cc.egui_ctx.send_viewport_cmd(ViewportCommand::Focus);
@@ -63,7 +64,7 @@ impl NixoApp {
             seek_override: None,
             last_seek_dispatch: Instant::now(),
             error_banner: None,
-            titlebar_configured: false,
+            titlebar_configured,
         }
     }
 
@@ -1271,7 +1272,7 @@ impl NixoApp {
 
     /// Customiza a barra de título nativa no Windows 11 para preto puro OLED (#000000) com texto branco.
     #[cfg(target_os = "windows")]
-    fn apply_windows_dark_titlebar() {
+    fn apply_windows_dark_titlebar() -> bool {
         type Hwnd = *mut std::ffi::c_void;
         type Bool = i32;
         type Lparam = isize;
@@ -1279,13 +1280,13 @@ impl NixoApp {
         // SAFETY: Carrega a biblioteca user32.dll padrão do Windows.
         let user32 = match unsafe { libloading::Library::new("user32.dll") } {
             Ok(lib) => lib,
-            Err(_) => return,
+            Err(_) => return false,
         };
 
         // SAFETY: Carrega a biblioteca dwmapi.dll padrão do Windows.
         let dwmapi = match unsafe { libloading::Library::new("dwmapi.dll") } {
             Ok(lib) => lib,
-            Err(_) => return,
+            Err(_) => return false,
         };
 
         // SAFETY: Assinaturas de funções exportadas oficiais da Win32 API.
@@ -1305,10 +1306,8 @@ impl NixoApp {
                 _,
             > = user32.get(b"GetWindowThreadProcessId");
 
-            let is_window_visible: Result<
-                libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Bool>,
-                _,
-            > = user32.get(b"IsWindowVisible");
+            let get_parent: Result<libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Hwnd>, _> =
+                user32.get(b"GetParent");
 
             let set_attrib: Result<
                 libloading::Symbol<
@@ -1317,10 +1316,10 @@ impl NixoApp {
                 _,
             > = dwmapi.get(b"DwmSetWindowAttribute");
 
-            if let (Ok(enum_windows), Ok(get_pid), Ok(is_visible), Ok(set_attrib)) = (
+            if let (Ok(enum_windows), Ok(get_pid), Ok(get_parent), Ok(set_attrib)) = (
                 enum_windows,
                 get_window_thread_process_id,
-                is_window_visible,
+                get_parent,
                 set_attrib,
             ) {
                 let current_pid = std::process::id();
@@ -1328,12 +1327,12 @@ impl NixoApp {
                 unsafe extern "system" fn enum_proc(hwnd: Hwnd, lparam: Lparam) -> Bool {
                     // SAFETY: lparam contém uma referência válida aos ponteiros das funções durante EnumWindows.
                     let ctx = unsafe {
-                        &*(lparam
-                            as *const (
+                        &mut *(lparam
+                            as *mut (
                                 &libloading::Symbol<
                                     unsafe extern "system" fn(Hwnd, *mut u32) -> u32,
                                 >,
-                                &libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Bool>,
+                                &libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Hwnd>,
                                 &libloading::Symbol<
                                     unsafe extern "system" fn(
                                         Hwnd,
@@ -1344,6 +1343,7 @@ impl NixoApp {
                                         -> i32,
                                 >,
                                 u32,
+                                bool,
                             ))
                     };
 
@@ -1353,10 +1353,10 @@ impl NixoApp {
                         (ctx.0)(hwnd, &raw mut proc_id);
                     }
 
-                    // SAFETY: Chama IsWindowVisible com HWND válido.
-                    let visible = unsafe { (ctx.1)(hwnd) != 0 };
+                    // SAFETY: Verifica se é uma janela de nível superior (sem janela pai).
+                    let is_top_level = unsafe { (ctx.1)(hwnd).is_null() };
 
-                    if proc_id == ctx.3 && visible {
+                    if proc_id == ctx.3 && is_top_level {
                         // SAFETY: Aplica os atributos de estilo DWM na janela encontrada.
                         unsafe {
                             // 1. DWMWA_USE_IMMERSIVE_DARK_MODE (20 e 19)
@@ -1393,20 +1393,26 @@ impl NixoApp {
                                 4,
                             );
                         }
+                        ctx.4 = true;
                         return 0; // Para a busca assim que a janela do player for configurada
                     }
                     1 // Continua enumerando
                 }
 
-                let ctx_data = (&get_pid, &is_visible, &set_attrib, current_pid);
+                let mut ctx_data = (&get_pid, &get_parent, &set_attrib, current_pid, false);
                 // SAFETY: Passa o callback enum_proc e o ponteiro de dados de contexto para EnumWindows.
-                let _ = enum_windows(enum_proc, (&raw const ctx_data) as Lparam);
+                let _ = enum_windows(enum_proc, (&raw mut ctx_data) as Lparam);
+                ctx_data.4
+            } else {
+                false
             }
         }
     }
 
     #[cfg(not(target_os = "windows"))]
-    fn apply_windows_dark_titlebar() {}
+    fn apply_windows_dark_titlebar() -> bool {
+        true
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -1423,8 +1429,7 @@ enum ControlIcon {
 impl eframe::App for NixoApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         if !self.titlebar_configured {
-            self.titlebar_configured = true;
-            Self::apply_windows_dark_titlebar();
+            self.titlebar_configured = Self::apply_windows_dark_titlebar();
         }
 
         self.status = self.backend.status();
