@@ -31,6 +31,7 @@ pub struct NixoApp {
     seek_override: Option<(f64, Instant)>,
     last_seek_dispatch: Instant,
     error_banner: Option<String>,
+    titlebar_configured: bool,
 }
 
 impl NixoApp {
@@ -62,6 +63,7 @@ impl NixoApp {
             seek_override: None,
             last_seek_dispatch: Instant::now(),
             error_banner: None,
+            titlebar_configured: false,
         }
     }
 
@@ -122,6 +124,9 @@ impl NixoApp {
     fn toggle_fullscreen(&mut self, ctx: &Context) {
         self.is_fullscreen = !self.is_fullscreen;
         ctx.send_viewport_cmd(ViewportCommand::Fullscreen(self.is_fullscreen));
+        if !self.is_fullscreen {
+            Self::apply_windows_dark_titlebar();
+        }
     }
 
     fn handle_shortcuts_and_drops(&mut self, ctx: &Context) {
@@ -1263,6 +1268,145 @@ impl NixoApp {
             }
         }
     }
+
+    /// Customiza a barra de título nativa no Windows 11 para preto puro OLED (#000000) com texto branco.
+    #[cfg(target_os = "windows")]
+    fn apply_windows_dark_titlebar() {
+        type Hwnd = *mut std::ffi::c_void;
+        type Bool = i32;
+        type Lparam = isize;
+
+        // SAFETY: Carrega a biblioteca user32.dll padrão do Windows.
+        let user32 = match unsafe { libloading::Library::new("user32.dll") } {
+            Ok(lib) => lib,
+            Err(_) => return,
+        };
+
+        // SAFETY: Carrega a biblioteca dwmapi.dll padrão do Windows.
+        let dwmapi = match unsafe { libloading::Library::new("dwmapi.dll") } {
+            Ok(lib) => lib,
+            Err(_) => return,
+        };
+
+        // SAFETY: Assinaturas de funções exportadas oficiais da Win32 API.
+        unsafe {
+            let enum_windows: Result<
+                libloading::Symbol<
+                    unsafe extern "system" fn(
+                        unsafe extern "system" fn(Hwnd, Lparam) -> Bool,
+                        Lparam,
+                    ) -> Bool,
+                >,
+                _,
+            > = user32.get(b"EnumWindows");
+
+            let get_window_thread_process_id: Result<
+                libloading::Symbol<unsafe extern "system" fn(Hwnd, *mut u32) -> u32>,
+                _,
+            > = user32.get(b"GetWindowThreadProcessId");
+
+            let is_window_visible: Result<
+                libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Bool>,
+                _,
+            > = user32.get(b"IsWindowVisible");
+
+            let set_attrib: Result<
+                libloading::Symbol<
+                    unsafe extern "system" fn(Hwnd, u32, *const std::ffi::c_void, u32) -> i32,
+                >,
+                _,
+            > = dwmapi.get(b"DwmSetWindowAttribute");
+
+            if let (Ok(enum_windows), Ok(get_pid), Ok(is_visible), Ok(set_attrib)) = (
+                enum_windows,
+                get_window_thread_process_id,
+                is_window_visible,
+                set_attrib,
+            ) {
+                let current_pid = std::process::id();
+
+                unsafe extern "system" fn enum_proc(hwnd: Hwnd, lparam: Lparam) -> Bool {
+                    // SAFETY: lparam contém uma referência válida aos ponteiros das funções durante EnumWindows.
+                    let ctx = unsafe {
+                        &*(lparam
+                            as *const (
+                                &libloading::Symbol<
+                                    unsafe extern "system" fn(Hwnd, *mut u32) -> u32,
+                                >,
+                                &libloading::Symbol<unsafe extern "system" fn(Hwnd) -> Bool>,
+                                &libloading::Symbol<
+                                    unsafe extern "system" fn(
+                                        Hwnd,
+                                        u32,
+                                        *const std::ffi::c_void,
+                                        u32,
+                                    )
+                                        -> i32,
+                                >,
+                                u32,
+                            ))
+                    };
+
+                    let mut proc_id = 0u32;
+                    // SAFETY: Passa ponteiro válido para receber o process ID da janela.
+                    unsafe {
+                        (ctx.0)(hwnd, &raw mut proc_id);
+                    }
+
+                    // SAFETY: Chama IsWindowVisible com HWND válido.
+                    let visible = unsafe { (ctx.1)(hwnd) != 0 };
+
+                    if proc_id == ctx.3 && visible {
+                        // SAFETY: Aplica os atributos de estilo DWM na janela encontrada.
+                        unsafe {
+                            // 1. DWMWA_USE_IMMERSIVE_DARK_MODE (20 e 19)
+                            let dark: u32 = 1;
+                            let _ =
+                                (ctx.2)(hwnd, 20, (&raw const dark).cast::<std::ffi::c_void>(), 4);
+                            let _ =
+                                (ctx.2)(hwnd, 19, (&raw const dark).cast::<std::ffi::c_void>(), 4);
+
+                            // 2. DWMWA_CAPTION_COLOR (35) = 0x00000000 (Preto Puro OLED #000000)
+                            let black_caption: u32 = 0x00000000;
+                            let _ = (ctx.2)(
+                                hwnd,
+                                35,
+                                (&raw const black_caption).cast::<std::ffi::c_void>(),
+                                4,
+                            );
+
+                            // 3. DWMWA_TEXT_COLOR (36) = 0x00FFFFFF (Branco Puro #FFFFFF)
+                            let white_text: u32 = 0x00FFFFFF;
+                            let _ = (ctx.2)(
+                                hwnd,
+                                36,
+                                (&raw const white_text).cast::<std::ffi::c_void>(),
+                                4,
+                            );
+
+                            // 4. DWMWA_BORDER_COLOR (34) = 0x00000000 (Preto Puro para eliminar bordas cinzas)
+                            let black_border: u32 = 0x00000000;
+                            let _ = (ctx.2)(
+                                hwnd,
+                                34,
+                                (&raw const black_border).cast::<std::ffi::c_void>(),
+                                4,
+                            );
+                        }
+                        return 0; // Para a busca assim que a janela do player for configurada
+                    }
+                    1 // Continua enumerando
+                }
+
+                let ctx_data = (&get_pid, &is_visible, &set_attrib, current_pid);
+                // SAFETY: Passa o callback enum_proc e o ponteiro de dados de contexto para EnumWindows.
+                let _ = enum_windows(enum_proc, (&raw const ctx_data) as Lparam);
+            }
+        }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn apply_windows_dark_titlebar() {}
 }
 
 #[derive(Clone, Copy)]
@@ -1278,6 +1422,11 @@ enum ControlIcon {
 
 impl eframe::App for NixoApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+        if !self.titlebar_configured {
+            self.titlebar_configured = true;
+            Self::apply_windows_dark_titlebar();
+        }
+
         self.status = self.backend.status();
         self.handle_shortcuts_and_drops(ctx);
 

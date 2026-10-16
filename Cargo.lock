@@ -1690,6 +1690,7 @@ dependencies = [
  "eframe",
  "egui",
  "image",
+ "libloading",
  "nixo-core",
  "nixo-engine",
  "rfd",
