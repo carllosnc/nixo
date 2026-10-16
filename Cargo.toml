@@ -1,0 +1,24 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nixo-core",
+    "crates/nixo-engine",
+    "crates/nixo-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Nixo Contributors"]
+
+[workspace.dependencies]
+nixo-core = { path = "crates/nixo-core" }
+nixo-engine = { path = "crates/nixo-engine" }
+eframe = { version = "0.31", default-features = false, features = ["wgpu", "default_fonts", "x11", "wayland"] }
+egui = "0.31"
+rfd = "0.15"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "2.0"
+libloading = "0.8"
