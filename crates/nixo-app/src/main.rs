@@ -1,6 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod app;
+mod flags;
+mod icons;
+mod input;
+mod osd;
+mod popovers;
+mod settings;
+mod theme;
+mod widgets;
 
 use std::path::PathBuf;
 
