@@ -108,24 +108,27 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
         f32::INFINITY,
     );
 
-    let btn_size = vec2(24.0, 22.0);
+    let btn_size = vec2(32.0, 28.0);
     let right_edge = rect.right() - st.row_padding_x;
 
     let plus_rect = Rect::from_center_size(Pos2::new(right_edge - btn_size.x * 0.5, cy), btn_size);
-    let val_w = 48.0;
+    let val_w = 64.0;
     let val_rect = Rect::from_center_size(
-        Pos2::new(plus_rect.left() - 4.0 - val_w * 0.5, cy),
+        Pos2::new(plus_rect.left() - 5.0 - val_w * 0.5, cy),
         vec2(val_w, btn_size.y),
     );
     let minus_rect = Rect::from_center_size(
-        Pos2::new(val_rect.left() - 4.0 - btn_size.x * 0.5, cy),
+        Pos2::new(val_rect.left() - 5.0 - btn_size.x * 0.5, cy),
         btn_size,
     );
 
     let mut new_delay = None;
 
     // Botão Menos [-]
-    let minus_resp = ui.allocate_rect(minus_rect, Sense::click());
+    let minus_resp = ui
+        .allocate_rect(minus_rect, Sense::click())
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text("Atrasar (-0.1s)");
     let minus_hover = minus_resp.hovered();
     let minus_bg = if minus_resp.is_pointer_button_down_on() {
         st.button_fill_active
@@ -143,17 +146,20 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     );
     ui.painter().line_segment(
         [
-            Pos2::new(minus_rect.center().x - 4.0, cy),
-            Pos2::new(minus_rect.center().x + 4.0, cy),
+            Pos2::new(minus_rect.center().x - 5.5, cy),
+            Pos2::new(minus_rect.center().x + 5.5, cy),
         ],
-        Stroke::new(1.4_f32, hover_color(minus_hover, st.text_option)),
+        Stroke::new(1.8_f32, hover_color(minus_hover, st.text_option)),
     );
     if minus_resp.clicked() {
         new_delay = Some(((current_delay - 0.1) * 10.0).round() / 10.0);
     }
 
     // Badge de Valor (clique reseta para 0.0s)
-    let val_resp = ui.allocate_rect(val_rect, Sense::click());
+    let val_resp = ui
+        .allocate_rect(val_rect, Sense::click())
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text("Clique para redefinir para 0.0s");
     let val_hover = val_resp.hovered();
     let val_text = if current_delay.abs() < 0.01 {
         "0.0s".to_string()
@@ -175,7 +181,7 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     paint_text(
         ui,
         &val_text,
-        st.font_value.clone(),
+        egui::FontId::proportional(13.5),
         hover_color(val_hover, st.text_hover),
         val_rect.center(),
         Align2::CENTER_CENTER,
@@ -186,7 +192,10 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     }
 
     // Botão Mais [+]
-    let plus_resp = ui.allocate_rect(plus_rect, Sense::click());
+    let plus_resp = ui
+        .allocate_rect(plus_rect, Sense::click())
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text("Adiantar (+0.1s)");
     let plus_hover = plus_resp.hovered();
     let plus_bg = if plus_resp.is_pointer_button_down_on() {
         st.button_fill_active
@@ -204,12 +213,12 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     );
     let px = plus_rect.center().x;
     ui.painter().line_segment(
-        [Pos2::new(px - 4.0, cy), Pos2::new(px + 4.0, cy)],
-        Stroke::new(1.4_f32, hover_color(plus_hover, st.text_option)),
+        [Pos2::new(px - 5.5, cy), Pos2::new(px + 5.5, cy)],
+        Stroke::new(1.8_f32, hover_color(plus_hover, st.text_option)),
     );
     ui.painter().line_segment(
-        [Pos2::new(px, cy - 4.0), Pos2::new(px, cy + 4.0)],
-        Stroke::new(1.4_f32, hover_color(plus_hover, st.text_option)),
+        [Pos2::new(px, cy - 5.5), Pos2::new(px, cy + 5.5)],
+        Stroke::new(1.8_f32, hover_color(plus_hover, st.text_option)),
     );
     if plus_resp.clicked() {
         new_delay = Some(((current_delay + 0.1) * 10.0).round() / 10.0);
