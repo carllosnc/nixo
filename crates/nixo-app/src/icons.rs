@@ -94,9 +94,7 @@ impl NixoApp {
                     );
                 }
                 ControlIcon::Subtitles { active } => {
-                    // Ícone de Legendas com tela e linhas de diálogo alternadas
-                    // Quando ativo: todo verde (ACCENT_COLOR)
-                    // Quando inativo: cinza neutro (branco no hover)
+                    // Ícone de Legendas proporcional e equilibrado
                     let icon_color = if active {
                         ACCENT_COLOR
                     } else if hovered || pressed {
@@ -105,11 +103,10 @@ impl NixoApp {
                         Color32::from_gray(185)
                     };
 
-                    let badge_center = Pos2::new(c.x, c.y);
-                    let badge_rect = Rect::from_center_size(badge_center, vec2(22.5, 16.0));
+                    let badge_rect = Rect::from_center_size(c, vec2(18.5, 13.5));
                     let stroke = Stroke::new(1.85_f32, icon_color);
 
-                    // Contorno da tela/monitor com cantos arredondados
+                    // Contorno da tela de exibição
                     painter.rect_stroke(
                         badge_rect,
                         CornerRadius::same(2),
@@ -117,56 +114,45 @@ impl NixoApp {
                         egui::StrokeKind::Inside,
                     );
 
-                    // Linhas de legendas na parte inferior da tela (diálogo falado)
-                    let line_stroke = Stroke::new(1.8_f32, icon_color);
-                    let y1 = badge_center.y + 1.2;
-                    let y2 = badge_center.y + 4.8;
+                    // Linhas de texto de diálogo na base
+                    let line_stroke = Stroke::new(1.6_f32, icon_color);
+                    let y1 = c.y + 0.8;
+                    let y2 = c.y + 3.8;
 
                     // Linha 1: traço curto à esquerda + traço longo à direita
                     painter.line_segment(
-                        [
-                            Pos2::new(badge_center.x - 6.6, y1),
-                            Pos2::new(badge_center.x - 3.0, y1),
-                        ],
+                        [Pos2::new(c.x - 5.2, y1), Pos2::new(c.x - 2.0, y1)],
                         line_stroke,
                     );
                     painter.line_segment(
-                        [
-                            Pos2::new(badge_center.x + 0.6, y1),
-                            Pos2::new(badge_center.x + 6.6, y1),
-                        ],
+                        [Pos2::new(c.x + 0.8, y1), Pos2::new(c.x + 5.2, y1)],
                         line_stroke,
                     );
 
                     // Linha 2: traço longo à esquerda + traço curto à direita
                     painter.line_segment(
-                        [
-                            Pos2::new(badge_center.x - 6.6, y2),
-                            Pos2::new(badge_center.x - 0.6, y2),
-                        ],
+                        [Pos2::new(c.x - 5.2, y2), Pos2::new(c.x + 0.2, y2)],
                         line_stroke,
                     );
                     painter.line_segment(
-                        [
-                            Pos2::new(badge_center.x + 3.0, y2),
-                            Pos2::new(badge_center.x + 6.6, y2),
-                        ],
+                        [Pos2::new(c.x + 2.8, y2), Pos2::new(c.x + 5.2, y2)],
                         line_stroke,
                     );
                 }
                 ControlIcon::SettingsGear => {
-                    // Ícone de engrenagem estilo YouTube ampliado
-                    let r_outer = 8.5;
-                    let r_inner = 3.8;
-                    let stroke = Stroke::new(2.2_f32, fg);
+                    // Ícone de engrenagem estilo YouTube proporcional e arejado
+                    let r_outer = 8.8;
+                    let r_inner = 4.2;
+                    let stroke = Stroke::new(1.85_f32, fg);
                     painter.circle_stroke(c, r_inner, stroke);
-                    // Dentes da engrenagem (6 eixos com dentes bem definidos)
-                    let teeth_stroke = Stroke::new(3.2_f32, fg);
+
+                    // Dentes da engrenagem distribuídos simetricamente
+                    let teeth_stroke = Stroke::new(2.6_f32, fg);
                     for i in 0..6 {
                         let angle = (i as f32) * std::f32::consts::PI / 3.0;
                         let p1 = Pos2::new(
-                            c.x + (r_inner + 0.8) * angle.cos(),
-                            c.y + (r_inner + 0.8) * angle.sin(),
+                            c.x + (r_inner + 1.0) * angle.cos(),
+                            c.y + (r_inner + 1.0) * angle.sin(),
                         );
                         let p2 =
                             Pos2::new(c.x + r_outer * angle.cos(), c.y + r_outer * angle.sin());
@@ -235,46 +221,46 @@ impl NixoApp {
                     }
                 }
                 ControlIcon::OpenFile => {
-                    // Ícone de pasta vetorial ampliado
-                    let stroke = Stroke::new(2.2_f32, fg);
-                    let body = Rect::from_min_max(
-                        Pos2::new(c.x - 9.6, c.y - 5.0),
-                        Pos2::new(c.x + 9.6, c.y + 7.8),
+                    // Ícone de pasta vetorial estilo SF Symbols / Lucide (silhueta contínua elegante)
+                    let stroke = Stroke::new(1.85_f32, fg);
+                    let x0 = c.x - 8.5;
+                    let x1 = c.x + 8.5;
+                    let y_tab = c.y - 6.2;
+                    let y_top = c.y - 3.4;
+                    let y_bot = c.y + 6.2;
+                    let tab_w = 5.5;
+
+                    // Contorno contínuo da pasta com aba superior integrada e cantos chanfrados suaves
+                    let folder_pts = vec![
+                        Pos2::new(x0 + 1.6, y_tab),
+                        Pos2::new(x0 + tab_w, y_tab),
+                        Pos2::new(x0 + tab_w + 2.0, y_top),
+                        Pos2::new(x1 - 1.6, y_top),
+                        Pos2::new(x1, y_top + 1.6),
+                        Pos2::new(x1, y_bot - 1.6),
+                        Pos2::new(x1 - 1.6, y_bot),
+                        Pos2::new(x0 + 1.6, y_bot),
+                        Pos2::new(x0, y_bot - 1.6),
+                        Pos2::new(x0, y_tab + 1.6),
+                    ];
+                    painter.add(egui::Shape::closed_line(folder_pts, stroke));
+
+                    // Vinco sutil do bolso frontal para dar profundidade estética
+                    let fold_y = c.y + 0.8;
+                    let pocket_stroke = Stroke::new(
+                        1.3_f32,
+                        Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 170),
                     );
-                    painter.rect_stroke(
-                        body,
-                        CornerRadius::same(2),
-                        stroke,
-                        egui::StrokeKind::Inside,
-                    );
-                    // Aba superior esquerda da pasta
                     painter.line_segment(
-                        [
-                            Pos2::new(c.x - 9.0, c.y - 5.0),
-                            Pos2::new(c.x - 7.8, c.y - 7.8),
-                        ],
-                        stroke,
-                    );
-                    painter.line_segment(
-                        [
-                            Pos2::new(c.x - 7.8, c.y - 7.8),
-                            Pos2::new(c.x - 1.8, c.y - 7.8),
-                        ],
-                        stroke,
-                    );
-                    painter.line_segment(
-                        [
-                            Pos2::new(c.x - 1.8, c.y - 7.8),
-                            Pos2::new(c.x - 0.4, c.y - 5.0),
-                        ],
-                        stroke,
+                        [Pos2::new(x0 + 1.0, fold_y), Pos2::new(x1 - 1.0, fold_y)],
+                        pocket_stroke,
                     );
                 }
                 ControlIcon::Fullscreen { is_fullscreen } => {
-                    // Cantoneiras estilo YouTube (4 cantos em L) ampliadas
+                    // Cantoneiras estilo YouTube (4 cantos em L) leves e proporcionais
                     let r = 8.5;
-                    let arm = 5.4;
-                    let stroke = Stroke::new(2.2_f32, fg);
+                    let arm = 5.0;
+                    let stroke = Stroke::new(1.85_f32, fg);
 
                     if !is_fullscreen {
                         // Apontando para fora (Expandir)
@@ -340,19 +326,19 @@ impl NixoApp {
                         );
                     } else {
                         // Apontando para dentro (Sair da Tela Cheia)
-                        let inner = r - arm + 1.2;
+                        let inner = r - arm + 1.0;
                         // Sup-Esq
                         painter.line_segment(
                             [
                                 Pos2::new(c.x - inner, c.y - inner),
-                                Pos2::new(c.x - r - 0.5, c.y - inner),
+                                Pos2::new(c.x - r, c.y - inner),
                             ],
                             stroke,
                         );
                         painter.line_segment(
                             [
                                 Pos2::new(c.x - inner, c.y - inner),
-                                Pos2::new(c.x - inner, c.y - r - 0.5),
+                                Pos2::new(c.x - inner, c.y - r),
                             ],
                             stroke,
                         );
@@ -360,14 +346,14 @@ impl NixoApp {
                         painter.line_segment(
                             [
                                 Pos2::new(c.x + inner, c.y - inner),
-                                Pos2::new(c.x + r + 0.5, c.y - inner),
+                                Pos2::new(c.x + r, c.y - inner),
                             ],
                             stroke,
                         );
                         painter.line_segment(
                             [
                                 Pos2::new(c.x + inner, c.y - inner),
-                                Pos2::new(c.x + inner, c.y - r - 0.5),
+                                Pos2::new(c.x + inner, c.y - r),
                             ],
                             stroke,
                         );
@@ -375,14 +361,14 @@ impl NixoApp {
                         painter.line_segment(
                             [
                                 Pos2::new(c.x - inner, c.y + inner),
-                                Pos2::new(c.x - r - 0.5, c.y + inner),
+                                Pos2::new(c.x - r, c.y + inner),
                             ],
                             stroke,
                         );
                         painter.line_segment(
                             [
                                 Pos2::new(c.x - inner, c.y + inner),
-                                Pos2::new(c.x - inner, c.y + r + 0.5),
+                                Pos2::new(c.x - inner, c.y + r),
                             ],
                             stroke,
                         );
@@ -390,14 +376,14 @@ impl NixoApp {
                         painter.line_segment(
                             [
                                 Pos2::new(c.x + inner, c.y + inner),
-                                Pos2::new(c.x + r + 0.5, c.y + inner),
+                                Pos2::new(c.x + r, c.y + inner),
                             ],
                             stroke,
                         );
                         painter.line_segment(
                             [
                                 Pos2::new(c.x + inner, c.y + inner),
-                                Pos2::new(c.x + inner, c.y + r + 0.5),
+                                Pos2::new(c.x + inner, c.y + r),
                             ],
                             stroke,
                         );
@@ -405,24 +391,60 @@ impl NixoApp {
                 }
                 ControlIcon::AspectFit { active } => {
                     let icon_color = if active { ACCENT_COLOR } else { fg };
-                    let stroke = Stroke::new(1.8_f32, icon_color);
+                    let stroke = Stroke::new(1.85_f32, icon_color);
 
-                    let frame = Rect::from_center_size(c, vec2(18.0, 11.5));
+                    let frame = Rect::from_center_size(c, vec2(18.0, 13.5));
                     painter.rect_stroke(frame, CornerRadius::same(2), stroke, StrokeKind::Inside);
 
                     if active {
-                        let inner = frame.shrink(2.5);
+                        // Preenchimento translúcido com brilho verde Nixo
+                        let inner = frame.shrink(2.0);
                         painter.rect_filled(
                             inner,
                             CornerRadius::same(1),
-                            Color32::from_rgba_unmultiplied(47, 229, 11, 55),
+                            Color32::from_rgba_unmultiplied(47, 229, 11, 40),
+                        );
+                        // Setas duplas de expansão horizontal (indicando eliminação de barras pretas)
+                        let arrow_stroke = Stroke::new(1.6_f32, ACCENT_COLOR);
+                        let y = c.y;
+                        painter.line_segment(
+                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x + 4.5, y)],
+                            arrow_stroke,
                         );
                         painter.line_segment(
-                            [Pos2::new(c.x - 3.5, c.y), Pos2::new(c.x + 3.5, c.y)],
-                            stroke,
+                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x - 2.5, y - 2.0)],
+                            arrow_stroke,
+                        );
+                        painter.line_segment(
+                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x - 2.5, y + 2.0)],
+                            arrow_stroke,
+                        );
+                        painter.line_segment(
+                            [Pos2::new(c.x + 4.5, y), Pos2::new(c.x + 2.5, y - 2.0)],
+                            arrow_stroke,
+                        );
+                        painter.line_segment(
+                            [Pos2::new(c.x + 4.5, y), Pos2::new(c.x + 2.5, y + 2.0)],
+                            arrow_stroke,
                         );
                     } else {
-                        painter.circle_filled(c, 1.2, Color32::from_gray(140));
+                        // Barras sutis de proporção (letterbox/pillarbox) indicando proporção solta
+                        let bar_color = Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 90);
+                        let bar_stroke = Stroke::new(1.3_f32, bar_color);
+                        painter.line_segment(
+                            [
+                                Pos2::new(c.x - 4.5, c.y - 4.2),
+                                Pos2::new(c.x - 4.5, c.y + 4.2),
+                            ],
+                            bar_stroke,
+                        );
+                        painter.line_segment(
+                            [
+                                Pos2::new(c.x + 4.5, c.y - 4.2),
+                                Pos2::new(c.x + 4.5, c.y + 4.2),
+                            ],
+                            bar_stroke,
+                        );
                     }
                 }
             }
