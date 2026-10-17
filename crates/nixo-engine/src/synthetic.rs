@@ -2,7 +2,8 @@ use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use nixo_core::{
-    MediaBackend, MediaMetadata, NixoError, PlaybackState, PlayerCommand, PlayerStatus, VideoFrame,
+    MediaBackend, MediaMetadata, NixoError, PlaybackState, PlayerCommand, PlayerStatus,
+    SubtitleStyle, TrackInfo, VideoFrame,
 };
 
 /// Motor sintético de fallback (Padrão de Teste 60 FPS) usado quando a biblioteca dinâmica
@@ -19,6 +20,10 @@ pub struct SyntheticBackend {
     last_tick: Instant,
     frame_counter: u64,
     dirty_frame: bool,
+    audio_tracks: Vec<TrackInfo>,
+    subtitle_tracks: Vec<TrackInfo>,
+    subtitles_visible: bool,
+    subtitle_style: SubtitleStyle,
 }
 
 impl Default for SyntheticBackend {
@@ -40,6 +45,36 @@ impl SyntheticBackend {
             last_tick: Instant::now(),
             frame_counter: 0,
             dirty_frame: false,
+            audio_tracks: vec![
+                TrackInfo {
+                    id: 1,
+                    title: Some("Português (Original)".to_string()),
+                    lang: Some("por".to_string()),
+                    selected: true,
+                },
+                TrackInfo {
+                    id: 2,
+                    title: Some("English (Stereo)".to_string()),
+                    lang: Some("eng".to_string()),
+                    selected: false,
+                },
+            ],
+            subtitle_tracks: vec![
+                TrackInfo {
+                    id: 1,
+                    title: Some("Português [SRT]".to_string()),
+                    lang: Some("por".to_string()),
+                    selected: false,
+                },
+                TrackInfo {
+                    id: 2,
+                    title: Some("English [CC]".to_string()),
+                    lang: Some("eng".to_string()),
+                    selected: false,
+                },
+            ],
+            subtitles_visible: true,
+            subtitle_style: SubtitleStyle::default(),
         }
     }
 
@@ -141,6 +176,84 @@ impl MediaBackend for SyntheticBackend {
             PlayerCommand::SetSpeed(speed) => {
                 self.speed = speed.clamp(0.25, 4.0);
             }
+            PlayerCommand::SetAudioTrack(id) => {
+                for track in &mut self.audio_tracks {
+                    track.selected = Some(track.id) == id;
+                }
+            }
+            PlayerCommand::SetSubtitleTrack(id) => {
+                for track in &mut self.subtitle_tracks {
+                    track.selected = Some(track.id) == id;
+                }
+                if id.is_some() {
+                    self.subtitles_visible = true;
+                }
+            }
+            PlayerCommand::ToggleSubtitleVisibility => {
+                self.subtitles_visible = !self.subtitles_visible;
+            }
+            PlayerCommand::CycleAudioTrack => {
+                if !self.audio_tracks.is_empty() {
+                    let current_idx = self.audio_tracks.iter().position(|t| t.selected);
+                    let next_idx = match current_idx {
+                        Some(idx) => (idx + 1) % self.audio_tracks.len(),
+                        None => 0,
+                    };
+                    for (i, track) in self.audio_tracks.iter_mut().enumerate() {
+                        track.selected = i == next_idx;
+                    }
+                }
+            }
+            PlayerCommand::CycleSubtitleTrack => {
+                // Ciclo: Desativado -> Faixa 1 -> Faixa 2 -> ... -> Desativado
+                let current_idx = self
+                    .subtitle_tracks
+                    .iter()
+                    .position(|t| t.selected && self.subtitles_visible);
+                match current_idx {
+                    Some(idx) => {
+                        if idx + 1 < self.subtitle_tracks.len() {
+                            for (i, track) in self.subtitle_tracks.iter_mut().enumerate() {
+                                track.selected = i == idx + 1;
+                            }
+                            self.subtitles_visible = true;
+                        } else {
+                            for track in &mut self.subtitle_tracks {
+                                track.selected = false;
+                            }
+                            self.subtitles_visible = false;
+                        }
+                    }
+                    None => {
+                        if !self.subtitle_tracks.is_empty() {
+                            for (i, track) in self.subtitle_tracks.iter_mut().enumerate() {
+                                track.selected = i == 0;
+                            }
+                            self.subtitles_visible = true;
+                        }
+                    }
+                }
+            }
+            PlayerCommand::LoadSubtitleFile(path) => {
+                let name = path
+                    .file_name()
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| "Legenda Externa".to_string());
+                let next_id = (self.subtitle_tracks.len() as i64) + 1;
+                for track in &mut self.subtitle_tracks {
+                    track.selected = false;
+                }
+                self.subtitle_tracks.push(TrackInfo {
+                    id: next_id,
+                    title: Some(name),
+                    lang: Some("ext".to_string()),
+                    selected: true,
+                });
+                self.subtitles_visible = true;
+            }
+            PlayerCommand::SetSubtitleStyle(style) => {
+                self.subtitle_style = style.sanitized();
+            }
         }
         Ok(())
     }
@@ -156,6 +269,11 @@ impl MediaBackend for SyntheticBackend {
             speed: self.speed,
             metadata: self.metadata.clone(),
             backend_name: self.name(),
+            audio_tracks: self.audio_tracks.clone(),
+            subtitle_tracks: self.subtitle_tracks.clone(),
+            subtitles_visible: self.subtitles_visible,
+            subtitle_style: self.subtitle_style.clone(),
+            subtitle_health: nixo_core::SubtitleHealth::Ok,
         }
     }
 

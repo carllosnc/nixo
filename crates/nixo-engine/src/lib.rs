@@ -46,4 +46,51 @@ mod tests {
         assert_eq!(frame.width, 640);
         assert_eq!(frame.height, 360);
     }
+
+    #[test]
+    fn test_synthetic_audio_and_subtitles() {
+        let mut backend = SyntheticBackend::new();
+        let status = backend.status();
+        assert_eq!(status.audio_tracks.len(), 2);
+        assert_eq!(status.subtitle_tracks.len(), 2);
+
+        // Faixa de áudio: alternar para id 2
+        backend
+            .execute(PlayerCommand::SetAudioTrack(Some(2)))
+            .unwrap();
+        assert!(backend.status().audio_tracks[1].selected);
+        assert!(!backend.status().audio_tracks[0].selected);
+
+        // Desativar áudio
+        backend.execute(PlayerCommand::SetAudioTrack(None)).unwrap();
+        assert!(!backend.status().audio_tracks.iter().any(|t| t.selected));
+
+        // Legendas: selecionar id 1
+        backend
+            .execute(PlayerCommand::SetSubtitleTrack(Some(1)))
+            .unwrap();
+        assert!(backend.status().subtitle_tracks[0].selected);
+        assert!(backend.status().subtitles_visible);
+
+        // Visibilidade de legenda
+        backend
+            .execute(PlayerCommand::ToggleSubtitleVisibility)
+            .unwrap();
+        assert!(!backend.status().subtitles_visible);
+
+        // Carregar legenda externa
+        backend
+            .execute(PlayerCommand::LoadSubtitleFile(std::path::PathBuf::from(
+                "pt_br_externa.srt",
+            )))
+            .unwrap();
+        let new_status = backend.status();
+        assert_eq!(new_status.subtitle_tracks.len(), 3);
+        assert!(new_status.subtitle_tracks[2].selected);
+        assert_eq!(
+            new_status.subtitle_tracks[2].title.as_deref(),
+            Some("pt_br_externa.srt")
+        );
+        assert!(new_status.subtitles_visible);
+    }
 }
