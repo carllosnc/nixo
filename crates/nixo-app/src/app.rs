@@ -38,10 +38,6 @@ pub struct NixoApp {
 impl NixoApp {
     pub fn new(cc: &eframe::CreationContext<'_>, initial_file: Option<PathBuf>) -> Self {
         Self::configure_theme(&cc.egui_ctx);
-        Self::apply_windows_dark_titlebar();
-        cc.egui_ctx
-            .send_viewport_cmd(ViewportCommand::Visible(true));
-        cc.egui_ctx.send_viewport_cmd(ViewportCommand::Focus);
 
         let mut backend = nixo_engine::create_default_backend();
         if let Some(path) = initial_file
@@ -1276,26 +1272,12 @@ impl NixoApp {
     fn apply_windows_dark_titlebar() -> bool {
         type Hwnd = *mut std::ffi::c_void;
         type Bool = i32;
-        type Lparam = isize;
-        type FnEnumWindows = unsafe extern "system" fn(
-            unsafe extern "system" fn(Hwnd, Lparam) -> Bool,
-            Lparam,
-        ) -> Bool;
+        type FnFindWindow = unsafe extern "system" fn(*const u16, *const u16) -> Hwnd;
         type FnGetWindowThreadProcessId = unsafe extern "system" fn(Hwnd, *mut u32) -> u32;
-        type FnGetParent = unsafe extern "system" fn(Hwnd) -> Hwnd;
         type FnSetWindowPos =
             unsafe extern "system" fn(Hwnd, Hwnd, i32, i32, i32, i32, u32) -> Bool;
         type FnDwmSetWindowAttribute =
             unsafe extern "system" fn(Hwnd, u32, *const std::ffi::c_void, u32) -> i32;
-
-        struct Win32Context<'a> {
-            get_pid: &'a libloading::Symbol<'a, FnGetWindowThreadProcessId>,
-            get_parent: &'a libloading::Symbol<'a, FnGetParent>,
-            set_attrib: &'a libloading::Symbol<'a, FnDwmSetWindowAttribute>,
-            set_window_pos: &'a libloading::Symbol<'a, FnSetWindowPos>,
-            target_pid: u32,
-            found: bool,
-        }
 
         // SAFETY: Carrega a biblioteca user32.dll padrão do Windows.
         let user32 = match unsafe { libloading::Library::new("user32.dll") } {
@@ -1311,128 +1293,84 @@ impl NixoApp {
 
         // SAFETY: Assinaturas de funções exportadas oficiais da Win32 API.
         unsafe {
-            let enum_windows: Result<libloading::Symbol<FnEnumWindows>, _> =
-                user32.get(b"EnumWindows");
+            let find_window: Result<libloading::Symbol<FnFindWindow>, _> =
+                user32.get(b"FindWindowW");
             let get_window_thread_process_id: Result<
                 libloading::Symbol<FnGetWindowThreadProcessId>,
                 _,
             > = user32.get(b"GetWindowThreadProcessId");
-            let get_parent: Result<libloading::Symbol<FnGetParent>, _> = user32.get(b"GetParent");
             let set_window_pos: Result<libloading::Symbol<FnSetWindowPos>, _> =
                 user32.get(b"SetWindowPos");
             let set_attrib: Result<libloading::Symbol<FnDwmSetWindowAttribute>, _> =
                 dwmapi.get(b"DwmSetWindowAttribute");
 
-            if let (
-                Ok(enum_windows),
-                Ok(get_pid),
-                Ok(get_parent),
-                Ok(set_window_pos),
-                Ok(set_attrib),
-            ) = (
-                enum_windows,
+            if let (Ok(find_window), Ok(get_pid), Ok(set_window_pos), Ok(set_attrib)) = (
+                find_window,
                 get_window_thread_process_id,
-                get_parent,
                 set_window_pos,
                 set_attrib,
             ) {
-                let current_pid = std::process::id();
-
-                unsafe extern "system" fn enum_proc(hwnd: Hwnd, lparam: Lparam) -> Bool {
-                    // SAFETY: lparam contém uma referência válida a Win32Context durante EnumWindows.
-                    let ctx = unsafe { &mut *(lparam as *mut Win32Context<'_>) };
-
-                    let mut proc_id = 0u32;
-                    // SAFETY: Passa ponteiro válido para receber o process ID da janela.
-                    unsafe {
-                        (ctx.get_pid)(hwnd, &raw mut proc_id);
-                    }
-
-                    // SAFETY: Verifica se é uma janela de nível superior (sem janela pai).
-                    let is_top_level = unsafe { (ctx.get_parent)(hwnd).is_null() };
-
-                    if proc_id == ctx.target_pid && is_top_level {
-                        // SAFETY: Aplica os atributos de estilo DWM na janela encontrada e força o redesenho imediato do frame com SetWindowPos.
-                        unsafe {
-                            // 1. DWMWA_USE_IMMERSIVE_DARK_MODE (20 e 19)
-                            let dark: u32 = 1;
-                            let _ = (ctx.set_attrib)(
-                                hwnd,
-                                20,
-                                (&raw const dark).cast::<std::ffi::c_void>(),
-                                4,
-                            );
-                            let _ = (ctx.set_attrib)(
-                                hwnd,
-                                19,
-                                (&raw const dark).cast::<std::ffi::c_void>(),
-                                4,
-                            );
-
-                            // 2. DWMWA_CAPTION_COLOR (35) = 0x00000000 (Preto Puro OLED #000000)
-                            let black_caption: u32 = 0x00000000;
-                            let _ = (ctx.set_attrib)(
-                                hwnd,
-                                35,
-                                (&raw const black_caption).cast::<std::ffi::c_void>(),
-                                4,
-                            );
-
-                            // 3. DWMWA_TEXT_COLOR (36) = 0x00FFFFFF (Branco Puro #FFFFFF)
-                            let white_text: u32 = 0x00FFFFFF;
-                            let _ = (ctx.set_attrib)(
-                                hwnd,
-                                36,
-                                (&raw const white_text).cast::<std::ffi::c_void>(),
-                                4,
-                            );
-
-                            // 4. DWMWA_BORDER_COLOR (34) = 0x00000000 (Preto Puro para eliminar bordas cinzas)
-                            let black_border: u32 = 0x00000000;
-                            let _ = (ctx.set_attrib)(
-                                hwnd,
-                                34,
-                                (&raw const black_border).cast::<std::ffi::c_void>(),
-                                4,
-                            );
-
-                            // 5. Força o DWM e o Windows a redesenharem a moldura/barra de título imediatamente (SWP_FRAMECHANGED)
-                            const SWP_FRAMECHANGED: u32 = 0x0020;
-                            const SWP_NOMOVE: u32 = 0x0002;
-                            const SWP_NOSIZE: u32 = 0x0001;
-                            const SWP_NOZORDER: u32 = 0x0004;
-                            const SWP_NOACTIVATE: u32 = 0x0010;
-                            let _ = (ctx.set_window_pos)(
-                                hwnd,
-                                ptr::null_mut(),
-                                0,
-                                0,
-                                0,
-                                0,
-                                SWP_FRAMECHANGED
-                                    | SWP_NOMOVE
-                                    | SWP_NOSIZE
-                                    | SWP_NOZORDER
-                                    | SWP_NOACTIVATE,
-                            );
-                        }
-                        ctx.found = true;
-                        return 0; // Para a busca assim que a janela do player for configurada
-                    }
-                    1 // Continua enumerando
+                let title: Vec<u16> = "Nixo Media Player\0".encode_utf16().collect();
+                let hwnd = find_window(ptr::null(), title.as_ptr());
+                if hwnd.is_null() {
+                    return false;
                 }
 
-                let mut ctx_data = Win32Context {
-                    get_pid: &get_pid,
-                    get_parent: &get_parent,
-                    set_attrib: &set_attrib,
-                    set_window_pos: &set_window_pos,
-                    target_pid: current_pid,
-                    found: false,
-                };
-                // SAFETY: Passa o callback enum_proc e o ponteiro de dados de contexto para EnumWindows.
-                let _ = enum_windows(enum_proc, (&raw mut ctx_data) as Lparam);
-                ctx_data.found
+                let mut proc_id = 0u32;
+                get_pid(hwnd, &raw mut proc_id);
+                if proc_id != std::process::id() {
+                    return false;
+                }
+
+                // 1. DWMWA_USE_IMMERSIVE_DARK_MODE (20 e 19)
+                let dark: u32 = 1;
+                let _ = set_attrib(hwnd, 20, (&raw const dark).cast::<std::ffi::c_void>(), 4);
+                let _ = set_attrib(hwnd, 19, (&raw const dark).cast::<std::ffi::c_void>(), 4);
+
+                // 2. DWMWA_CAPTION_COLOR (35) = 0x00000000 (Preto Puro OLED #000000)
+                let black_caption: u32 = 0x00000000;
+                let _ = set_attrib(
+                    hwnd,
+                    35,
+                    (&raw const black_caption).cast::<std::ffi::c_void>(),
+                    4,
+                );
+
+                // 3. DWMWA_TEXT_COLOR (36) = 0x00FFFFFF (Branco Puro #FFFFFF)
+                let white_text: u32 = 0x00FFFFFF;
+                let _ = set_attrib(
+                    hwnd,
+                    36,
+                    (&raw const white_text).cast::<std::ffi::c_void>(),
+                    4,
+                );
+
+                // 4. DWMWA_BORDER_COLOR (34) = 0x00000000 (Preto Puro para eliminar bordas cinzas)
+                let black_border: u32 = 0x00000000;
+                let _ = set_attrib(
+                    hwnd,
+                    34,
+                    (&raw const black_border).cast::<std::ffi::c_void>(),
+                    4,
+                );
+
+                // 5. Força o DWM e o Windows a redesenharem a moldura/barra de título imediatamente (SWP_FRAMECHANGED)
+                const SWP_FRAMECHANGED: u32 = 0x0020;
+                const SWP_NOMOVE: u32 = 0x0002;
+                const SWP_NOSIZE: u32 = 0x0001;
+                const SWP_NOZORDER: u32 = 0x0004;
+                const SWP_NOACTIVATE: u32 = 0x0010;
+                let _ = set_window_pos(
+                    hwnd,
+                    ptr::null_mut(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+                );
+
+                true
             } else {
                 false
             }
