@@ -265,6 +265,7 @@ pub(crate) fn choice_list<'a, T>(
     let mut picked = None;
     for choice in choices {
         let option = MenuOption::new(&choice.label)
+            .radio(true)
             .selected(choice.selected)
             .icon(choice.icon)
             .font(choice.font);

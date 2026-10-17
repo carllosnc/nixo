@@ -140,10 +140,10 @@ impl MenuStyle {
             row_hover_fill: Color32::from_rgb(34, 34, 40),
             row_selected_fill: Color32::from_rgb(22, 22, 27),
             row_padding_x: 14.0,
-            option_height: 37.0,
+            option_height: 38.0,
             nav_height: 38.0,
-            header_height: 34.0,
-            section_title_height: 26.0,
+            header_height: 38.0,
+            section_title_height: 28.0,
 
             text_hover: Color32::WHITE,
             text_option: Color32::from_rgb(195, 195, 202),
@@ -197,9 +197,9 @@ impl MenuStyle {
             icon_swatch_ring: Stroke::new(1.2_f32, Color32::from_rgb(90, 90, 102)),
             font_icon_glyph: font_bold(12.5),
 
-            divider_height: 9.0,
+            divider_height: 11.0,
             divider_inset: 4.0,
-            divider_stroke: Stroke::new(1.0_f32, Color32::from_rgb(48, 48, 54)),
+            divider_stroke: Stroke::new(1.0_f32, Color32::from_rgb(52, 52, 60)),
 
             warning_fill: Color32::from_rgb(64, 15, 17),
             warning_text: Color32::from_rgb(242, 195, 195),

@@ -74,6 +74,25 @@ pub(crate) fn paint_checkmark(ui: &Ui, center: Pos2) {
     ));
 }
 
+/// Pinta o indicador de botão de rádio (`○` inativo ou `⦿` ativo em ACCENT_COLOR) centrado em `center`.
+pub(crate) fn paint_radio_button(ui: &Ui, center: Pos2, selected: bool, hovered: bool) {
+    let r_outer = 6.2;
+    if selected {
+        let accent = menu_style().icon_accent;
+        ui.painter()
+            .circle_stroke(center, r_outer, Stroke::new(1.85_f32, accent));
+        ui.painter().circle_filled(center, 3.2, accent);
+    } else {
+        let ring_color = if hovered {
+            Color32::from_rgb(145, 145, 155)
+        } else {
+            Color32::from_rgb(72, 72, 80)
+        };
+        ui.painter()
+            .circle_stroke(center, r_outer, Stroke::new(1.35_f32, ring_color));
+    }
+}
+
 /// Faz o layout de uma linha única de texto, truncando com `…` pela largura real.
 pub(crate) fn layout_single_line(
     ui: &Ui,

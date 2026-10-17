@@ -12,7 +12,7 @@ use egui::{Align2, CursorIcon, FontId, Pos2, Rect, Response, Sense, Ui, Widget, 
 use super::icons::LeadingIcon;
 use super::primitives::{
     ChevronDir, allocate_row, hover_color, layout_single_line, paint_checkmark, paint_chevron,
-    paint_galley, paint_row_hover, paint_text,
+    paint_galley, paint_radio_button, paint_row_hover, paint_text,
 };
 use crate::popovers::style::menu_style;
 
@@ -26,6 +26,7 @@ use crate::popovers::style::menu_style;
 pub(crate) struct MenuOption<'a> {
     label: &'a str,
     selected: bool,
+    radio: bool,
     icon: LeadingIcon,
     font: Option<FontId>,
     chevron: bool,
@@ -36,6 +37,7 @@ impl<'a> MenuOption<'a> {
         Self {
             label,
             selected: false,
+            radio: false,
             icon: LeadingIcon::None,
             font: None,
             chevron: false,
@@ -44,6 +46,11 @@ impl<'a> MenuOption<'a> {
 
     pub(crate) fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
+        self
+    }
+
+    pub(crate) fn radio(mut self, radio: bool) -> Self {
+        self.radio = radio;
         self
     }
 
@@ -78,7 +85,14 @@ impl Widget for MenuOption<'_> {
         }
 
         let cy = rect.center().y;
-        if self.selected {
+        if self.radio {
+            paint_radio_button(
+                ui,
+                Pos2::new(rect.left() + st.check_offset_x, cy),
+                self.selected,
+                hovered,
+            );
+        } else if self.selected {
             paint_checkmark(ui, Pos2::new(rect.left() + st.check_offset_x, cy));
         }
 
