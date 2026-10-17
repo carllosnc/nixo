@@ -1,6 +1,10 @@
+pub mod subtitle;
+
 use std::path::PathBuf;
 use std::time::Duration;
 use thiserror::Error;
+
+pub use subtitle::*;
 
 #[derive(Debug, Error)]
 pub enum NixoError {
@@ -41,6 +45,114 @@ pub struct VideoFrame {
     pub frame_id: u64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FlagCode {
+    #[default]
+    Generic,
+    Brazil,
+    Portugal,
+    USA,
+    UK,
+    Japan,
+    Spain,
+    France,
+    Germany,
+    Italy,
+    SouthKorea,
+    China,
+    Russia,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrackInfo {
+    pub id: i64,
+    pub title: Option<String>,
+    pub lang: Option<String>,
+    pub selected: bool,
+}
+
+impl TrackInfo {
+    pub fn display_name(&self) -> String {
+        match (&self.title, &self.lang) {
+            (Some(t), Some(l)) => format!("{t} [{l}]"),
+            (Some(t), None) => t.clone(),
+            (None, Some(l)) => format!("Faixa {} [{l}]", self.id),
+            (None, None) => format!("Faixa {}", self.id),
+        }
+    }
+
+    pub fn flag_code(&self) -> FlagCode {
+        detect_flag_code(self.lang.as_deref(), self.title.as_deref())
+    }
+}
+
+pub fn detect_flag_code(lang: Option<&str>, title: Option<&str>) -> FlagCode {
+    let lang_lower = lang.map(|s| s.to_ascii_lowercase());
+    let title_lower = title.map(|s| s.to_ascii_lowercase());
+
+    if let Some(t) = &title_lower {
+        if t.contains("portugal") || t.contains("pt-pt") || t.contains("europe") {
+            return FlagCode::Portugal;
+        }
+        if t.contains("brasil") || t.contains("brazil") || t.contains("pt-br") {
+            return FlagCode::Brazil;
+        }
+    }
+
+    if let Some(l) = &lang_lower {
+        match l.as_str() {
+            "pt-pt" => return FlagCode::Portugal,
+            "pt-br" | "pob" | "pt" | "por" => return FlagCode::Brazil,
+            "en-gb" => return FlagCode::UK,
+            "en" | "eng" | "en-us" => return FlagCode::USA,
+            "ja" | "jpn" => return FlagCode::Japan,
+            "es" | "spa" => return FlagCode::Spain,
+            "fr" | "fra" | "fre" => return FlagCode::France,
+            "de" | "deu" | "ger" => return FlagCode::Germany,
+            "it" | "ita" => return FlagCode::Italy,
+            "ko" | "kor" => return FlagCode::SouthKorea,
+            "zh" | "zho" | "chi" => return FlagCode::China,
+            "ru" | "rus" => return FlagCode::Russia,
+            _ => {}
+        }
+    }
+
+    if let Some(t) = &title_lower {
+        if t.contains("portugu") {
+            return FlagCode::Brazil;
+        }
+        if t.contains("english") || t.contains("inglês") || t.contains("ingles") {
+            return FlagCode::USA;
+        }
+        if t.contains("japan") || t.contains("japon") {
+            return FlagCode::Japan;
+        }
+        if t.contains("span") || t.contains("espan") {
+            return FlagCode::Spain;
+        }
+        if t.contains("french") || t.contains("franc") {
+            return FlagCode::France;
+        }
+        if t.contains("german") || t.contains("alem") {
+            return FlagCode::Germany;
+        }
+        if t.contains("ital") {
+            return FlagCode::Italy;
+        }
+        if t.contains("korean") || t.contains("corean") {
+            return FlagCode::SouthKorea;
+        }
+        if t.contains("chin") {
+            return FlagCode::China;
+        }
+        if t.contains("russ") {
+            return FlagCode::Russia;
+        }
+    }
+
+    FlagCode::Generic
+}
+
 #[derive(Debug, Clone)]
 pub enum PlayerCommand {
     LoadFile(PathBuf),
@@ -53,6 +165,13 @@ pub enum PlayerCommand {
     SetVolume(f32),
     ToggleMute,
     SetSpeed(f32),
+    SetAudioTrack(Option<i64>),
+    SetSubtitleTrack(Option<i64>),
+    ToggleSubtitleVisibility,
+    CycleAudioTrack,
+    CycleSubtitleTrack,
+    LoadSubtitleFile(PathBuf),
+    SetSubtitleStyle(SubtitleStyle),
 }
 
 #[derive(Debug, Clone)]
@@ -66,6 +185,11 @@ pub struct PlayerStatus {
     pub speed: f32,
     pub metadata: Option<MediaMetadata>,
     pub backend_name: &'static str,
+    pub audio_tracks: Vec<TrackInfo>,
+    pub subtitle_tracks: Vec<TrackInfo>,
+    pub subtitles_visible: bool,
+    pub subtitle_style: SubtitleStyle,
+    pub subtitle_health: SubtitleHealth,
 }
 
 impl Default for PlayerStatus {
@@ -79,6 +203,11 @@ impl Default for PlayerStatus {
             speed: 1.0,
             metadata: None,
             backend_name: "Nenhum",
+            audio_tracks: Vec::new(),
+            subtitle_tracks: Vec::new(),
+            subtitles_visible: true,
+            subtitle_style: SubtitleStyle::default(),
+            subtitle_health: SubtitleHealth::default(),
         }
     }
 }
@@ -127,5 +256,54 @@ mod tests {
     fn test_format_duration() {
         assert_eq!(format_duration(Duration::from_secs(65)), "01:05");
         assert_eq!(format_duration(Duration::from_secs(3661)), "01:01:01");
+    }
+
+    #[test]
+    fn test_track_info_display_name() {
+        let t1 = TrackInfo {
+            id: 1,
+            title: Some("Português".to_string()),
+            lang: Some("por".to_string()),
+            selected: true,
+        };
+        assert_eq!(t1.display_name(), "Português [por]");
+
+        let t2 = TrackInfo {
+            id: 2,
+            title: None,
+            lang: Some("eng".to_string()),
+            selected: false,
+        };
+        assert_eq!(t2.display_name(), "Faixa 2 [eng]");
+
+        let t3 = TrackInfo {
+            id: 3,
+            title: None,
+            lang: None,
+            selected: false,
+        };
+        assert_eq!(t3.display_name(), "Faixa 3");
+    }
+
+    #[test]
+    fn test_detect_flag_code() {
+        assert_eq!(detect_flag_code(Some("pt"), None), FlagCode::Brazil);
+        assert_eq!(detect_flag_code(Some("pt-BR"), None), FlagCode::Brazil);
+        assert_eq!(detect_flag_code(Some("pt-PT"), None), FlagCode::Portugal);
+        assert_eq!(detect_flag_code(Some("eng"), None), FlagCode::USA);
+        assert_eq!(detect_flag_code(Some("en-GB"), None), FlagCode::UK);
+        assert_eq!(detect_flag_code(Some("ja"), None), FlagCode::Japan);
+        assert_eq!(
+            detect_flag_code(None, Some("Áudio em Japonês")),
+            FlagCode::Japan
+        );
+        assert_eq!(detect_flag_code(Some("es"), None), FlagCode::Spain);
+        assert_eq!(detect_flag_code(Some("fr"), None), FlagCode::France);
+        assert_eq!(detect_flag_code(Some("de"), None), FlagCode::Germany);
+        assert_eq!(detect_flag_code(Some("it"), None), FlagCode::Italy);
+        assert_eq!(detect_flag_code(Some("ko"), None), FlagCode::SouthKorea);
+        assert_eq!(detect_flag_code(Some("zh"), None), FlagCode::China);
+        assert_eq!(detect_flag_code(Some("ru"), None), FlagCode::Russia);
+        assert_eq!(detect_flag_code(Some("xyz"), None), FlagCode::Generic);
     }
 }
