@@ -30,6 +30,7 @@ const SAVE_DEBOUNCE: Duration = Duration::from_millis(750);
 pub struct AppSettings {
     pub playback: PlaybackSettings,
     pub subtitles: SubtitleSettings,
+    pub window: WindowSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -63,6 +64,12 @@ impl Default for SubtitleSettings {
             style: SubtitleStyle::default(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct WindowSettings {
+    pub always_on_top: bool,
 }
 
 impl AppSettings {
@@ -266,6 +273,9 @@ mod tests {
             subtitles: SubtitleSettings {
                 visible: false,
                 style: SubtitleStyle::preset_cinema(),
+            },
+            window: WindowSettings {
+                always_on_top: true,
             },
         };
         settings.save_to(&path).expect("save");

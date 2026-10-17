@@ -110,6 +110,38 @@ impl NixoApp {
         if ctx.input(|i| i.key_pressed(Key::Escape)) && self.is_fullscreen {
             self.toggle_fullscreen(ctx);
         }
+        if ctx.input(|i| i.key_pressed(Key::T)) {
+            self.always_on_top = !self.always_on_top;
+            let level = if self.always_on_top {
+                egui::WindowLevel::AlwaysOnTop
+            } else {
+                egui::WindowLevel::Normal
+            };
+            ctx.send_viewport_cmd(ViewportCommand::WindowLevel(level));
+        }
+        if ctx.input(|i| i.key_pressed(Key::A)) {
+            let next_fit = match self.status.video_fit {
+                nixo_core::VideoFit::Fit => nixo_core::VideoFit::Fill,
+                nixo_core::VideoFit::Fill => nixo_core::VideoFit::Fit,
+            };
+            self.dispatch(PlayerCommand::SetVideoFit(next_fit));
+        }
+        if ctx.input(|i| i.key_pressed(Key::Z)) {
+            let next = ((self.status.sub_delay - 0.1) * 10.0).round() / 10.0;
+            self.dispatch(PlayerCommand::SetSubDelay(next));
+        }
+        if ctx.input(|i| i.key_pressed(Key::X)) {
+            let next = ((self.status.sub_delay + 0.1) * 10.0).round() / 10.0;
+            self.dispatch(PlayerCommand::SetSubDelay(next));
+        }
+        if ctx.input(|i| i.key_pressed(Key::J)) {
+            let next = ((self.status.audio_delay - 0.1) * 10.0).round() / 10.0;
+            self.dispatch(PlayerCommand::SetAudioDelay(next));
+        }
+        if ctx.input(|i| i.key_pressed(Key::K)) {
+            let next = ((self.status.audio_delay + 0.1) * 10.0).round() / 10.0;
+            self.dispatch(PlayerCommand::SetAudioDelay(next));
+        }
         if ctx.input(|i| i.modifiers.ctrl && i.key_pressed(Key::O)) {
             self.open_file_dialog();
         }

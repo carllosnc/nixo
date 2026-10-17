@@ -9,7 +9,9 @@ use egui::{
 use nixo_core::{MediaBackend, PlaybackState, PlayerCommand, PlayerStatus};
 use tracing::{error, warn};
 
-use crate::settings::{AppSettings, PlaybackSettings, SettingsStore, SubtitleSettings};
+use crate::settings::{
+    AppSettings, PlaybackSettings, SettingsStore, SubtitleSettings, WindowSettings,
+};
 
 pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(47, 229, 11); // Verde vibrante da marca Nixo (#2FE50B)
 pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
@@ -23,6 +25,7 @@ const OSD_MOUSE_LEAVE_TIMEOUT: Duration = Duration::from_millis(300);
 pub enum SettingsTab {
     #[default]
     Main,
+    Video,
     Speed,
     Audio,
     Subtitles,
@@ -53,6 +56,7 @@ pub struct NixoApp {
     pub(crate) settings_tab: SettingsTab,
     pub(crate) titlebar_configured: bool,
     pub(crate) settings_store: SettingsStore,
+    pub(crate) always_on_top: bool,
 }
 
 impl NixoApp {
@@ -73,6 +77,14 @@ impl NixoApp {
 
         let status = backend.status();
 
+        let always_on_top = settings.window.always_on_top;
+        if always_on_top {
+            cc.egui_ctx
+                .send_viewport_cmd(egui::ViewportCommand::WindowLevel(
+                    egui::WindowLevel::AlwaysOnTop,
+                ));
+        }
+
         Self {
             backend,
             status,
@@ -89,6 +101,7 @@ impl NixoApp {
             settings_tab: SettingsTab::Main,
             titlebar_configured: false,
             settings_store,
+            always_on_top,
         }
     }
 
@@ -126,6 +139,9 @@ impl NixoApp {
             subtitles: SubtitleSettings {
                 visible: self.status.subtitles_visible,
                 style: self.status.subtitle_style.clone(),
+            },
+            window: WindowSettings {
+                always_on_top: self.always_on_top,
             },
         }
     }
@@ -231,19 +247,38 @@ impl eframe::App for NixoApp {
                 }
 
                 if let Some(tex) = &self.video_texture {
-                    // Preserva proporção do vídeo sobre fundo preto OLED (letterbox/pillarbox)
+                    // Preserva proporção ou preenche tela sobre fundo preto OLED
                     let tex_size = tex.size_vec2();
-                    let aspect = (tex_size.x / tex_size.y.max(1.0)).max(0.1);
-                    let mut draw_w = rect.width();
-                    let mut draw_h = draw_w / aspect;
-                    if draw_h > rect.height() {
-                        draw_h = rect.height();
-                        draw_w = draw_h * aspect;
-                    }
+                    let aspect = self
+                        .status
+                        .aspect_ratio
+                        .ratio_f64()
+                        .map(|r| r as f32)
+                        .unwrap_or_else(|| (tex_size.x / tex_size.y.max(1.0)).max(0.1));
+                    let (draw_w, draw_h) = match self.status.video_fit {
+                        nixo_core::VideoFit::Fit => {
+                            let mut w = rect.width();
+                            let mut h = w / aspect;
+                            if h > rect.height() {
+                                h = rect.height();
+                                w = h * aspect;
+                            }
+                            (w, h)
+                        }
+                        nixo_core::VideoFit::Fill => {
+                            let mut w = rect.width();
+                            let mut h = w / aspect;
+                            if h < rect.height() {
+                                h = rect.height();
+                                w = h * aspect;
+                            }
+                            (w, h)
+                        }
+                    };
 
                     let video_rect =
                         Rect::from_center_size(rect.center(), Vec2::new(draw_w, draw_h));
-                    ui.painter().image(
+                    ui.painter().with_clip_rect(rect).image(
                         tex.id(),
                         video_rect,
                         Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
