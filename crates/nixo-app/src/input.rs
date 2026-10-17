@@ -119,7 +119,9 @@ impl NixoApp {
             };
             ctx.send_viewport_cmd(ViewportCommand::WindowLevel(level));
         }
-        if ctx.input(|i| i.key_pressed(Key::A)) {
+        if ctx.input(|i| i.modifiers.shift && i.key_pressed(Key::A)) {
+            self.toggle_aspect_ratio_fit(ctx);
+        } else if ctx.input(|i| !i.modifiers.command && i.key_pressed(Key::A)) {
             let next_fit = match self.status.video_fit {
                 nixo_core::VideoFit::Fit => nixo_core::VideoFit::Fill,
                 nixo_core::VideoFit::Fill => nixo_core::VideoFit::Fit,
@@ -144,6 +146,44 @@ impl NixoApp {
         }
         if ctx.input(|i| i.modifiers.ctrl && i.key_pressed(Key::O)) {
             self.open_file_dialog();
+        }
+    }
+
+    pub(crate) fn active_video_aspect(&self) -> f32 {
+        self.status
+            .aspect_ratio
+            .ratio_f64()
+            .map(|r| r as f32)
+            .unwrap_or_else(|| {
+                if let Some(tex) = &self.video_texture {
+                    let sz = tex.size_vec2();
+                    (sz.x / sz.y.max(1.0)).max(0.1)
+                } else {
+                    16.0 / 9.0
+                }
+            })
+            .clamp(0.2, 5.0)
+    }
+
+    pub(crate) fn snap_window_to_aspect(&mut self, ctx: &Context) {
+        if self.is_fullscreen {
+            return;
+        }
+        let current_size = ctx.screen_rect().size();
+        if current_size.x <= 100.0 || current_size.y <= 100.0 {
+            return;
+        }
+        let aspect = self.active_video_aspect();
+        let target_h = (current_size.x / aspect).round().max(180.0);
+        let target_size = egui::Vec2::new(current_size.x, target_h);
+        self.last_window_size = target_size;
+        ctx.send_viewport_cmd(ViewportCommand::InnerSize(target_size));
+    }
+
+    pub(crate) fn toggle_aspect_ratio_fit(&mut self, ctx: &Context) {
+        self.aspect_ratio_fit = !self.aspect_ratio_fit;
+        if self.aspect_ratio_fit {
+            self.snap_window_to_aspect(ctx);
         }
     }
 }

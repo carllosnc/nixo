@@ -191,7 +191,7 @@ impl NixoApp {
 
         // B. Bloco da Direita (Badge de Alerta de Legenda, CC, Configurações ⚙, Abrir Arquivo, Tela Cheia)
         let has_sub_warning = self.status.subtitle_health.is_warning();
-        let right_w = if has_sub_warning { 340.0 } else { 190.0 };
+        let right_w = if has_sub_warning { 390.0 } else { 240.0 };
         let left_max_w = (row_rect.width() - right_w - 8.0).max(260.0);
         let _ = left_max_w;
         let right_rect = Rect::from_min_size(
@@ -223,6 +223,25 @@ impl NixoApp {
         .clicked()
         {
             self.toggle_fullscreen(ctx);
+        }
+
+        // 2. Trava de Proporção da Janela (ao lado de Tela Cheia)
+        let fit_tooltip = if self.aspect_ratio_fit {
+            "Desativar ajuste de proporção da janela (Shift+A)"
+        } else {
+            "Ajustar janela na proporção do vídeo sem bordas pretas (Shift+A)"
+        };
+        if Self::render_ghost_icon_btn(
+            &mut right_ui,
+            vec2(40.0, BTN_HEIGHT),
+            ControlIcon::AspectFit {
+                active: self.aspect_ratio_fit,
+            },
+            fit_tooltip,
+        )
+        .clicked()
+        {
+            self.toggle_aspect_ratio_fit(ctx);
         }
 
         // 2. Abrir Arquivo (Ctrl+O)

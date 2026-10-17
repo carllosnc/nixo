@@ -1,10 +1,9 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use egui::epaint::{Mesh, Vertex};
 use egui::{
-    Align, Align2, Color32, ColorImage, Context, CornerRadius, FontId, Id, Layout, Margin, Pos2,
-    Rect, RichText, Sense, Stroke, TextureHandle, TextureOptions, Vec2, vec2,
+    Align2, Color32, ColorImage, Context, CornerRadius, Id, Margin, Pos2, Rect, RichText, Sense,
+    Stroke, TextureHandle, TextureOptions, Vec2, vec2,
 };
 use nixo_core::{MediaBackend, PlaybackState, PlayerCommand, PlayerStatus};
 use tracing::{error, warn};
@@ -12,6 +11,7 @@ use tracing::{error, warn};
 use crate::settings::{
     AppSettings, PlaybackSettings, SettingsStore, SubtitleSettings, WindowSettings,
 };
+use crate::widgets::vertical_gradient_mesh;
 
 pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(47, 229, 11); // Verde vibrante da marca Nixo (#2FE50B)
 pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
@@ -57,6 +57,8 @@ pub struct NixoApp {
     pub(crate) titlebar_configured: bool,
     pub(crate) settings_store: SettingsStore,
     pub(crate) always_on_top: bool,
+    pub(crate) aspect_ratio_fit: bool,
+    pub(crate) last_window_size: Vec2,
 }
 
 impl NixoApp {
@@ -84,6 +86,7 @@ impl NixoApp {
                     egui::WindowLevel::AlwaysOnTop,
                 ));
         }
+        let aspect_ratio_fit = settings.window.aspect_ratio_fit;
 
         Self {
             backend,
@@ -102,6 +105,8 @@ impl NixoApp {
             titlebar_configured: false,
             settings_store,
             always_on_top,
+            aspect_ratio_fit,
+            last_window_size: Vec2::ZERO,
         }
     }
 
@@ -142,6 +147,7 @@ impl NixoApp {
             },
             window: WindowSettings {
                 always_on_top: self.always_on_top,
+                aspect_ratio_fit: self.aspect_ratio_fit,
             },
         }
     }
@@ -203,6 +209,32 @@ impl eframe::App for NixoApp {
         }
 
         self.handle_shortcuts_and_drops(ctx);
+
+        // Mantém a proporção exata da janela ao redimensionar quando 'aspect_ratio_fit' está ativo
+        let screen_size = ctx.screen_rect().size();
+        if !self.is_fullscreen
+            && self.aspect_ratio_fit
+            && screen_size.x > 100.0
+            && screen_size.y > 100.0
+            && (self.last_window_size.x > 0.0 && self.last_window_size.y > 0.0)
+        {
+            let delta = screen_size - self.last_window_size;
+            if delta.x.abs() > 1.0 || delta.y.abs() > 1.0 {
+                let aspect = self.active_video_aspect();
+                let current_aspect = screen_size.x / screen_size.y;
+                if (current_aspect - aspect).abs() / aspect > 0.012 {
+                    let target_size = if delta.x.abs() >= delta.y.abs() {
+                        let w = screen_size.x.max(320.0);
+                        Vec2::new(w, (w / aspect).round().max(180.0))
+                    } else {
+                        let h = screen_size.y.max(180.0);
+                        Vec2::new((h * aspect).round().max(320.0), h)
+                    };
+                    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(target_size));
+                }
+            }
+        }
+        self.last_window_size = screen_size;
 
         // Comportamento de hover idêntico ao YouTube:
         // 1. Se o mouse saiu da janela: oculta rapidamente após 300ms (OSD_MOUSE_LEAVE_TIMEOUT).
@@ -290,132 +322,30 @@ impl eframe::App for NixoApp {
                         let w = rect.width();
                         let h = rect.height();
 
-                        // 1. Gradiente Superior Suave (escuro no topo, transparente para baixo)
                         let top_alpha = (160.0 * osd_alpha).round() as u8;
-                        let top_gradient_h = 90.0_f32.min(h * 0.25);
-                        let top_mesh = Mesh {
-                            indices: vec![0, 1, 2, 2, 3, 0],
-                            vertices: vec![
-                                Vertex {
-                                    pos: Pos2::new(0.0, 0.0),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha),
-                                },
-                                Vertex {
-                                    pos: Pos2::new(w, 0.0),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha),
-                                },
-                                Vertex {
-                                    pos: Pos2::new(w, top_gradient_h),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::TRANSPARENT,
-                                },
-                                Vertex {
-                                    pos: Pos2::new(0.0, top_gradient_h),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::TRANSPARENT,
-                                },
-                            ],
-                            ..Default::default()
-                        };
-                        ui.painter().add(egui::Shape::mesh(top_mesh));
+                        let top_h = 90.0_f32.min(h * 0.25);
+                        let top_c = Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha);
+                        ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
+                            0.0,
+                            top_h,
+                            w,
+                            top_c,
+                            Color32::TRANSPARENT,
+                        )));
 
-                        // 2. Gradiente Inferior Estilo YouTube (transparente acima, preto profundo suave na base)
                         let bottom_alpha = (220.0 * osd_alpha).round() as u8;
-                        let bottom_gradient_h = 145.0_f32.min(h * 0.40);
-                        let b_top = h - bottom_gradient_h;
-                        let bottom_mesh = Mesh {
-                            indices: vec![0, 1, 2, 2, 3, 0],
-                            vertices: vec![
-                                Vertex {
-                                    pos: Pos2::new(0.0, b_top),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::TRANSPARENT,
-                                },
-                                Vertex {
-                                    pos: Pos2::new(w, b_top),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::TRANSPARENT,
-                                },
-                                Vertex {
-                                    pos: Pos2::new(w, h),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha),
-                                },
-                                Vertex {
-                                    pos: Pos2::new(0.0, h),
-                                    uv: Pos2::ZERO,
-                                    color: Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha),
-                                },
-                            ],
-                            ..Default::default()
-                        };
-                        ui.painter().add(egui::Shape::mesh(bottom_mesh));
+                        let bottom_h = 145.0_f32.min(h * 0.40);
+                        let bottom_c = Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha);
+                        ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
+                            h - bottom_h,
+                            h,
+                            w,
+                            Color32::TRANSPARENT,
+                            bottom_c,
+                        )));
                     }
                 } else {
-                    // Empty State: Tela de boas-vindas minimalista em vidro translúcido sem bordas brancas
-                    let card_size = Vec2::new(420.0, 200.0).min(rect.size() * 0.9);
-                    let card_rect = Rect::from_center_size(rect.center(), card_size);
-
-                    ui.painter().rect(
-                        card_rect,
-                        CornerRadius::same(18),
-                        OPAQUE_PANEL_BG,
-                        Stroke::NONE,
-                        egui::StrokeKind::Inside,
-                    );
-
-                    let mut child_ui = ui.new_child(
-                        egui::UiBuilder::new()
-                            .max_rect(card_rect.shrink(22.0))
-                            .layout(Layout::top_down(Align::Center)),
-                    );
-
-                    child_ui.add_space(4.0);
-                    child_ui.label(
-                        RichText::new("N I X O")
-                            .font(FontId::proportional(18.0))
-                            .strong()
-                            .color(ACCENT_COLOR),
-                    );
-                    child_ui.add_space(8.0);
-                    child_ui.label(
-                        RichText::new("Arraste e solte um arquivo de vídeo aqui")
-                            .font(FontId::proportional(13.5))
-                            .color(Color32::from_gray(190)),
-                    );
-                    child_ui.add_space(18.0);
-
-                    child_ui.horizontal(|ui| {
-                        let total_btn_w = 270.0;
-                        let pad = ((ui.available_width() - total_btn_w) * 0.5).max(0.0);
-                        ui.add_space(pad);
-
-                        let open_btn = egui::Button::new(
-                            RichText::new("📂 Abrir Arquivo")
-                                .font(FontId::proportional(13.0))
-                                .color(Color32::WHITE),
-                        )
-                        .fill(Color32::from_rgb(38, 41, 52))
-                        .corner_radius(CornerRadius::same(10));
-
-                        if ui.add_sized([130.0, 34.0], open_btn).clicked() {
-                            self.open_file_dialog();
-                        }
-
-                        let test_btn = egui::Button::new(
-                            RichText::new("▶ Testar Sinal")
-                                .font(FontId::proportional(13.0))
-                                .color(Color32::from_gray(215)),
-                        )
-                        .fill(Color32::from_rgb(26, 28, 35))
-                        .corner_radius(CornerRadius::same(10));
-
-                        if ui.add_sized([125.0, 34.0], test_btn).clicked() {
-                            self.dispatch(PlayerCommand::Play);
-                        }
-                    });
+                    self.render_empty_state(ui, rect);
                 }
             });
 
