@@ -62,6 +62,7 @@ impl NixoApp {
         }
 
         if !ctx.memory(|mem| mem.is_popup_open(popup_id)) {
+            PopoverFrame::clear_height(ctx);
             return;
         }
 
@@ -72,14 +73,16 @@ impl NixoApp {
             screen.left() + half_w + st.popover_margin_left,
             screen.right() - half_w - st.popover_margin_right,
         );
-        let anchor_pos = Pos2::new(anchor_x, gear_resp.rect.top() - st.popover_anchor_gap);
+        let anchor_bottom_y = gear_resp.rect.top() - st.popover_anchor_gap;
+        let current_h = PopoverFrame::current_height(ctx);
+        let top_left = Pos2::new(anchor_x - half_w, anchor_bottom_y - current_h);
 
         let mut actions = MenuActions::new(self.settings_tab);
         let mut popup_rect = Rect::NOTHING;
 
         egui::Area::new(popup_id)
-            .pivot(Align2::CENTER_BOTTOM)
-            .fixed_pos(anchor_pos)
+            .pivot(Align2::LEFT_TOP)
+            .fixed_pos(top_left)
             .order(egui::Order::Foreground)
             .show(ctx, |ui| {
                 ui.set_width(st.popover_width);
@@ -105,6 +108,7 @@ impl NixoApp {
 
         if should_close {
             self.settings_tab = SettingsTab::Main;
+            PopoverFrame::clear_height(ctx);
             ctx.memory_mut(|mem| mem.close_popup());
         }
     }

@@ -31,6 +31,7 @@ pub(crate) struct MenuStyle {
     pub popover_shadow: Shadow,
     pub popover_padding: Margin,
     pub item_spacing_y: f32,
+    pub height_morph_duration: f32,
 
     // ── Linhas (full-rounded / pílula) ──
     pub row_radius: CornerRadius,
@@ -133,6 +134,7 @@ impl MenuStyle {
             },
             popover_padding: Margin::symmetric(12, 11),
             item_spacing_y: 3.0,
+            height_morph_duration: 0.18,
 
             row_radius: CornerRadius::same(99),
             row_hover_fill: Color32::from_rgb(34, 34, 40),
@@ -216,6 +218,16 @@ impl MenuStyle {
             button_text: Color32::from_rgb(225, 225, 232),
             button_font: font_bold(13.5),
         }
+    }
+
+    /// Altura externa exata da aba raiz (`SettingsTab::Main`), usada para inicializar o morph sem salto no primeiro frame.
+    pub(crate) fn initial_main_height(&self) -> f32 {
+        let inner_h = self.section_title_height
+            + self.divider_height
+            + 3.0 * self.nav_height
+            + 4.0 * self.item_spacing_y;
+        let pad_y = f32::from(self.popover_padding.top) + f32::from(self.popover_padding.bottom);
+        inner_h + pad_y + 2.0 * self.popover_stroke.width
     }
 }
 
