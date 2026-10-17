@@ -21,6 +21,7 @@ use crate::app::{NixoApp, SettingsTab};
 struct MenuActions {
     next_tab: SettingsTab,
     command: Option<PlayerCommand>,
+    toggle_always_on_top: bool,
     close: bool,
 }
 
@@ -29,6 +30,7 @@ impl MenuActions {
         Self {
             next_tab: current,
             command: None,
+            toggle_always_on_top: false,
             close: false,
         }
     }
@@ -95,6 +97,15 @@ impl NixoApp {
         if let Some(cmd) = actions.command.take() {
             self.dispatch(cmd);
         }
+        if actions.toggle_always_on_top {
+            self.always_on_top = !self.always_on_top;
+            let level = if self.always_on_top {
+                egui::WindowLevel::AlwaysOnTop
+            } else {
+                egui::WindowLevel::Normal
+            };
+            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(level));
+        }
         self.settings_tab = actions.next_tab;
 
         let mut should_close = actions.close || ctx.input(|i| i.key_pressed(Key::Escape));
@@ -116,6 +127,7 @@ impl NixoApp {
     fn render_settings_tab(&self, ui: &mut Ui, actions: &mut MenuActions) {
         match self.settings_tab {
             SettingsTab::Main => self.render_tab_main(ui, actions),
+            SettingsTab::Video => self.render_tab_video(ui, actions),
             SettingsTab::Speed => self.render_tab_speed(ui, actions),
             SettingsTab::Audio => self.render_tab_audio(ui, actions),
             SettingsTab::Subtitles => self.render_tab_subtitles(ui, actions),

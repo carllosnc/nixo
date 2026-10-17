@@ -223,9 +223,9 @@ impl MenuStyle {
     /// Altura externa exata da aba raiz (`SettingsTab::Main`), usada para inicializar o morph sem salto no primeiro frame.
     pub(crate) fn initial_main_height(&self) -> f32 {
         let inner_h = self.section_title_height
-            + self.divider_height
-            + 3.0 * self.nav_height
-            + 4.0 * self.item_spacing_y;
+            + 2.0 * self.divider_height
+            + 5.0 * self.nav_height
+            + 6.0 * self.item_spacing_y;
         let pad_y = f32::from(self.popover_padding.top) + f32::from(self.popover_padding.bottom);
         inner_h + pad_y + 2.0 * self.popover_stroke.width
     }

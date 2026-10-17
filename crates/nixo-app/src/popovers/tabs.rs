@@ -10,8 +10,8 @@ use nixo_core::PlayerCommand;
 
 use super::MenuActions;
 use super::components::{
-    Choice, EmptyState, LeadingIcon, MenuDivider, MenuOption, NavRow, SectionTitle, choice_list,
-    submenu_header,
+    Choice, EmptyState, LeadingIcon, MenuDivider, MenuOption, MenuToggle, NavRow, SectionTitle,
+    choice_list, delay_stepper, submenu_header,
 };
 use super::style::menu_style;
 use crate::app::{NixoApp, SettingsTab};
@@ -28,6 +28,7 @@ impl NixoApp {
         ui.add(MenuDivider);
 
         let rows = [
+            ("VÍDEO", self.video_summary(), SettingsTab::Video),
             ("VELOCIDADE", self.speed_summary(), SettingsTab::Speed),
             ("ÁUDIO", self.audio_summary(), SettingsTab::Audio),
             ("LEGENDAS", self.subtitle_summary(), SettingsTab::Subtitles),
@@ -36,6 +37,14 @@ impl NixoApp {
             if ui.add(NavRow::new(title, &value)).clicked() {
                 actions.navigate(tab);
             }
+        }
+
+        ui.add(MenuDivider);
+        if ui
+            .add(MenuToggle::new("SEMPRE NO TOPO", self.always_on_top))
+            .clicked()
+        {
+            actions.toggle_always_on_top = true;
         }
     }
 
@@ -55,6 +64,28 @@ impl NixoApp {
         });
         if let Some(preset) = choice_list(ui, choices) {
             actions.send_and_close(PlayerCommand::SetSpeed(preset));
+        }
+    }
+
+    pub(super) fn render_tab_video(&self, ui: &mut Ui, actions: &mut MenuActions) {
+        if submenu_header(ui, "VÍDEO") {
+            actions.navigate(SettingsTab::Main);
+        }
+
+        ui.add(SectionTitle::new("ENQUADRAMENTO"));
+        let fit_choices = nixo_core::VideoFit::ALL
+            .map(|fit| Choice::new(fit.label(), fit).selected(self.status.video_fit == fit));
+        if let Some(fit) = choice_list(ui, fit_choices) {
+            actions.send(PlayerCommand::SetVideoFit(fit));
+        }
+
+        ui.add(MenuDivider);
+        ui.add(SectionTitle::new("PROPORÇÃO"));
+        let aspect_choices = nixo_core::VideoAspect::ALL.map(|aspect| {
+            Choice::new(aspect.label(), aspect).selected(self.status.aspect_ratio == aspect)
+        });
+        if let Some(aspect) = choice_list(ui, aspect_choices) {
+            actions.send(PlayerCommand::SetAspectRatio(aspect));
         }
     }
 
@@ -88,6 +119,11 @@ impl NixoApp {
         if let Some(track_id) = choice_list(ui, choices) {
             actions.send_and_close(PlayerCommand::SetAudioTrack(track_id));
         }
+
+        ui.add(MenuDivider);
+        if let Some(delay) = delay_stepper(ui, "SINCRONIA", self.status.audio_delay) {
+            actions.send(PlayerCommand::SetAudioDelay(delay));
+        }
     }
 
     pub(super) fn render_tab_subtitles(&self, ui: &mut Ui, actions: &mut MenuActions) {
@@ -116,6 +152,11 @@ impl NixoApp {
         }
 
         ui.add(MenuDivider);
+        if let Some(delay) = delay_stepper(ui, "SINCRONIA", self.status.sub_delay) {
+            actions.send(PlayerCommand::SetSubDelay(delay));
+        }
+
+        ui.add(MenuDivider);
         let load =
             MenuOption::new("Carregar legenda externa...").icon(LeadingIcon::AddExternalSubtitle);
         if ui.add(load).clicked()
@@ -131,6 +172,16 @@ impl NixoApp {
             .chevron();
         if ui.add(style_entry).clicked() {
             actions.navigate(SettingsTab::SubtitleStyle);
+        }
+    }
+
+    fn video_summary(&self) -> String {
+        match (self.status.video_fit, self.status.aspect_ratio) {
+            (nixo_core::VideoFit::Fill, _) => "Preencher tela".to_string(),
+            (nixo_core::VideoFit::Fit, nixo_core::VideoAspect::Auto) => {
+                "Ajustar (Auto)".to_string()
+            }
+            (nixo_core::VideoFit::Fit, aspect) => aspect.label().to_string(),
         }
     }
 
