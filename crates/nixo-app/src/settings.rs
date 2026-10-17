@@ -70,6 +70,7 @@ impl Default for SubtitleSettings {
 #[serde(default)]
 pub struct WindowSettings {
     pub always_on_top: bool,
+    pub aspect_ratio_fit: bool,
 }
 
 impl AppSettings {
@@ -276,6 +277,7 @@ mod tests {
             },
             window: WindowSettings {
                 always_on_top: true,
+                aspect_ratio_fit: true,
             },
         };
         settings.save_to(&path).expect("save");
