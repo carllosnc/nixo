@@ -1,4 +1,4 @@
-use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Stroke, Ui, Vec2, vec2};
+use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, vec2};
 
 use crate::app::{ACCENT_COLOR, NixoApp};
 
@@ -12,6 +12,7 @@ pub(crate) enum ControlIcon {
     SettingsGear,
     OpenFile,
     Fullscreen { is_fullscreen: bool },
+    AspectFit { active: bool },
 }
 
 impl NixoApp {
@@ -400,6 +401,28 @@ impl NixoApp {
                             ],
                             stroke,
                         );
+                    }
+                }
+                ControlIcon::AspectFit { active } => {
+                    let icon_color = if active { ACCENT_COLOR } else { fg };
+                    let stroke = Stroke::new(1.8_f32, icon_color);
+
+                    let frame = Rect::from_center_size(c, vec2(18.0, 11.5));
+                    painter.rect_stroke(frame, CornerRadius::same(2), stroke, StrokeKind::Inside);
+
+                    if active {
+                        let inner = frame.shrink(2.5);
+                        painter.rect_filled(
+                            inner,
+                            CornerRadius::same(1),
+                            Color32::from_rgba_unmultiplied(47, 229, 11, 55),
+                        );
+                        painter.line_segment(
+                            [Pos2::new(c.x - 3.5, c.y), Pos2::new(c.x + 3.5, c.y)],
+                            stroke,
+                        );
+                    } else {
+                        painter.circle_filled(c, 1.2, Color32::from_gray(140));
                     }
                 }
             }
