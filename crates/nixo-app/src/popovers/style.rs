@@ -161,9 +161,9 @@ impl MenuStyle {
 
             check_offset_x: 18.0,
             check_stroke: Stroke::new(2.0_f32, ACCENT_COLOR),
-            icon_offset_x: 43.0,
-            text_offset_x: 38.0,
-            text_offset_x_with_icon: 66.0,
+            icon_offset_x: 50.0,
+            text_offset_x: 40.0,
+            text_offset_x_with_icon: 78.0,
 
             chevron_inset: 12.0,
             chevron_size: 4.5,
