@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 
 use nixo_core::{
     MediaBackend, MediaMetadata, NixoError, PlaybackState, PlayerCommand, PlayerStatus,
-    SubtitleStyle, TrackInfo, VideoFrame,
+    SubtitleStyle, TrackInfo, VideoAspect, VideoFit, VideoFrame,
 };
 
 /// Motor sintético de fallback (Padrão de Teste 60 FPS) usado quando a biblioteca dinâmica
@@ -24,6 +24,10 @@ pub struct SyntheticBackend {
     subtitle_tracks: Vec<TrackInfo>,
     subtitles_visible: bool,
     subtitle_style: SubtitleStyle,
+    sub_delay: f64,
+    audio_delay: f64,
+    aspect_ratio: VideoAspect,
+    video_fit: VideoFit,
 }
 
 impl Default for SyntheticBackend {
@@ -75,6 +79,10 @@ impl SyntheticBackend {
             ],
             subtitles_visible: true,
             subtitle_style: SubtitleStyle::default(),
+            sub_delay: 0.0,
+            audio_delay: 0.0,
+            aspect_ratio: VideoAspect::default(),
+            video_fit: VideoFit::default(),
         }
     }
 
@@ -254,6 +262,18 @@ impl MediaBackend for SyntheticBackend {
             PlayerCommand::SetSubtitleStyle(style) => {
                 self.subtitle_style = style.sanitized();
             }
+            PlayerCommand::SetSubDelay(delay) => {
+                self.sub_delay = delay;
+            }
+            PlayerCommand::SetAudioDelay(delay) => {
+                self.audio_delay = delay;
+            }
+            PlayerCommand::SetAspectRatio(aspect) => {
+                self.aspect_ratio = aspect;
+            }
+            PlayerCommand::SetVideoFit(fit) => {
+                self.video_fit = fit;
+            }
         }
         Ok(())
     }
@@ -274,6 +294,10 @@ impl MediaBackend for SyntheticBackend {
             subtitles_visible: self.subtitles_visible,
             subtitle_style: self.subtitle_style.clone(),
             subtitle_health: nixo_core::SubtitleHealth::Ok,
+            sub_delay: self.sub_delay,
+            audio_delay: self.audio_delay,
+            aspect_ratio: self.aspect_ratio,
+            video_fit: self.video_fit,
         }
     }
 

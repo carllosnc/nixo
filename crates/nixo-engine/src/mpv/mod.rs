@@ -1,6 +1,8 @@
 mod ffi;
 mod preview;
 mod properties;
+#[cfg(test)]
+mod tests;
 
 use std::ffi::{CString, c_int, c_void};
 use std::path::PathBuf;
@@ -9,7 +11,10 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use nixo_core::{MediaBackend, NixoError, PlayerCommand, PlayerStatus, SubtitleStyle, VideoFrame};
+use nixo_core::{
+    MediaBackend, NixoError, PlayerCommand, PlayerStatus, SubtitleStyle, VideoAspect, VideoFit,
+    VideoFrame,
+};
 use tracing::debug;
 
 use self::ffi::{
@@ -40,6 +45,8 @@ pub struct MpvBackend {
     sub_track_activated_at: Instant,
     sub_cues_seen: u32,
     sub_style_changed_while_empty: bool,
+    aspect_ratio: VideoAspect,
+    video_fit: VideoFit,
 }
 
 // SAFETY: O handle do mpv é acessado de forma exclusiva através de `&mut self` protegido pela trait.
@@ -138,6 +145,8 @@ impl MpvBackend {
                 sub_track_activated_at: Instant::now(),
                 sub_cues_seen: 0,
                 sub_style_changed_while_empty: false,
+                aspect_ratio: VideoAspect::default(),
+                video_fit: VideoFit::default(),
             };
             instance.apply_subtitle_style(default_style);
             Ok(instance)
@@ -355,6 +364,18 @@ impl MediaBackend for MpvBackend {
             }
             PlayerCommand::SetSubtitleStyle(style) => {
                 self.apply_subtitle_style(style);
+            }
+            PlayerCommand::SetSubDelay(delay) => {
+                self.set_double(c"sub-delay", delay);
+            }
+            PlayerCommand::SetAudioDelay(delay) => {
+                self.set_double(c"audio-delay", delay);
+            }
+            PlayerCommand::SetAspectRatio(aspect) => {
+                self.set_aspect_ratio(aspect);
+            }
+            PlayerCommand::SetVideoFit(fit) => {
+                self.set_video_fit(fit);
             }
         }
         self.status_dirty = true;
