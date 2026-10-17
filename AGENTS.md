@@ -27,7 +27,22 @@ nixo/
 ├── crates/
 │   ├── nixo-core/             # Pure domain models, playback states, commands, and MediaBackend trait
 │   ├── nixo-engine/           # Dynamic libmpv integration and 60 FPS synthetic test engine
+│   │   └── src/
+│   │       ├── lib.rs         # Backend factory & fallback orchestration
+│   │       ├── synthetic.rs   # 60 FPS GPU synthetic test generator
+│   │       └── mpv/           # Modular libmpv backend (mod.rs, ffi.rs, properties.rs, preview.rs)
 │   └── nixo-app/              # Native GUI application (eframe/wgpu/egui window, OSD, keybindings)
+│       └── src/
+│           ├── main.rs        # Application entry point & window initialization
+│           ├── app.rs         # Core NixoApp state, lifecycle, and central video canvas
+│           ├── theme.rs       # System font discovery, egui visuals, and Win32 dark titlebar
+│           ├── input.rs       # Keyboard shortcuts, mouse hover state machine, and drag-and-drop
+│           ├── osd.rs         # Bottom OSD playback control bar and seekbar orchestration
+│           ├── popovers/      # Settings menu: style.rs (design tokens), components/ (unique reusable widgets), tabs.rs, subtitle_style.rs
+│           ├── widgets.rs     # Reusable UI components (sliders, seek preview card, tooltips)
+│           ├── icons.rs       # Procedural GPU vector control icons and ghost buttons
+│           ├── flags.rs       # Procedural GPU vector country/language flags
+│           └── settings.rs    # Persistent user settings (JSON with background debounce)
 ├── scripts/
 │   ├── setup-mpv.ps1          # Automatic libmpv setup script for Windows
 │   ├── package.ps1            # Standalone redistributable bundler (.zip + SHA256)
@@ -41,11 +56,12 @@ nixo/
    - **MUST NOT** depend on `egui`, `wgpu`, or video decoder libraries.
    - Keep this crate lightweight and free of UI or low-level FFI dependencies.
 2. **`crates/nixo-engine`**:
-   - Implements the `MediaBackend` trait via `MpvBackend` and `SyntheticBackend`.
-   - Encapsulates all unsafe FFI bindings and dynamic library loading (`libloading`).
+   - Implements the `MediaBackend` trait via `MpvBackend` (`src/mpv/`) and `SyntheticBackend` (`src/synthetic.rs`).
+   - Encapsulates all unsafe FFI bindings (`src/mpv/ffi.rs`), property accessors (`src/mpv/properties.rs`), and background seek thumbnail generation (`src/mpv/preview.rs`).
    - Must handle the absence of `libmpv` gracefully by falling back to `SyntheticBackend`.
 3. **`crates/nixo-app`**:
    - Manages application lifecycle (`eframe`), UI state, texture uploads to GPU (`egui::ColorImage`), and user interactions (drag-and-drop, hotkeys, OSD).
+   - Organized into focused submodules (`app`, `theme`, `input`, `osd`, `popovers`, `widgets`, `icons`, `flags`, `settings`) so each file stays within the **200–500 lines** target range for optimal AI agent context efficiency.
    - Must never execute blocking operations on the main render thread.
 
 ---
@@ -115,8 +131,12 @@ powershell -ExecutionPolicy Bypass -File ./scripts/package.ps1
 - **Logging**:
   - Use the `tracing` crate (`info!`, `warn!`, `debug!`, `error!`).
   - Avoid raw `println!` calls in library crates and the playback loop.
+- **Modularity & File Size (AI Agent Ergonomics — 200~500 Lines Rule)**:
+  - Keep individual `.rs` source files between **200 and 500 lines** (hard ceiling of **500 lines**). Smaller entry points or glue modules (`main.rs`, `lib.rs`, `input.rs`) may have fewer than 200 lines when appropriate, but no file should exceed ~500 lines.
+  - Keep individual functions concise (**50 to 150 lines** max) so their entire scope, local variables, and borrow lifetimes are visible at once.
+  - When adding new UI components, popovers, or engine subsystems, split them into dedicated submodules with a single clear responsibility rather than growing existing files past 500 lines.
 - **Unsafe Code & FFI**:
-  - `unsafe` blocks are restricted to FFI calls in `crates/nixo-engine/src/mpv.rs`.
+  - `unsafe` blocks are restricted to FFI calls in `crates/nixo-engine/src/mpv/` and Win32 window attribute calls in `crates/nixo-app/src/theme.rs`.
   - Every `unsafe` block must be accompanied by an explicit `// SAFETY: <justification>` comment detailing why the call is safe.
   - The workspace warns on `unsafe_op_in_unsafe_fn`.
 - **Cross-Platform Compatibility**:

@@ -112,6 +112,9 @@ The output zip file and its SHA256 checksum will be generated inside the `dist/`
 | `Right Arrow` / `Left Arrow` | Seek Forward / Backward 5 seconds |
 | `Up Arrow` / `Down Arrow` | Volume Up / Down 5% |
 | `M` | Toggle Mute |
+| `V` | Toggle Subtitles On / Off |
+| `S` | Cycle Subtitle Track |
+| `B` | Cycle Audio Track |
 | `F` / `F11` / `Double Click` | Toggle Fullscreen |
 | `Esc` | Exit Fullscreen |
 | `Ctrl + O` | Open file with native dialog |

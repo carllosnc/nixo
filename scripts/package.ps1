@@ -56,6 +56,7 @@ New-Item -ItemType Directory -Force -Path $stageDir | Out-Null
 Write-Host "Copiando arquivos para $stageDir..."
 Copy-Item $releaseExe -Destination $stageDir
 Copy-Item $mpvDll -Destination $stageDir
+Copy-Item (Join-Path $rootDir "assets\fonts") -Destination (Join-Path $stageDir "fonts") -Recurse
 Copy-Item (Join-Path $rootDir "README.md") -Destination $stageDir
 Copy-Item (Join-Path $rootDir "LICENSE") -Destination $stageDir
 
