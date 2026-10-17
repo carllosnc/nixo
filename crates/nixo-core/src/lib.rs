@@ -153,6 +153,62 @@ pub fn detect_flag_code(lang: Option<&str>, title: Option<&str>) -> FlagCode {
     FlagCode::Generic
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VideoAspect {
+    #[default]
+    Auto,
+    Ratio16_9,
+    Ratio4_3,
+    Ratio235_1,
+}
+
+impl VideoAspect {
+    pub const ALL: [Self; 4] = [
+        Self::Auto,
+        Self::Ratio16_9,
+        Self::Ratio4_3,
+        Self::Ratio235_1,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Auto => "Original (Auto)",
+            Self::Ratio16_9 => "16:9 Widescreen",
+            Self::Ratio4_3 => "4:3 Clássico",
+            Self::Ratio235_1 => "2.35:1 Cinema",
+        }
+    }
+
+    pub fn ratio_f64(self) -> Option<f64> {
+        match self {
+            Self::Auto => None,
+            Self::Ratio16_9 => Some(16.0 / 9.0),
+            Self::Ratio4_3 => Some(4.0 / 3.0),
+            Self::Ratio235_1 => Some(2.35),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VideoFit {
+    #[default]
+    Fit,
+    Fill,
+}
+
+impl VideoFit {
+    pub const ALL: [Self; 2] = [Self::Fit, Self::Fill];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Fit => "Ajustar à tela",
+            Self::Fill => "Preencher tela",
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum PlayerCommand {
     LoadFile(PathBuf),
@@ -172,6 +228,10 @@ pub enum PlayerCommand {
     CycleSubtitleTrack,
     LoadSubtitleFile(PathBuf),
     SetSubtitleStyle(SubtitleStyle),
+    SetSubDelay(f64),
+    SetAudioDelay(f64),
+    SetAspectRatio(VideoAspect),
+    SetVideoFit(VideoFit),
 }
 
 #[derive(Debug, Clone)]
@@ -190,6 +250,10 @@ pub struct PlayerStatus {
     pub subtitles_visible: bool,
     pub subtitle_style: SubtitleStyle,
     pub subtitle_health: SubtitleHealth,
+    pub sub_delay: f64,
+    pub audio_delay: f64,
+    pub aspect_ratio: VideoAspect,
+    pub video_fit: VideoFit,
 }
 
 impl Default for PlayerStatus {
@@ -208,6 +272,10 @@ impl Default for PlayerStatus {
             subtitles_visible: true,
             subtitle_style: SubtitleStyle::default(),
             subtitle_health: SubtitleHealth::default(),
+            sub_delay: 0.0,
+            audio_delay: 0.0,
+            aspect_ratio: VideoAspect::default(),
+            video_fit: VideoFit::default(),
         }
     }
 }
