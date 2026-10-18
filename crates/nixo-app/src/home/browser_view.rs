@@ -60,7 +60,7 @@ pub fn render_folder_browser(
 
             // Ícone da subpasta à esquerda: usa o ícone 3D nativo se disponível
             let text_x = if let Some(tex) = folder_texture {
-                let icon_size = vec2(34.0, 34.0);
+                let icon_size = vec2(37.0, 32.0);
                 let icon_rect = Rect::from_center_size(
                     Pos2::new(rect.left() + 26.0, rect.center().y),
                     icon_size,

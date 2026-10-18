@@ -93,7 +93,7 @@ pub fn render_folders_view(
 
             // Ícone da pasta à esquerda: usa o ícone 3D nativo se disponível
             let text_x = if let Some(tex) = folder_texture {
-                let icon_size = vec2(40.0, 40.0);
+                let icon_size = vec2(42.0, 36.0);
                 let icon_rect = Rect::from_center_size(
                     Pos2::new(rect.left() + 30.0, rect.center().y),
                     icon_size,
