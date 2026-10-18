@@ -46,10 +46,10 @@ pub fn render_folders_view(
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 
-        egui::Grid::new("folders_grid")
-            .spacing([spacing, spacing])
-            .show(ui, |ui| {
-                for (idx, folder) in folders.iter().enumerate() {
+        for chunk in folders.chunks(cols) {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = spacing;
+                for folder in chunk {
                     let folder_name = folder
                         .file_name()
                         .and_then(|n| n.to_str())
@@ -86,13 +86,13 @@ pub fn render_folders_view(
                         icon_color,
                     );
 
-                    // Botão sutil de remover pasta
+                    // Botão sutil de remover pasta (interação sem deslocamento de layout)
                     let remove_rect = Rect::from_min_size(
                         Pos2::new(rect.right() - 32.0, rect.top() + 12.0),
                         vec2(22.0, 22.0),
                     );
                     let rem_resp = ui
-                        .allocate_rect(remove_rect, Sense::click())
+                        .interact(remove_rect, resp.id.with("rem"), Sense::click())
                         .on_hover_cursor(CursorIcon::PointingHand)
                         .on_hover_text("Remover pasta da biblioteca");
 
@@ -169,12 +169,10 @@ pub fn render_folders_view(
 
                     resp.on_hover_cursor(CursorIcon::PointingHand)
                         .on_hover_text(format!("{folder_name}\n{}", folder.display()));
-
-                    if (idx + 1) % cols == 0 {
-                        ui.end_row();
-                    }
                 }
             });
+            ui.add_space(spacing);
+        }
     }
 
     action

@@ -42,10 +42,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
         let avail_w = ui.available_width().max(chip_w);
         let cols = ((avail_w + spacing) / (chip_w + spacing)).floor().max(1.0) as usize;
 
-        egui::Grid::new("subfolders_grid")
-            .spacing([spacing, spacing])
-            .show(ui, |ui| {
-                for (idx, dir) in content.subdirs.iter().enumerate() {
+        for chunk in content.subdirs.chunks(cols) {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = spacing;
+                for dir in chunk {
                     let (rect, resp) = ui.allocate_exact_size(vec2(chip_w, chip_h), Sense::click());
                     let hovered = resp.hovered();
 
@@ -86,12 +86,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
                     resp.on_hover_cursor(CursorIcon::PointingHand)
                         .on_hover_text(&dir.name);
-
-                    if (idx + 1) % cols == 0 {
-                        ui.end_row();
-                    }
                 }
             });
+            ui.add_space(spacing);
+        }
 
         ui.add_space(18.0);
     }
@@ -113,10 +111,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 
-        egui::Grid::new("files_grid")
-            .spacing([spacing, spacing])
-            .show(ui, |ui| {
-                for (idx, item) in content.files.iter().enumerate() {
+        for chunk in content.files.chunks(cols) {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = spacing;
+                for item in chunk {
                     let (rect, resp) = ui.allocate_exact_size(vec2(card_w, card_h), Sense::click());
                     let hovered = resp.hovered();
 
@@ -217,12 +215,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
                     resp.on_hover_cursor(CursorIcon::PointingHand)
                         .on_hover_text(format!("{}\n{}", item.name, item.size_formatted));
-
-                    if (idx + 1) % cols == 0 {
-                        ui.end_row();
-                    }
                 }
             });
+            ui.add_space(spacing);
+        }
     } else if content.subdirs.is_empty() {
         render_empty_state(
             ui,
