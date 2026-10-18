@@ -44,7 +44,6 @@ pub struct MpvBackend {
     subtitle_style: SubtitleStyle,
     sub_track_activated_at: Instant,
     sub_cues_seen: u32,
-    sub_style_changed_while_empty: bool,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
 }
@@ -147,7 +146,6 @@ impl MpvBackend {
                 subtitle_style: default_style.clone(),
                 sub_track_activated_at: Instant::now(),
                 sub_cues_seen: 0,
-                sub_style_changed_while_empty: false,
                 aspect_ratio: VideoAspect::default(),
                 video_fit: VideoFit::default(),
             };

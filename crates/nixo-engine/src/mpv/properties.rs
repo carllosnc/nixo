@@ -15,7 +15,6 @@ impl MpvBackend {
     pub(super) fn reset_subtitle_health_tracking(&mut self) {
         self.sub_track_activated_at = Instant::now();
         self.sub_cues_seen = 0;
-        self.sub_style_changed_while_empty = false;
     }
 
     pub(super) fn get_double(&self, prop: &CStr) -> Option<f64> {
@@ -235,13 +234,6 @@ impl MpvBackend {
             self.set_property_string(c"sub-ass-style-overrides", c"");
         }
 
-        if self.current_path.is_some() && self.sub_cues_seen == 0 {
-            let active_text = self.get_string(c"sub-text").unwrap_or_default();
-            if active_text.trim().is_empty() {
-                self.sub_style_changed_while_empty = true;
-            }
-        }
-
         self.subtitle_style = style;
         self.first_frame_pending = true;
     }
@@ -386,14 +378,12 @@ impl MpvBackend {
             && !sub_text.trim().is_empty()
         {
             self.sub_cues_seen = self.sub_cues_seen.saturating_add(1);
-            self.sub_style_changed_while_empty = false;
         }
 
-        let is_inactive_track = self.sub_style_changed_while_empty
-            || (has_selected_sub
-                && self.sub_cues_seen == 0
-                && pos_secs > 10.0
-                && self.sub_track_activated_at.elapsed() >= Duration::from_secs(8));
+        let is_inactive_track = has_selected_sub
+            && self.sub_cues_seen == 0
+            && pos_secs > 10.0
+            && self.sub_track_activated_at.elapsed() >= Duration::from_secs(8);
 
         let subtitle_health = if self.current_path.is_none() || !subtitles_visible {
             SubtitleHealth::Ok
