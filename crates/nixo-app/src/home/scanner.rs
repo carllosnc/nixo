@@ -34,6 +34,7 @@ pub struct MediaItem {
     pub path: PathBuf,
     pub kind: MediaKind,
     pub size_formatted: String,
+    #[allow(dead_code)]
     pub extension: String,
 }
 

@@ -127,7 +127,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 66.0;
+        let item_h = 56.0;
         let spacing = 6.0;
         let item_w = ui.available_width();
 
@@ -141,9 +141,9 @@ pub fn render_folder_browser(
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Miniatura 16:9 à esquerda
-            let thumb_w = 92.0;
-            let thumb_h = 52.0;
+            // Miniatura 16:9 limpa à esquerda
+            let thumb_w = 78.0;
+            let thumb_h = 44.0;
             let thumb_rect = Rect::from_min_size(
                 Pos2::new(rect.left() + 8.0, rect.top() + (item_h - thumb_h) * 0.5),
                 vec2(thumb_w, thumb_h),
@@ -176,12 +176,12 @@ pub fn render_folder_browser(
                         ACCENT_NEUTRAL_TEXT,
                         hover_t,
                     );
-                    ui.painter().circle_filled(center, 14.0, circle_bg);
+                    ui.painter().circle_filled(center, 13.0, circle_bg);
                     ui.painter().text(
                         Pos2::new(center.x + 1.0, center.y),
                         Align2::CENTER_CENTER,
                         lucide::PLAY,
-                        lucide::font_id(13.0),
+                        lucide::font_id(12.0),
                         icon_fg,
                     );
                 }
@@ -203,39 +203,17 @@ pub fn render_folder_browser(
                 let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
                 let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
 
-                ui.painter().circle_filled(center, 15.0, circle_bg);
+                ui.painter().circle_filled(center, 14.0, circle_bg);
                 ui.painter().text(
                     Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
                     Align2::CENTER_CENTER,
                     icon_str,
-                    lucide::font_id(14.0),
+                    lucide::font_id(13.0),
                     icon_fg,
                 );
             }
 
-            // Badge com extensão (ex.: MP4, MKV) no canto da miniatura
-            let badge_w = (item.extension.len() as f32 * 6.5 + 8.0).clamp(26.0, 42.0);
-            let badge_rect = Rect::from_min_size(
-                Pos2::new(
-                    thumb_rect.right() - badge_w - 3.0,
-                    thumb_rect.bottom() - 16.0,
-                ),
-                vec2(badge_w, 13.0),
-            );
-            ui.painter().rect_filled(
-                badge_rect,
-                egui::CornerRadius::same(3),
-                Color32::from_black_alpha(190),
-            );
-            ui.painter().text(
-                badge_rect.center(),
-                Align2::CENTER_CENTER,
-                &item.extension,
-                font_xs(),
-                TEXT_SECONDARY,
-            );
-
-            // Nome e Metadados centrais
+            // Nome do arquivo centralizado verticalmente com tipografia nítida
             let clean_name = item
                 .path
                 .file_stem()
@@ -243,14 +221,13 @@ pub fn render_folder_browser(
                 .unwrap_or(&item.name);
 
             let text_x = thumb_rect.right() + 14.0;
-            // Reserva espaço à direita para a coluna de tamanho e o botão de play
-            let right_reserve = 150.0;
+            let right_reserve = 100.0;
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 23.0),
+                Pos2::new(text_x, rect.center().y),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
@@ -258,45 +235,14 @@ pub fn render_folder_browser(
                 max_w,
             );
 
-            let kind_label = match item.kind {
-                super::scanner::MediaKind::Video => "Vídeo",
-                super::scanner::MediaKind::Audio => "Áudio",
-                super::scanner::MediaKind::Directory => "Pasta",
-            };
-            let meta_str = format!("{kind_label}  •  {}", item.extension.to_uppercase());
-            paint_truncated_text(
-                ui,
-                Pos2::new(text_x, rect.top() + 45.0),
-                Align2::LEFT_CENTER,
-                &meta_str,
-                font_xs(),
-                TEXT_MUTED,
-                max_w,
-            );
-
-            // Coluna de Tamanho à direita
+            // Tamanho do arquivo alinhado à direita de forma limpa
             let size_color = lerp_color(TEXT_MUTED, TEXT_SECONDARY, hover_t);
             ui.painter().text(
-                Pos2::new(rect.right() - 56.0, rect.center().y),
+                Pos2::new(rect.right() - 20.0, rect.center().y),
                 Align2::RIGHT_CENTER,
                 &item.size_formatted,
                 font_sm(),
                 size_color,
-            );
-
-            // Botão de Play circular na ponta direita
-            let play_btn_center = Pos2::new(rect.right() - 28.0, rect.center().y);
-            let play_btn_bg =
-                lerp_color(Color32::from_white_alpha(0), ACCENT_NEUTRAL_FILL, hover_t);
-            let play_btn_fg = lerp_color(TEXT_MUTED, ACCENT_NEUTRAL_TEXT, hover_t);
-            ui.painter()
-                .circle_filled(play_btn_center, 16.0, play_btn_bg);
-            ui.painter().text(
-                Pos2::new(play_btn_center.x + 1.0, play_btn_center.y),
-                Align2::CENTER_CENTER,
-                lucide::PLAY,
-                lucide::font_id(14.0),
-                play_btn_fg,
             );
 
             if resp.clicked() {
