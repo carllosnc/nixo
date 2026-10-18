@@ -227,7 +227,12 @@ impl NixoApp {
                         painter.rect_filled(
                             inner,
                             CornerRadius::same(1),
-                            Color32::from_rgba_unmultiplied(47, 229, 11, 40),
+                            Color32::from_rgba_unmultiplied(
+                                ACCENT_COLOR.r(),
+                                ACCENT_COLOR.g(),
+                                ACCENT_COLOR.b(),
+                                40,
+                            ),
                         );
                         let arrow_st = Stroke::new(1.65_f32, ACCENT_COLOR);
                         painter.line_segment([p(6.0, 12.0), p(18.0, 12.0)], arrow_st);
