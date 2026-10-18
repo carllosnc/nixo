@@ -40,9 +40,9 @@ pub fn render_folders_view(
         );
         ui.add_space(14.0);
 
-        let card_w = 280.0;
-        let card_h = 105.0;
-        let spacing = 12.0;
+        let card_w = 310.0;
+        let card_h = 120.0;
+        let spacing = 14.0;
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 
@@ -63,18 +63,16 @@ pub fn render_folders_view(
                     let (rect, resp) = ui.allocate_exact_size(vec2(card_w, card_h), Sense::click());
                     let hovered = resp.hovered();
 
-                    // Superfície limpa sem bordas
                     let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
-
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide da pasta sem wrapper
-                    let icon_pos = Pos2::new(rect.left() + 18.0, rect.top() + 27.0);
+                    let icon_pos = Pos2::new(rect.left() + 20.0, rect.top() + 32.0);
                     ui.painter().text(
                         icon_pos,
                         Align2::LEFT_CENTER,
                         lucide::FOLDER,
-                        lucide::font_id(20.0),
+                        lucide::font_id(26.0),
                         if hovered {
                             Color32::WHITE
                         } else {
@@ -84,8 +82,8 @@ pub fn render_folders_view(
 
                     // Botão sutil de remover pasta
                     let remove_rect = Rect::from_min_size(
-                        Pos2::new(rect.right() - 28.0, rect.top() + 10.0),
-                        vec2(20.0, 20.0),
+                        Pos2::new(rect.right() - 32.0, rect.top() + 12.0),
+                        vec2(22.0, 22.0),
                     );
                     let rem_resp = ui
                         .allocate_rect(remove_rect, Sense::click())
@@ -99,7 +97,7 @@ pub fn render_folders_view(
                             remove_rect.center(),
                             Align2::CENTER_CENTER,
                             lucide::X,
-                            lucide::font_id(13.0),
+                            lucide::font_id(14.0),
                             DANGER_TEXT,
                         );
                     } else {
@@ -107,7 +105,7 @@ pub fn render_folders_view(
                             remove_rect.center(),
                             Align2::CENTER_CENTER,
                             lucide::X,
-                            lucide::font_id(12.0),
+                            lucide::font_id(13.0),
                             TEXT_MUTED,
                         );
                     }
@@ -120,7 +118,7 @@ pub fn render_folders_view(
 
                     // Nome da pasta
                     ui.painter().text(
-                        Pos2::new(rect.left() + 50.0, rect.top() + 20.0),
+                        Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
                         Align2::LEFT_CENTER,
                         folder_name,
                         font_card_title(),
@@ -140,7 +138,7 @@ pub fn render_folders_view(
                     };
 
                     ui.painter().text(
-                        Pos2::new(rect.left() + 50.0, rect.top() + 38.0),
+                        Pos2::new(rect.left() + 56.0, rect.top() + 44.0),
                         Align2::LEFT_CENTER,
                         display_path,
                         font_xs(),
@@ -149,7 +147,7 @@ pub fn render_folders_view(
 
                     // Contador de itens
                     ui.painter().text(
-                        Pos2::new(rect.left() + 16.0, rect.top() + 78.0),
+                        Pos2::new(rect.left() + 20.0, rect.top() + 92.0),
                         Align2::LEFT_CENTER,
                         count_text,
                         font_sm(),

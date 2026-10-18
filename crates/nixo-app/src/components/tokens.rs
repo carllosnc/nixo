@@ -50,45 +50,45 @@ pub const RADIUS_MD: CornerRadius = CornerRadius::same(9);
 pub const RADIUS_LG: CornerRadius = CornerRadius::same(14);
 pub const RADIUS_FULL: CornerRadius = CornerRadius::same(99);
 
-// ── Escala Tipográfica Padronizada (Hierarquia & Legibilidade) ──
+// ── Escala Tipográfica Padronizada (Hierarquia & Legibilidade Desktop) ──
 /// Título Principal de Tela / Ecrã (ex.: cabeçalho do showcase ou da biblioteca).
 #[inline]
 pub fn font_display() -> FontId {
-    FontId::new(22.0, egui::FontFamily::Name("bold".into()))
+    FontId::new(28.0, egui::FontFamily::Name("bold".into()))
 }
 
 /// Título de Seção (hierarquia principal, renderizado em Title Case e branco).
 #[inline]
 pub fn font_section_title() -> FontId {
-    FontId::new(16.5, egui::FontFamily::Name("bold".into()))
+    FontId::new(21.0, egui::FontFamily::Name("bold".into()))
 }
 
 /// Título de Card / Item em grid ou lista.
 #[inline]
 pub fn font_card_title() -> FontId {
-    FontId::new(14.5, egui::FontFamily::Name("bold".into()))
+    FontId::new(17.0, egui::FontFamily::Name("bold".into()))
 }
 
 /// Título padrão para compatibilidade de componentes existentes.
 #[inline]
 pub fn font_title() -> FontId {
-    FontId::new(15.5, egui::FontFamily::Name("bold".into()))
+    FontId::new(18.5, egui::FontFamily::Name("bold".into()))
 }
 
 /// Corpo de texto padrão para nomes, navegação, inputs e botões.
 #[inline]
 pub fn font_body() -> FontId {
-    FontId::proportional(13.5)
+    FontId::proportional(15.5)
 }
 
 /// Subtítulo e texto descritivo secundário (confortável e legível).
 #[inline]
 pub fn font_sm() -> FontId {
-    FontId::proportional(12.5)
+    FontId::proportional(14.0)
 }
 
 /// Metadados, badges, contadores e timestamps (tamanho mínimo para nitidez).
 #[inline]
 pub fn font_xs() -> FontId {
-    FontId::proportional(11.5)
+    FontId::proportional(12.5)
 }

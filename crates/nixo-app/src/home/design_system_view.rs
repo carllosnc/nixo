@@ -1,8 +1,7 @@
 //! Visualização completa e interativa do Design System do Nixo.
 //!
-//! Reúne em uma única tela todos os tokens de superfície, tipografia,
-//! botões full-rounded, breadcrumbs, cards de pasta sem wrappers,
-//! cards de mídia e estados vazios para validação e referência visual.
+//! Reúne em uma única tela todos os tokens de superfície, tipografia desktop,
+//! botões full-rounded, breadcrumbs, cards de pasta e de mídia para validação.
 
 use egui::{Align, Align2, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Ui, vec2};
 
@@ -22,35 +21,35 @@ pub fn render_design_system_view(ui: &mut Ui) -> HomeAction {
             action = HomeAction::CloseDesignSystem;
         }
 
-        ui.add_space(12.0);
+        ui.add_space(14.0);
         ui.label(
             RichText::new("Design System Showcase")
                 .font(font_display())
                 .color(Color32::WHITE),
         );
-        ui.add_space(6.0);
+        ui.add_space(8.0);
         ui.label(
-            RichText::new("— Especificação de tokens, hierarquia e componentes")
+            RichText::new("— Especificação de tokens e componentes")
                 .font(font_sm())
                 .color(TEXT_MUTED),
         );
     });
 
-    ui.add_space(20.0);
+    ui.add_space(24.0);
     render_surfaces_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_typography_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_buttons_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_navigation_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_folder_cards_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_media_cards_section(ui);
-    ui.add_space(24.0);
+    ui.add_space(28.0);
     render_empty_state_section(ui);
-    ui.add_space(32.0);
+    ui.add_space(36.0);
 
     action
 }
@@ -74,7 +73,7 @@ fn render_surfaces_section(ui: &mut Ui) {
 
     ui.horizontal_wrapped(|ui| {
         for (name, color, desc) in swatches {
-            let (rect, _) = ui.allocate_exact_size(vec2(170.0, 86.0), Sense::hover());
+            let (rect, _) = ui.allocate_exact_size(vec2(180.0, 96.0), Sense::hover());
             ui.painter().rect_filled(rect, RADIUS_MD, color);
 
             let is_light = color == ACCENT_NEUTRAL_FILL;
@@ -90,20 +89,20 @@ fn render_surfaces_section(ui: &mut Ui) {
             };
 
             ui.painter().text(
-                Pos2::new(rect.left() + 12.0, rect.top() + 20.0),
+                Pos2::new(rect.left() + 14.0, rect.top() + 24.0),
                 Align2::LEFT_CENTER,
                 name,
                 font_card_title(),
                 text_col,
             );
             ui.painter().text(
-                Pos2::new(rect.left() + 12.0, rect.top() + 42.0),
+                Pos2::new(rect.left() + 14.0, rect.top() + 54.0),
                 Align2::LEFT_CENTER,
                 desc,
                 font_xs(),
                 sub_col,
             );
-            ui.add_space(8.0);
+            ui.add_space(10.0);
         }
     });
 }
@@ -113,78 +112,76 @@ fn render_typography_section(ui: &mut Ui) {
     render_section_header(
         ui,
         "Tipografia & Hierarquia Visual",
-        "Escala tipográfica proporcional Inter com pesos dedicados e legibilidade aprimorada.",
+        "Escala tipográfica proporcional Inter com pesos dedicados e legibilidade aprimorada para desktop.",
     );
 
-    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 176.0), Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 206.0), Sense::hover());
     ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
     let levels = [
         (
-            "Display / Tela",
-            "22.0px Bold",
+            "Display",
+            "28.0px Bold",
             font_display(),
             Color32::WHITE,
             "Cabeçalhos de tela e títulos principais",
         ),
         (
             "Seção",
-            "16.5px Bold",
+            "21.0px Bold",
             font_section_title(),
             Color32::WHITE,
             "Títulos de blocos em Title Case",
         ),
         (
             "Card / Item",
-            "14.5px Bold",
+            "17.0px Bold",
             font_card_title(),
             TEXT_PRIMARY,
             "Nomes de pastas, arquivos e módulos",
         ),
         (
             "Corpo",
-            "13.5px Regular",
+            "15.5px Regular",
             font_body(),
             TEXT_PRIMARY,
-            "Botões, inputs e navegação",
+            "Botões, inputs e navegação ativa",
         ),
         (
             "Subtítulo",
-            "12.5px Regular",
+            "14.0px Regular",
             font_sm(),
             TEXT_SECONDARY,
-            "Descrições e textos secundários",
+            "Descrições de apoio e contadores",
         ),
         (
             "Metadados",
-            "11.5px Regular",
+            "12.5px Regular",
             font_xs(),
             TEXT_MUTED,
-            "Extensões, contadores e badges: 1080P • MKV • 24:12",
+            "Extensões, badges e detalhes: 1080P • MKV • 24:12",
         ),
     ];
 
-    let mut y_offset = rect.top() + 16.0;
+    let mut y_offset = rect.top() + 18.0;
     for (role, spec, font, color, sample) in levels {
-        // Rótulo da especificação à esquerda
         let tag = format!("{role} ({spec}):");
         ui.painter().text(
-            Pos2::new(rect.left() + 16.0, y_offset),
+            Pos2::new(rect.left() + 20.0, y_offset),
             Align2::LEFT_CENTER,
             tag,
             font_xs(),
             TEXT_MUTED,
         );
 
-        // Exemplo renderizado à direita
         ui.painter().text(
-            Pos2::new(rect.left() + 210.0, y_offset),
+            Pos2::new(rect.left() + 240.0, y_offset),
             Align2::LEFT_CENTER,
             sample,
             font,
             color,
         );
-        y_offset += 26.0;
+        y_offset += 31.0;
     }
 }
 
@@ -193,7 +190,7 @@ fn render_buttons_section(ui: &mut Ui) {
     render_section_header(
         ui,
         "Botões Full-Rounded (Pill Buttons)",
-        "Cantos 100% arredondados (RADIUS_FULL), espaçamento exato de 8px entre ícone e texto e hover suave.",
+        "Cantos 100% arredondados (RADIUS_FULL), espaçamento exato de 8px entre ícone e texto e altura 38px.",
     );
 
     ui.horizontal(|ui| {
@@ -210,20 +207,20 @@ fn render_buttons_section(ui: &mut Ui) {
             ButtonVariant::Danger,
             Some(lucide::TRASH_2),
             "Excluir",
-            34.0,
+            38.0,
         );
 
         ui.add_space(16.0);
-        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PLAY), "", 34.0);
+        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PLAY), "", 38.0);
         ui.add_space(6.0);
-        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PAUSE), "", 34.0);
+        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PAUSE), "", 38.0);
         ui.add_space(6.0);
         let _ = render_button(
             ui,
             ButtonVariant::Secondary,
             Some(lucide::VOLUME_2),
             "",
-            34.0,
+            38.0,
         );
         ui.add_space(6.0);
         let _ = render_button(
@@ -231,7 +228,7 @@ fn render_buttons_section(ui: &mut Ui) {
             ButtonVariant::Secondary,
             Some(lucide::MAXIMIZE),
             "",
-            34.0,
+            38.0,
         );
     });
 }
@@ -244,10 +241,10 @@ fn render_navigation_section(ui: &mut Ui) {
         "Navegação hierárquica fluida com separadores chevrons Lucide e realce no diretório atual.",
     );
 
-    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 48.0), Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 54.0), Sense::hover());
     ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
-    let mut cur_x = rect.left() + 16.0;
+    let mut cur_x = rect.left() + 18.0;
     let cy = rect.center().y;
 
     let items = [
@@ -263,10 +260,10 @@ fn render_navigation_section(ui: &mut Ui) {
                 Pos2::new(cur_x, cy),
                 Align2::LEFT_CENTER,
                 lucide::CHEVRON_RIGHT,
-                lucide::font_id(13.0),
+                lucide::font_id(14.0),
                 TEXT_MUTED,
             );
-            cur_x += 20.0;
+            cur_x += 22.0;
         }
 
         let is_last = idx == items.len() - 1;
@@ -287,7 +284,7 @@ fn render_navigation_section(ui: &mut Ui) {
             font,
             *color,
         );
-        cur_x += w + 10.0;
+        cur_x += w + 12.0;
     }
 }
 
@@ -301,16 +298,16 @@ fn render_folder_cards_section(ui: &mut Ui) {
 
     ui.horizontal(|ui| {
         // Card de Pasta Raiz (Grande)
-        let (rect, resp) = ui.allocate_exact_size(vec2(280.0, 105.0), Sense::click());
+        let (rect, resp) = ui.allocate_exact_size(vec2(310.0, 120.0), Sense::click());
         let hovered = resp.hovered();
         let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
         ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
         ui.painter().text(
-            Pos2::new(rect.left() + 18.0, rect.top() + 27.0),
+            Pos2::new(rect.left() + 20.0, rect.top() + 32.0),
             Align2::LEFT_CENTER,
             lucide::FOLDER,
-            lucide::font_id(22.0),
+            lucide::font_id(26.0),
             if hovered {
                 Color32::WHITE
             } else {
@@ -319,7 +316,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         );
 
         ui.painter().text(
-            Pos2::new(rect.left() + 50.0, rect.top() + 20.0),
+            Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
             Align2::LEFT_CENTER,
             "Animes & Séries",
             font_card_title(),
@@ -331,7 +328,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         );
 
         ui.painter().text(
-            Pos2::new(rect.left() + 50.0, rect.top() + 38.0),
+            Pos2::new(rect.left() + 56.0, rect.top() + 44.0),
             Align2::LEFT_CENTER,
             "D:\\Media\\Animes & Séries",
             font_xs(),
@@ -339,7 +336,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         );
 
         ui.painter().text(
-            Pos2::new(rect.left() + 16.0, rect.top() + 78.0),
+            Pos2::new(rect.left() + 20.0, rect.top() + 92.0),
             Align2::LEFT_CENTER,
             "24 itens",
             font_sm(),
@@ -349,7 +346,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         ui.add_space(16.0);
 
         // Chip de Subpasta (Compacto)
-        let (chip_rect, chip_resp) = ui.allocate_exact_size(vec2(230.0, 44.0), Sense::click());
+        let (chip_rect, chip_resp) = ui.allocate_exact_size(vec2(250.0, 50.0), Sense::click());
         let chip_hovered = chip_resp.hovered();
         let chip_bg = if chip_hovered {
             SURFACE_HIGH
@@ -359,10 +356,10 @@ fn render_folder_cards_section(ui: &mut Ui) {
         ui.painter().rect_filled(chip_rect, RADIUS_MD, chip_bg);
 
         ui.painter().text(
-            Pos2::new(chip_rect.left() + 14.0, chip_rect.center().y),
+            Pos2::new(chip_rect.left() + 16.0, chip_rect.center().y),
             Align2::LEFT_CENTER,
             lucide::FOLDER,
-            lucide::font_id(18.0),
+            lucide::font_id(20.0),
             if chip_hovered {
                 Color32::WHITE
             } else {
@@ -371,7 +368,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         );
 
         ui.painter().text(
-            Pos2::new(chip_rect.left() + 40.0, chip_rect.center().y),
+            Pos2::new(chip_rect.left() + 46.0, chip_rect.center().y),
             Align2::LEFT_CENTER,
             "Season 01",
             font_body(),
@@ -418,13 +415,13 @@ fn render_sample_media_card(
     size: &str,
     icon: &'static str,
 ) {
-    let (rect, resp) = ui.allocate_exact_size(vec2(220.0, 142.0), Sense::click());
+    let (rect, resp) = ui.allocate_exact_size(vec2(230.0, 160.0), Sense::click());
     let hovered = resp.hovered();
     let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-    let thumb_h = 84.0;
-    let thumb_rect = Rect::from_min_size(rect.min, vec2(220.0, thumb_h));
+    let thumb_h = 96.0;
+    let thumb_rect = Rect::from_min_size(rect.min, vec2(230.0, thumb_h));
     ui.painter().rect_filled(
         thumb_rect,
         egui::CornerRadius {
@@ -442,18 +439,18 @@ fn render_sample_media_card(
     } else {
         (SURFACE_LOW, icon, TEXT_SECONDARY)
     };
-    ui.painter().circle_filled(center, 18.0, circle_bg);
+    ui.painter().circle_filled(center, 22.0, circle_bg);
     ui.painter().text(
         Pos2::new(center.x + if hovered { 1.0 } else { 0.0 }, center.y),
         Align2::CENTER_CENTER,
         icon_str,
-        lucide::font_id(16.0),
+        lucide::font_id(18.0),
         icon_fg,
     );
 
     let badge_rect = Rect::from_min_size(
-        Pos2::new(thumb_rect.right() - 48.0, thumb_rect.top() + 6.0),
-        vec2(42.0, 18.0),
+        Pos2::new(thumb_rect.right() - 48.0, thumb_rect.top() + 8.0),
+        vec2(40.0, 18.0),
     );
     ui.painter()
         .rect_filled(badge_rect, RADIUS_SM, Color32::from_black_alpha(190));
@@ -465,13 +462,13 @@ fn render_sample_media_card(
         TEXT_SECONDARY,
     );
 
-    let display_title = if title.len() > 22 {
-        format!("{}...", &title[..20])
+    let display_title = if title.len() > 24 {
+        format!("{}...", &title[..22])
     } else {
         title.to_string()
     };
     ui.painter().text(
-        Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 16.0),
+        Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
         Align2::LEFT_CENTER,
         display_title,
         font_body(),
@@ -483,7 +480,7 @@ fn render_sample_media_card(
     );
 
     ui.painter().text(
-        Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 36.0),
+        Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 38.0),
         Align2::LEFT_CENTER,
         size,
         font_xs(),
@@ -501,7 +498,7 @@ fn render_empty_state_section(ui: &mut Ui) {
         "Espaçamento confortável, ícone Lucide central e botão de ação neutra proeminente.",
     );
 
-    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 160.0), Sense::hover());
+    let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 170.0), Sense::hover());
     ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
     let mut child_ui = ui.new_child(
@@ -531,5 +528,5 @@ fn render_section_header(ui: &mut Ui, title: &str, subtitle: &str) {
             .font(font_sm())
             .color(TEXT_SECONDARY),
     );
-    ui.add_space(12.0);
+    ui.add_space(14.0);
 }

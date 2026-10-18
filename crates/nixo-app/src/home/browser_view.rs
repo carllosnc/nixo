@@ -36,9 +36,9 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
         );
         ui.add_space(12.0);
 
-        let chip_w = 230.0;
-        let chip_h = 42.0;
-        let spacing = 10.0;
+        let chip_w = 250.0;
+        let chip_h = 50.0;
+        let spacing = 12.0;
         let avail_w = ui.available_width().max(chip_w);
         let cols = ((avail_w + spacing) / (chip_w + spacing)).floor().max(1.0) as usize;
 
@@ -50,15 +50,14 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hovered = resp.hovered();
 
                     let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
-
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide de pasta sem wrapper
                     ui.painter().text(
-                        Pos2::new(rect.left() + 14.0, rect.center().y),
+                        Pos2::new(rect.left() + 16.0, rect.center().y),
                         Align2::LEFT_CENTER,
                         lucide::FOLDER,
-                        lucide::font_id(16.0),
+                        lucide::font_id(20.0),
                         if hovered {
                             Color32::WHITE
                         } else {
@@ -67,7 +66,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     );
 
                     // Nome da subpasta truncado
-                    let name_x = rect.left() + 38.0;
+                    let name_x = rect.left() + 46.0;
                     let max_chars = 24;
                     let display_name = if dir.name.len() > max_chars {
                         format!("{}...", &dir.name[..max_chars - 2])
@@ -100,7 +99,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                 }
             });
 
-        ui.add_space(16.0);
+        ui.add_space(18.0);
     }
 
     // Seção de Arquivos de Mídia (exibida apenas quando houver arquivos na pasta)
@@ -114,9 +113,9 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
             ui.add_space(12.0);
         }
 
-        let card_w = 210.0;
-        let card_h = 138.0;
-        let spacing = 12.0;
+        let card_w = 230.0;
+        let card_h = 160.0;
+        let spacing = 14.0;
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 
@@ -128,11 +127,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hovered = resp.hovered();
 
                     let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
-
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Área de thumbnail com cantos arredondados no topo
-                    let thumb_h = 82.0;
+                    let thumb_h = 96.0;
                     let thumb_rect = Rect::from_min_size(rect.min, vec2(card_w, thumb_h));
                     ui.painter().rect_filled(
                         thumb_rect,
@@ -157,19 +155,19 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         };
                         (SURFACE_LOW, ic, TEXT_SECONDARY)
                     };
-                    ui.painter().circle_filled(center, 18.0, circle_bg);
+                    ui.painter().circle_filled(center, 22.0, circle_bg);
                     ui.painter().text(
                         Pos2::new(center.x + if hovered { 1.0 } else { 0.0 }, center.y),
                         Align2::CENTER_CENTER,
                         icon_str,
-                        lucide::font_id(16.0),
+                        lucide::font_id(18.0),
                         icon_fg,
                     );
 
                     // Badge com extensão (ex.: MP4, MKV)
                     let badge_rect = Rect::from_min_size(
-                        Pos2::new(thumb_rect.right() - 44.0, thumb_rect.top() + 6.0),
-                        vec2(38.0, 16.0),
+                        Pos2::new(thumb_rect.right() - 48.0, thumb_rect.top() + 8.0),
+                        vec2(40.0, 18.0),
                     );
                     ui.painter()
                         .rect_filled(badge_rect, RADIUS_SM, Color32::from_black_alpha(190));
@@ -195,7 +193,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     };
 
                     ui.painter().text(
-                        Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 16.0),
+                        Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
                         Align2::LEFT_CENTER,
                         display_name,
                         font_body(),
@@ -208,7 +206,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
                     // Tamanho / Metadados
                     ui.painter().text(
-                        Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 34.0),
+                        Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 38.0),
                         Align2::LEFT_CENTER,
                         &item.size_formatted,
                         font_xs(),

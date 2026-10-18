@@ -25,7 +25,7 @@ pub fn render_button(
     height: f32,
 ) -> Response {
     let font = font_body();
-    let icon_font = lucide::font_id(14.0);
+    let icon_font = lucide::font_id(16.5);
 
     let has_icon = icon.is_some_and(|ic| !ic.is_empty());
     let has_text = !text.is_empty();
@@ -55,7 +55,7 @@ pub fn render_button(
     let content_w = icon_w + gap + text_w;
 
     let pad_x = if has_text {
-        16.0
+        18.0
     } else {
         (height - icon_w) / 2.0
     };
@@ -186,17 +186,17 @@ pub fn render_button(
 /// Atalho para botão de ação primária neutra (full rounded).
 #[inline]
 pub fn primary(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
-    render_button(ui, ButtonVariant::Primary, icon, text, 34.0)
+    render_button(ui, ButtonVariant::Primary, icon, text, 38.0)
 }
 
 /// Atalho para botão de ação secundária neutra (full rounded).
 #[inline]
 pub fn secondary(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
-    render_button(ui, ButtonVariant::Secondary, icon, text, 34.0)
+    render_button(ui, ButtonVariant::Secondary, icon, text, 38.0)
 }
 
 /// Atalho para botão ghost transparente com hover sutil (full rounded).
 #[inline]
 pub fn ghost(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
-    render_button(ui, ButtonVariant::Ghost, icon, text, 34.0)
+    render_button(ui, ButtonVariant::Ghost, icon, text, 38.0)
 }
