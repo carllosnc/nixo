@@ -310,98 +310,97 @@ impl eframe::App for NixoApp {
             ctx.set_cursor_icon(egui::CursorIcon::None);
         }
 
-        // 1. Painel Central: Canvas de vídeo Edge-to-Edge (100% da área útil da janela)
+        // 1. Painel Central: Canvas de vídeo ou Tela Inicial (Home)
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE.fill(BG_OLED_BLACK))
             .show(ctx, |ui| {
-                let avail = ui.available_size();
-                self.update_video_texture(ctx, avail);
+                if self.status.state != PlaybackState::Stopped {
+                    let avail = ui.available_size();
+                    self.update_video_texture(ctx, avail);
 
-                let pointer_pos = ctx.input(|i| i.pointer.hover_pos());
-                let screen_h = ctx.screen_rect().height();
-                let is_over_controls = osd_alpha > 0.15
-                    && pointer_pos
-                        .is_some_and(|pos| pos.y >= (screen_h - 90.0).max(0.0) || pos.y <= 55.0);
+                    let pointer_pos = ctx.input(|i| i.pointer.hover_pos());
+                    let screen_h = ctx.screen_rect().height();
+                    let is_over_controls = osd_alpha > 0.15
+                        && pointer_pos.is_some_and(|pos| {
+                            pos.y >= (screen_h - 90.0).max(0.0) || pos.y <= 55.0
+                        });
 
-                let (rect, response) = ui.allocate_exact_size(avail, Sense::click());
-                if response.double_clicked() && !is_over_controls {
-                    self.toggle_fullscreen(ctx);
-                } else if response.clicked()
-                    && !is_over_controls
-                    && self.status.state != PlaybackState::Stopped
-                {
-                    self.dispatch(PlayerCommand::TogglePlayPause);
-                }
+                    let (rect, response) = ui.allocate_exact_size(avail, Sense::click());
+                    if response.double_clicked() && !is_over_controls {
+                        self.toggle_fullscreen(ctx);
+                    } else if response.clicked() && !is_over_controls {
+                        self.dispatch(PlayerCommand::TogglePlayPause);
+                    }
 
-                if self.status.state != PlaybackState::Stopped
-                    && let Some(tex) = &self.video_texture
-                {
-                    // Preserva proporção ou preenche tela sobre fundo preto OLED
-                    let tex_size = tex.size_vec2();
-                    let aspect = self
-                        .status
-                        .aspect_ratio
-                        .ratio_f64()
-                        .map(|r| r as f32)
-                        .unwrap_or_else(|| (tex_size.x / tex_size.y.max(1.0)).max(0.1));
-                    let (draw_w, draw_h) = match self.status.video_fit {
-                        nixo_core::VideoFit::Fit => {
-                            let mut w = rect.width();
-                            let mut h = w / aspect;
-                            if h > rect.height() {
-                                h = rect.height();
-                                w = h * aspect;
+                    if let Some(tex) = &self.video_texture {
+                        // Preserva proporção ou preenche tela sobre fundo preto OLED
+                        let tex_size = tex.size_vec2();
+                        let aspect = self
+                            .status
+                            .aspect_ratio
+                            .ratio_f64()
+                            .map(|r| r as f32)
+                            .unwrap_or_else(|| (tex_size.x / tex_size.y.max(1.0)).max(0.1));
+                        let (draw_w, draw_h) = match self.status.video_fit {
+                            nixo_core::VideoFit::Fit => {
+                                let mut w = rect.width();
+                                let mut h = w / aspect;
+                                if h > rect.height() {
+                                    h = rect.height();
+                                    w = h * aspect;
+                                }
+                                (w, h)
                             }
-                            (w, h)
-                        }
-                        nixo_core::VideoFit::Fill => {
-                            let mut w = rect.width();
-                            let mut h = w / aspect;
-                            if h < rect.height() {
-                                h = rect.height();
-                                w = h * aspect;
+                            nixo_core::VideoFit::Fill => {
+                                let mut w = rect.width();
+                                let mut h = w / aspect;
+                                if h < rect.height() {
+                                    h = rect.height();
+                                    w = h * aspect;
+                                }
+                                (w, h)
                             }
-                            (w, h)
+                        };
+
+                        let video_rect =
+                            Rect::from_center_size(rect.center(), Vec2::new(draw_w, draw_h));
+                        ui.painter().with_clip_rect(rect).image(
+                            tex.id(),
+                            video_rect,
+                            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                            Color32::WHITE,
+                        );
+
+                        // Gradiente vertical estilo YouTube (vignette suave) com fade in / fade out
+                        if osd_alpha > 0.005 {
+                            let w = rect.width();
+                            let h = rect.height();
+
+                            let top_alpha = (160.0 * osd_alpha).round() as u8;
+                            let top_h = 90.0_f32.min(h * 0.25);
+                            let top_c = Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha);
+                            ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
+                                0.0,
+                                top_h,
+                                w,
+                                top_c,
+                                Color32::TRANSPARENT,
+                            )));
+
+                            let bottom_alpha = (220.0 * osd_alpha).round() as u8;
+                            let bottom_h = 145.0_f32.min(h * 0.40);
+                            let bottom_c = Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha);
+                            ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
+                                h - bottom_h,
+                                h,
+                                w,
+                                Color32::TRANSPARENT,
+                                bottom_c,
+                            )));
                         }
-                    };
-
-                    let video_rect =
-                        Rect::from_center_size(rect.center(), Vec2::new(draw_w, draw_h));
-                    ui.painter().with_clip_rect(rect).image(
-                        tex.id(),
-                        video_rect,
-                        Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-                        Color32::WHITE,
-                    );
-
-                    // Gradiente vertical estilo YouTube (vignette suave) com fade in / fade out
-                    if osd_alpha > 0.005 {
-                        let w = rect.width();
-                        let h = rect.height();
-
-                        let top_alpha = (160.0 * osd_alpha).round() as u8;
-                        let top_h = 90.0_f32.min(h * 0.25);
-                        let top_c = Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha);
-                        ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
-                            0.0,
-                            top_h,
-                            w,
-                            top_c,
-                            Color32::TRANSPARENT,
-                        )));
-
-                        let bottom_alpha = (220.0 * osd_alpha).round() as u8;
-                        let bottom_h = 145.0_f32.min(h * 0.40);
-                        let bottom_c = Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha);
-                        ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
-                            h - bottom_h,
-                            h,
-                            w,
-                            Color32::TRANSPARENT,
-                            bottom_c,
-                        )));
                     }
                 } else {
+                    let rect = ui.max_rect();
                     let action = self.home_state.render(ui, &self.media_folders, rect);
                     self.handle_home_action(action);
                 }

@@ -71,20 +71,29 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
     ui.add_space(10.0);
 
     if content.files.is_empty() {
-        let avail_rect = ui.available_rect_before_wrap();
-        let empty_box = Rect::from_center_size(avail_rect.center(), Vec2::new(380.0, 140.0));
-        ui.painter().rect_filled(
-            empty_box,
-            CornerRadius::same(12),
-            Color32::from_rgb(20, 22, 28),
-        );
-        ui.painter().text(
-            empty_box.center(),
-            Align2::CENTER_CENTER,
-            "Nenhum arquivo executável de mídia encontrado nesta pasta.",
-            FontId::proportional(13.0),
-            Color32::from_gray(160),
-        );
+        ui.add_space(24.0);
+        ui.vertical_centered(|ui| {
+            let box_size = Vec2::new(420.0, 90.0);
+            let (empty_box, _) = ui.allocate_exact_size(box_size, Sense::hover());
+            ui.painter().rect_filled(
+                empty_box,
+                CornerRadius::same(12),
+                Color32::from_rgb(20, 22, 28),
+            );
+            ui.painter().rect_stroke(
+                empty_box,
+                CornerRadius::same(12),
+                Stroke::new(1.0_f32, Color32::from_rgb(42, 45, 56)),
+                StrokeKind::Inside,
+            );
+            ui.painter().text(
+                empty_box.center(),
+                Align2::CENTER_CENTER,
+                "Nenhum arquivo executável de mídia encontrado nesta pasta.",
+                FontId::proportional(13.0),
+                Color32::from_gray(180),
+            );
+        });
     } else {
         let card_w = 210.0;
         let card_h = 135.0;

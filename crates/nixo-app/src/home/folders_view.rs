@@ -20,62 +20,66 @@ pub fn render_folders_view(
     let mut action = HomeAction::None;
 
     if folders.is_empty() {
-        let avail_rect = ui.available_rect_before_wrap();
-        let card_size = Vec2::new(480.0, 240.0).min(avail_rect.size() * 0.9);
-        let card_rect = Rect::from_center_size(avail_rect.center(), card_size);
+        ui.add_space(32.0);
+        ui.vertical_centered(|ui| {
+            let card_size = Vec2::new(520.0, 230.0);
+            let (card_rect, _) = ui.allocate_exact_size(card_size, Sense::hover());
 
-        ui.painter().rect_filled(
-            card_rect,
-            CornerRadius::same(16),
-            Color32::from_rgb(20, 22, 28),
-        );
-        ui.painter().rect_stroke(
-            card_rect,
-            CornerRadius::same(16),
-            Stroke::new(1.0_f32, Color32::from_rgb(44, 48, 60)),
-            StrokeKind::Inside,
-        );
+            ui.painter().rect_filled(
+                card_rect,
+                CornerRadius::same(16),
+                Color32::from_rgb(20, 22, 28),
+            );
+            ui.painter().rect_stroke(
+                card_rect,
+                CornerRadius::same(16),
+                Stroke::new(1.0_f32, Color32::from_rgb(44, 48, 60)),
+                StrokeKind::Inside,
+            );
 
-        let mut child_ui = ui.new_child(
-            egui::UiBuilder::new()
-                .max_rect(card_rect.shrink(24.0))
-                .layout(Layout::top_down(Align::Center)),
-        );
+            let mut child_ui = ui.new_child(
+                egui::UiBuilder::new()
+                    .max_rect(card_rect.shrink(24.0))
+                    .layout(Layout::top_down(Align::Center)),
+            );
 
-        child_ui.add_space(10.0);
-        child_ui.label(
-            RichText::new("📁 Nenhuma pasta de mídia adicionada")
-                .font(FontId::proportional(16.0))
-                .strong()
-                .color(Color32::WHITE),
-        );
-        child_ui.add_space(8.0);
-        child_ui.label(
-            RichText::new("Adicione suas pastas de vídeos ou animes para navegar e assistir diretamente por aqui.")
+            child_ui.add_space(8.0);
+            child_ui.label(
+                RichText::new("📁 Nenhuma pasta de mídia adicionada")
+                    .font(FontId::proportional(16.0))
+                    .strong()
+                    .color(Color32::WHITE),
+            );
+            child_ui.add_space(8.0);
+            child_ui.label(
+                RichText::new(
+                    "Adicione suas pastas de vídeos ou animes para navegar e assistir diretamente por aqui.",
+                )
                 .font(FontId::proportional(13.5))
                 .color(Color32::from_gray(170)),
-        );
-        child_ui.add_space(20.0);
+            );
+            child_ui.add_space(20.0);
 
-        let add_btn = egui::Button::new(
-            RichText::new("+ Selecionar Pasta de Mídia")
-                .font(FontId::proportional(14.0))
-                .strong()
-                .color(Color32::WHITE),
-        )
-        .fill(ACCENT_COLOR)
-        .corner_radius(CornerRadius::same(10));
+            let add_btn = egui::Button::new(
+                RichText::new("+ Selecionar Pasta de Mídia")
+                    .font(FontId::proportional(14.0))
+                    .strong()
+                    .color(Color32::WHITE),
+            )
+            .fill(ACCENT_COLOR)
+            .corner_radius(CornerRadius::same(10));
 
-        if child_ui.add_sized([240.0, 40.0], add_btn).clicked() {
-            action = HomeAction::AddFolder;
-        }
+            if child_ui.add_sized([240.0, 40.0], add_btn).clicked() {
+                action = HomeAction::AddFolder;
+            }
 
-        child_ui.add_space(12.0);
-        child_ui.label(
-            RichText::new("ou arraste e solte um arquivo de mídia nesta janela")
-                .font(FontId::proportional(12.5))
-                .color(Color32::from_gray(130)),
-        );
+            child_ui.add_space(12.0);
+            child_ui.label(
+                RichText::new("ou arraste e solte um arquivo de mídia nesta janela")
+                    .font(FontId::proportional(12.5))
+                    .color(Color32::from_gray(130)),
+            );
+        });
     } else {
         ui.add_space(8.0);
         ui.label(
