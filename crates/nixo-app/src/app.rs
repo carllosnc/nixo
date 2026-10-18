@@ -15,7 +15,6 @@ use crate::widgets::vertical_gradient_mesh;
 
 pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(55, 167, 33); // Verde da marca Nixo (#37A721)
 pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
-pub(crate) const OPAQUE_PANEL_BG: Color32 = Color32::from_rgb(12, 13, 17);
 /// Tempo para ocultar o OSD quando o mouse fica parado sobre o vídeo (estilo YouTube).
 const OSD_VIDEO_IDLE_TIMEOUT: Duration = Duration::from_millis(2000);
 /// Tempo para ocultar o OSD rapidamente quando o mouse sai da janela do player.
@@ -60,6 +59,8 @@ pub struct NixoApp {
     pub(crate) aspect_ratio_fit: bool,
     pub(crate) last_window_size: Vec2,
     pub(crate) toast: Option<crate::toast::ToastNotification>,
+    pub(crate) home_state: crate::home::HomeState,
+    pub(crate) media_folders: Vec<PathBuf>,
 }
 
 impl NixoApp {
@@ -109,6 +110,8 @@ impl NixoApp {
             aspect_ratio_fit,
             last_window_size: Vec2::ZERO,
             toast: None,
+            home_state: crate::home::HomeState::new(),
+            media_folders: settings.library.folders.clone(),
         }
     }
 
@@ -151,6 +154,9 @@ impl NixoApp {
                 always_on_top: self.always_on_top,
                 aspect_ratio_fit: self.aspect_ratio_fit,
             },
+            library: crate::settings::LibrarySettings {
+                folders: self.media_folders.clone(),
+            },
         }
     }
 
@@ -173,7 +179,34 @@ impl NixoApp {
 
     pub(crate) fn go_home(&mut self) {
         self.video_texture = None;
+        self.home_state.go_root();
         self.dispatch(PlayerCommand::Stop);
+    }
+
+    pub(crate) fn handle_home_action(&mut self, action: crate::home::HomeAction) {
+        use crate::home::HomeAction::*;
+        match action {
+            None => {}
+            AddFolder => {
+                if let Some(folder) = rfd::FileDialog::new().pick_folder()
+                    && !self.media_folders.contains(&folder)
+                {
+                    self.media_folders.push(folder.clone());
+                    self.settings_store.observe(self.current_settings());
+                    self.home_state.scanner.invalidate(&folder);
+                }
+            }
+            RemoveFolder(folder) => {
+                self.media_folders.retain(|f| f != &folder);
+                self.settings_store.observe(self.current_settings());
+            }
+            OpenFolder(path) => self.home_state.navigate_to(path),
+            GoBack => self.home_state.go_back(),
+            GoRoot => self.home_state.go_root(),
+            OpenFile => self.open_file_dialog(),
+            PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
+            PlayTestSignal => self.dispatch(PlayerCommand::Play),
+        }
     }
 
     pub(crate) fn update_video_texture(&mut self, ctx: &Context, viewport_size: Vec2) {
@@ -203,27 +236,11 @@ impl NixoApp {
     }
 
     pub(crate) fn take_screenshot(&mut self) {
-        let base_dir = dirs::picture_dir()
-            .unwrap_or_else(|| PathBuf::from("."))
-            .join("Nixo");
-
-        if let Err(err) = std::fs::create_dir_all(&base_dir) {
-            warn!("Falha ao criar diretório de capturas: {err}");
-        }
-
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
-        let filename = format!("Nixo_{timestamp}.png");
-        let target_path = base_dir.join(&filename);
-
-        self.dispatch(PlayerCommand::TakeScreenshot(target_path.clone()));
-        crate::toast::copy_screenshot_to_clipboard_async(target_path.clone());
-        self.show_toast(
-            format!("Captura copiada e salva: {filename}"),
-            Some(target_path),
-        );
+        let path = crate::toast::prepare_screenshot_path();
+        let filename = path.file_name().unwrap_or_default().to_string_lossy();
+        self.dispatch(PlayerCommand::TakeScreenshot(path.clone()));
+        crate::toast::copy_screenshot_to_clipboard_async(path.clone());
+        self.show_toast(format!("Captura copiada e salva: {filename}"), Some(path));
     }
 }
 
@@ -385,7 +402,8 @@ impl eframe::App for NixoApp {
                         )));
                     }
                 } else {
-                    self.render_empty_state(ui, rect);
+                    let action = self.home_state.render(ui, &self.media_folders, rect);
+                    self.handle_home_action(action);
                 }
             });
 

@@ -2,6 +2,7 @@
 
 mod app;
 mod flags;
+mod home;
 mod icons;
 mod input;
 mod osd;

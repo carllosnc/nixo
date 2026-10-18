@@ -211,3 +211,16 @@ pub(crate) fn copy_screenshot_to_clipboard_async(path: PathBuf) {
         tracing::warn!("Timeout aguardando gravação do arquivo de captura para o clipboard");
     });
 }
+
+/// Cria o diretório de capturas e gera o caminho com timestamp único.
+pub(crate) fn prepare_screenshot_path() -> PathBuf {
+    let base_dir = dirs::picture_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("Nixo");
+    let _ = std::fs::create_dir_all(&base_dir);
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    base_dir.join(format!("Nixo_{timestamp}.png"))
+}

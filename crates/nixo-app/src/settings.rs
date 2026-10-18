@@ -31,6 +31,13 @@ pub struct AppSettings {
     pub playback: PlaybackSettings,
     pub subtitles: SubtitleSettings,
     pub window: WindowSettings,
+    pub library: LibrarySettings,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct LibrarySettings {
+    pub folders: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -278,6 +285,9 @@ mod tests {
             window: WindowSettings {
                 always_on_top: true,
                 aspect_ratio_fit: true,
+            },
+            library: LibrarySettings {
+                folders: vec![PathBuf::from("/test/media")],
             },
         };
         settings.save_to(&path).expect("save");

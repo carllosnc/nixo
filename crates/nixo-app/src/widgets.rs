@@ -2,12 +2,12 @@ use std::time::Duration;
 
 use egui::epaint::{Mesh, Vertex};
 use egui::{
-    Align, Align2, Color32, ColorImage, Context, CornerRadius, FontId, Id, Layout, Margin, Pos2,
-    Rect, RichText, Sense, Stroke, TextureOptions, Ui, Vec2, vec2,
+    Align2, Color32, ColorImage, Context, CornerRadius, FontId, Id, Margin, Pos2, Rect, RichText,
+    Sense, Stroke, TextureOptions, Ui, vec2,
 };
-use nixo_core::{PlaybackState, PlayerCommand, format_duration};
+use nixo_core::{PlaybackState, format_duration};
 
-use crate::app::{ACCENT_COLOR, NixoApp, OPAQUE_PANEL_BG};
+use crate::app::{ACCENT_COLOR, NixoApp};
 
 impl NixoApp {
     /// Renderiza a cápsula superior translúcida com o título da mídia (estilo YouTube/minimalista).
@@ -330,71 +330,6 @@ impl NixoApp {
                         });
                     });
             });
-    }
-
-    /// Renderiza a tela de boas-vindas minimalista em vidro translúcido quando nenhum vídeo está carregado.
-    pub(crate) fn render_empty_state(&mut self, ui: &mut Ui, rect: Rect) {
-        let card_size = Vec2::new(420.0, 200.0).min(rect.size() * 0.9);
-        let card_rect = Rect::from_center_size(rect.center(), card_size);
-
-        ui.painter().rect(
-            card_rect,
-            CornerRadius::same(18),
-            OPAQUE_PANEL_BG,
-            Stroke::NONE,
-            egui::StrokeKind::Inside,
-        );
-
-        let mut child_ui = ui.new_child(
-            egui::UiBuilder::new()
-                .max_rect(card_rect.shrink(22.0))
-                .layout(Layout::top_down(Align::Center)),
-        );
-
-        child_ui.add_space(4.0);
-        child_ui.label(
-            RichText::new("N I X O")
-                .font(FontId::proportional(18.0))
-                .strong()
-                .color(ACCENT_COLOR),
-        );
-        child_ui.add_space(8.0);
-        child_ui.label(
-            RichText::new("Arraste e solte um arquivo de vídeo aqui")
-                .font(FontId::proportional(13.5))
-                .color(Color32::from_gray(190)),
-        );
-        child_ui.add_space(18.0);
-
-        child_ui.horizontal(|ui| {
-            let total_btn_w = 270.0;
-            let pad = ((ui.available_width() - total_btn_w) * 0.5).max(0.0);
-            ui.add_space(pad);
-
-            let open_btn = egui::Button::new(
-                RichText::new("📂 Abrir Arquivo")
-                    .font(FontId::proportional(13.0))
-                    .color(Color32::WHITE),
-            )
-            .fill(Color32::from_rgb(38, 41, 52))
-            .corner_radius(CornerRadius::same(10));
-
-            if ui.add_sized([130.0, 34.0], open_btn).clicked() {
-                self.open_file_dialog();
-            }
-
-            let test_btn = egui::Button::new(
-                RichText::new("▶ Testar Sinal")
-                    .font(FontId::proportional(13.0))
-                    .color(Color32::from_gray(215)),
-            )
-            .fill(Color32::from_rgb(26, 28, 35))
-            .corner_radius(CornerRadius::same(10));
-
-            if ui.add_sized([125.0, 34.0], test_btn).clicked() {
-                self.dispatch(PlayerCommand::Play);
-            }
-        });
     }
 }
 
