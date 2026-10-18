@@ -191,9 +191,9 @@ impl NixoApp {
                 .color(Color32::from_gray(215)),
         );
 
-        // B. Bloco da Direita (Badge de Alerta de Legenda, CC, Configurações ⚙, Abrir Arquivo, Capturar Tela, Proporção, Tela Cheia)
+        // B. Bloco da Direita (CC, Configurações ⚙, Abrir Arquivo, Capturar Tela, Proporção, Tela Cheia)
         let has_sub_warning = self.status.subtitle_health.is_warning();
-        let right_w = if has_sub_warning { 435.0 } else { 285.0 };
+        let right_w = 285.0;
         let left_max_w = (row_rect.width() - right_w - 8.0).max(260.0);
         let _ = left_max_w;
         let right_rect = Rect::from_min_size(
@@ -311,44 +311,6 @@ impl NixoApp {
         }
         if cc_resp.clicked() {
             self.dispatch(PlayerCommand::ToggleSubtitleVisibility);
-        }
-
-        // 5. Badge vermelho de alerta na barra inferior quando a legenda não está funcionando
-        if let (Some(badge_label), Some(warn_msg)) = (
-            self.status.subtitle_health.badge_label(),
-            self.status.subtitle_health.warning_message(),
-        ) {
-            let badge_w = 132.0;
-            let badge_h = 24.0;
-            let (badge_slot, badge_resp) =
-                right_ui.allocate_exact_size(vec2(badge_w, BTN_HEIGHT), Sense::click());
-            if badge_resp.hovered() {
-                ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
-            }
-            let pill_rect =
-                Rect::from_center_size(badge_slot.center(), vec2(badge_w - 4.0, badge_h));
-            let bg_color = if badge_resp.hovered() {
-                Color32::from_rgb(235, 52, 52)
-            } else {
-                Color32::from_rgb(210, 36, 36)
-            };
-            right_ui.painter().rect_filled(pill_rect, 12.0, bg_color);
-            right_ui.painter().text(
-                pill_rect.center(),
-                egui::Align2::CENTER_CENTER,
-                format!("! {badge_label}"),
-                crate::theme::font_bold(11.0),
-                Color32::WHITE,
-            );
-
-            let badge_tt_id = badge_resp.id.with("sub_warn_badge_tt");
-            let badge_alpha = ctx.animate_bool_with_time(badge_tt_id, badge_resp.hovered(), 0.12);
-            Self::render_player_tooltip(ctx, badge_tt_id, pill_rect, &warn_msg, badge_alpha);
-
-            if badge_resp.clicked() {
-                self.settings_tab = crate::app::SettingsTab::Subtitles;
-                ctx.memory_mut(|mem| mem.open_popup(egui::Id::new("settings_popup_menu")));
-            }
         }
 
         self.render_settings_popup(ctx, &gear_resp);

@@ -11,7 +11,7 @@ use nixo_core::PlayerCommand;
 use super::MenuActions;
 use super::components::{
     Choice, EmptyState, LeadingIcon, MenuDivider, MenuOption, MenuToggle, NavRow, SectionTitle,
-    choice_list, delay_stepper, submenu_header,
+    WarningBanner, choice_list, delay_stepper, submenu_header,
 };
 use super::style::menu_style;
 use crate::app::{NixoApp, SettingsTab};
@@ -129,6 +129,10 @@ impl NixoApp {
     pub(super) fn render_tab_subtitles(&self, ui: &mut Ui, actions: &mut MenuActions) {
         if submenu_header(ui, "LEGENDAS") {
             actions.navigate(SettingsTab::Main);
+        }
+
+        if let Some(warning) = self.status.subtitle_health.warning_message() {
+            ui.add(WarningBanner::new(&warning));
         }
 
         let visible = self.status.subtitles_visible;
