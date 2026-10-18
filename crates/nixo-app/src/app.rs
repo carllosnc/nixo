@@ -158,6 +158,9 @@ impl NixoApp {
         if matches!(cmd, PlayerCommand::LoadFile(_) | PlayerCommand::Stop) {
             self.seek_override = None;
             self.preview_texture = None;
+            if matches!(cmd, PlayerCommand::Stop) {
+                self.video_texture = None;
+            }
         }
         if let Err(err) = self.backend.execute(cmd) {
             error!("Comando falhou: {err}");
@@ -166,6 +169,11 @@ impl NixoApp {
             self.error_banner = None;
         }
         self.status = self.backend.status();
+    }
+
+    pub(crate) fn go_home(&mut self) {
+        self.video_texture = None;
+        self.dispatch(PlayerCommand::Stop);
     }
 
     pub(crate) fn update_video_texture(&mut self, ctx: &Context, viewport_size: Vec2) {
@@ -308,7 +316,9 @@ impl eframe::App for NixoApp {
                     self.dispatch(PlayerCommand::TogglePlayPause);
                 }
 
-                if let Some(tex) = &self.video_texture {
+                if self.status.state != PlaybackState::Stopped
+                    && let Some(tex) = &self.video_texture
+                {
                     // Preserva proporção ou preenche tela sobre fundo preto OLED
                     let tex_size = tex.size_vec2();
                     let aspect = self
@@ -380,7 +390,7 @@ impl eframe::App for NixoApp {
             });
 
         // 2. Elementos Flutuantes (OSD): Renderizados com animação de fade suave
-        if osd_alpha > 0.005 {
+        if osd_alpha > 0.005 && self.status.state != PlaybackState::Stopped {
             // A. Título e metadados no topo (integrado ao gradiente superior)
             if self.status.state != PlaybackState::Stopped || self.status.metadata.is_some() {
                 egui::Area::new(Id::new("floating_top_pill"))

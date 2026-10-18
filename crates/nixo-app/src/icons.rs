@@ -10,7 +10,7 @@ pub(crate) enum ControlIcon {
     Volume { level: f32, muted: bool },
     Subtitles { active: bool },
     SettingsGear,
-    OpenFile,
+    Home,
     Fullscreen { is_fullscreen: bool },
     AspectFit { active: bool },
     Screenshot,
@@ -159,21 +159,22 @@ impl NixoApp {
                         .collect();
                     painter.add(Shape::closed_line(cog_pts, stroke));
                 }
-                ControlIcon::OpenFile => {
-                    // Lucide 'folder': silhueta canônica de pasta com aba chanfrada superior esquerda
-                    let pts = vec![
-                        p(4.0, 4.0),
-                        p(8.0, 4.0),
-                        p(10.2, 6.5),
-                        p(20.0, 6.5),
-                        p(21.5, 8.0),
-                        p(21.5, 18.5),
-                        p(20.0, 20.0),
-                        p(4.0, 20.0),
-                        p(2.5, 18.5),
-                        p(2.5, 5.5),
+                ControlIcon::Home => {
+                    // Lucide 'home': silhueta canônica de casa com telhado e porta
+                    let house_pts = vec![
+                        p(3.0, 9.5),
+                        p(12.0, 2.5),
+                        p(21.0, 9.5),
+                        p(21.0, 20.0),
+                        p(19.5, 21.5),
+                        p(4.5, 21.5),
+                        p(3.0, 20.0),
                     ];
-                    painter.add(Shape::closed_line(pts, stroke));
+                    painter.add(Shape::closed_line(house_pts, stroke));
+                    painter.add(Shape::line(
+                        vec![p(9.0, 21.5), p(9.0, 12.0), p(15.0, 12.0), p(15.0, 21.5)],
+                        stroke,
+                    ));
                 }
                 ControlIcon::Fullscreen { is_fullscreen } => {
                     if !is_fullscreen {

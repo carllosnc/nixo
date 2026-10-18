@@ -149,6 +149,9 @@ impl NixoApp {
             let next = ((self.status.audio_delay + 0.1) * 10.0).round() / 10.0;
             self.dispatch(PlayerCommand::SetAudioDelay(next));
         }
+        if ctx.input(|i| i.key_pressed(Key::Home)) {
+            self.go_home();
+        }
         if ctx.input(|i| i.modifiers.ctrl && i.key_pressed(Key::O)) {
             self.open_file_dialog();
         }

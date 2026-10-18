@@ -258,16 +258,16 @@ impl NixoApp {
             self.take_screenshot();
         }
 
-        // 4. Abrir Arquivo (Ctrl+O)
+        // 4. Retornar para a página inicial (Home)
         if Self::render_ghost_icon_btn(
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),
-            ControlIcon::OpenFile,
-            "Abrir arquivo (Ctrl+O)",
+            ControlIcon::Home,
+            "Página inicial (Home)",
         )
         .clicked()
         {
-            self.open_file_dialog();
+            self.go_home();
         }
 
         // 3. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
