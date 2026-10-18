@@ -12,10 +12,19 @@ use crate::components::{primary, secondary};
 use crate::lucide;
 
 const LOGO_PNG: &[u8] = include_bytes!("../../../../assets/logo.png");
+const FOLDER_3D_PNG: &[u8] = include_bytes!("../../../../assets/folder_3d.png");
 
 /// Carrega a imagem da logo pequena do Nixo a partir dos bytes embutidos.
 pub fn load_logo_image() -> Option<egui::ColorImage> {
     let img = image::load_from_memory_with_format(LOGO_PNG, image::ImageFormat::Png).ok()?;
+    let rgba = img.into_rgba8();
+    let size = [rgba.width() as usize, rgba.height() as usize];
+    Some(egui::ColorImage::from_rgba_unmultiplied(size, &rgba))
+}
+
+/// Carrega a imagem do ícone 3D de pasta a partir dos bytes embutidos.
+pub fn load_folder_3d_image() -> Option<egui::ColorImage> {
+    let img = image::load_from_memory_with_format(FOLDER_3D_PNG, image::ImageFormat::Png).ok()?;
     let rgba = img.into_rgba8();
     let size = [rgba.width() as usize, rgba.height() as usize];
     Some(egui::ColorImage::from_rgba_unmultiplied(size, &rgba))

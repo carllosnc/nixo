@@ -22,6 +22,7 @@ pub struct HomeState {
     pub scanner: BackgroundScanner,
     pub is_design_system: bool,
     pub logo_texture: Option<egui::TextureHandle>,
+    pub folder_texture: Option<egui::TextureHandle>,
     pub thumbnails: ThumbnailManager,
 }
 
@@ -39,6 +40,7 @@ impl HomeState {
             scanner: BackgroundScanner::new(),
             is_design_system: false,
             logo_texture: None,
+            folder_texture: None,
             thumbnails: ThumbnailManager::new(),
         }
     }
@@ -113,12 +115,22 @@ impl HomeState {
                         });
                 });
         } else {
-            // Garante que a textura da logo esteja carregada na GPU
+            // Garante que a textura da logo e o ícone 3D de pasta estejam carregados na GPU
             if self.logo_texture.is_none()
                 && let Some(color_img) = header::load_logo_image()
             {
                 self.logo_texture = Some(ui.ctx().load_texture(
                     "nixo_logo",
+                    color_img,
+                    egui::TextureOptions::LINEAR,
+                ));
+            }
+
+            if self.folder_texture.is_none()
+                && let Some(color_img) = header::load_folder_3d_image()
+            {
+                self.folder_texture = Some(ui.ctx().load_texture(
+                    "nixo_folder_3d",
                     color_img,
                     egui::TextureOptions::LINEAR,
                 ));
@@ -162,6 +174,7 @@ impl HomeState {
                                     ui,
                                     &content,
                                     &mut self.thumbnails,
+                                    self.folder_texture.as_ref(),
                                 );
                                 if !matches!(browser_act, HomeAction::None) {
                                     action = browser_act;
@@ -172,6 +185,7 @@ impl HomeState {
                                     ui,
                                     folders,
                                     &self.get_counts_map(folders),
+                                    self.folder_texture.as_ref(),
                                 );
                                 if !matches!(folders_act, HomeAction::None) {
                                     action = folders_act;

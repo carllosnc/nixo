@@ -13,6 +13,7 @@ pub fn render_folder_browser(
     ui: &mut Ui,
     content: &FolderContent,
     thumbnails: &mut super::ThumbnailManager,
+    folder_texture: Option<&egui::TextureHandle>,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -57,23 +58,39 @@ pub fn render_folder_browser(
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Ícone da subpasta à esquerda sem wrapper (limpo e com tamanho ampliado)
-            let folder_icon = if hover_t > 0.4 {
-                lucide::FOLDER_OPEN
+            // Ícone da subpasta à esquerda: usa o ícone 3D nativo se disponível
+            let text_x = if let Some(tex) = folder_texture {
+                let icon_size = vec2(34.0, 34.0);
+                let icon_rect = Rect::from_center_size(
+                    Pos2::new(rect.left() + 26.0, rect.center().y),
+                    icon_size,
+                );
+                let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
+                ui.painter().image(
+                    tex.id(),
+                    icon_rect,
+                    Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                    tint,
+                );
+                icon_rect.right() + 14.0
             } else {
-                lucide::FOLDER
+                let folder_icon = if hover_t > 0.4 {
+                    lucide::FOLDER_OPEN
+                } else {
+                    lucide::FOLDER
+                };
+                let icon_pos = Pos2::new(rect.left() + 18.0, rect.center().y);
+                ui.painter().text(
+                    icon_pos,
+                    Align2::LEFT_CENTER,
+                    folder_icon,
+                    lucide::font_id(24.0),
+                    icon_color,
+                );
+                rect.left() + 52.0
             };
-            let icon_pos = Pos2::new(rect.left() + 18.0, rect.center().y);
-            ui.painter().text(
-                icon_pos,
-                Align2::LEFT_CENTER,
-                folder_icon,
-                lucide::font_id(24.0),
-                icon_color,
-            );
 
             // Nome da subpasta centralizado
-            let text_x = rect.left() + 52.0;
             let max_w = (rect.right() - 60.0 - text_x).max(40.0);
             paint_truncated_text(
                 ui,

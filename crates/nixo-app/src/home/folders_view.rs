@@ -39,6 +39,7 @@ pub fn render_folders_view(
     ui: &mut Ui,
     folders: &[PathBuf],
     folder_counts: &HashMap<PathBuf, usize>,
+    folder_texture: Option<&egui::TextureHandle>,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -90,23 +91,39 @@ pub fn render_folders_view(
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Ícone da pasta à esquerda sem wrapper (limpo e com tamanho ampliado)
-            let folder_icon = if hover_t > 0.4 {
-                lucide::FOLDER_OPEN
+            // Ícone da pasta à esquerda: usa o ícone 3D nativo se disponível
+            let text_x = if let Some(tex) = folder_texture {
+                let icon_size = vec2(40.0, 40.0);
+                let icon_rect = Rect::from_center_size(
+                    Pos2::new(rect.left() + 30.0, rect.center().y),
+                    icon_size,
+                );
+                let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
+                ui.painter().image(
+                    tex.id(),
+                    icon_rect,
+                    Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                    tint,
+                );
+                icon_rect.right() + 14.0
             } else {
-                lucide::FOLDER
+                let folder_icon = if hover_t > 0.4 {
+                    lucide::FOLDER_OPEN
+                } else {
+                    lucide::FOLDER
+                };
+                let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
+                ui.painter().text(
+                    icon_pos,
+                    Align2::LEFT_CENTER,
+                    folder_icon,
+                    lucide::font_id(28.0),
+                    icon_color,
+                );
+                rect.left() + 58.0
             };
-            let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
-            ui.painter().text(
-                icon_pos,
-                Align2::LEFT_CENTER,
-                folder_icon,
-                lucide::font_id(28.0),
-                icon_color,
-            );
 
             // Nome e caminho centralizados
-            let text_x = rect.left() + 58.0;
             let right_reserve = 180.0;
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
