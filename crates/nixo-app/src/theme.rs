@@ -265,18 +265,23 @@ impl NixoApp {
         visuals.selection.bg_fill = ACCENT_COLOR;
         visuals.widgets.active.bg_fill = ACCENT_COLOR;
         visuals.widgets.active.bg_stroke = Stroke::NONE;
+        visuals.widgets.active.corner_radius = CornerRadius::same(99);
         visuals.widgets.hovered.bg_stroke = Stroke::NONE;
+        visuals.widgets.hovered.corner_radius = CornerRadius::same(99);
         visuals.widgets.inactive.bg_fill = Color32::from_rgb(38, 41, 52);
         visuals.widgets.inactive.bg_stroke = Stroke::NONE;
+        visuals.widgets.inactive.corner_radius = CornerRadius::same(99);
         visuals.widgets.noninteractive.bg_fill = Color32::from_rgb(26, 28, 35);
         visuals.widgets.noninteractive.bg_stroke =
             Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, 25));
+        visuals.widgets.noninteractive.corner_radius = CornerRadius::same(99);
         ctx.set_visuals(visuals);
 
         ctx.style_mut(|style| {
             style.spacing.slider_rail_height = 3.0;
             style.interaction.tooltip_delay = 0.12;
             style.spacing.scroll.bar_outer_margin = 0.0;
+            style.spacing.scroll.handle_min_length = 24.0;
         });
     }
 
