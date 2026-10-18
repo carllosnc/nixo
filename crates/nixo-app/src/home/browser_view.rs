@@ -9,7 +9,11 @@ use crate::components::tokens::*;
 use crate::lucide;
 
 /// Renderiza o conteúdo da pasta aberta (subpastas e arquivos de mídia executáveis).
-pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction {
+pub fn render_folder_browser(
+    ui: &mut Ui,
+    content: &FolderContent,
+    thumbnails: &mut super::ThumbnailManager,
+) -> HomeAction {
     let mut action = HomeAction::None;
 
     if content.is_loading {
@@ -127,40 +131,88 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     // Área de thumbnail com cantos arredondados no topo
                     let thumb_h = 96.0;
                     let thumb_rect = Rect::from_min_size(rect.min, vec2(card_w, thumb_h));
-                    ui.painter().rect_filled(
-                        thumb_rect,
-                        egui::CornerRadius {
-                            nw: RADIUS_MD.nw,
-                            ne: RADIUS_MD.ne,
-                            sw: 0,
-                            se: 0,
-                        },
-                        SURFACE_MED,
-                    );
 
-                    // Ícone central de Play / Mídia no Lucide com transição de hover
-                    let center = thumb_rect.center();
-                    let default_ic = match item.kind {
-                        super::scanner::MediaKind::Video => lucide::FILM,
-                        super::scanner::MediaKind::Audio => lucide::MUSIC,
-                        super::scanner::MediaKind::Directory => lucide::FOLDER,
-                    };
-                    let icon_str = if hover_t > 0.4 {
-                        lucide::PLAY
+                    if matches!(item.kind, super::scanner::MediaKind::Video) {
+                        thumbnails.request(&item.path);
+                    }
+
+                    if let Some(tex) = thumbnails.get(&item.path) {
+                        ui.painter().image(
+                            tex.id(),
+                            thumb_rect,
+                            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                            Color32::WHITE,
+                        );
+
+                        if hover_t > 0.05 {
+                            let overlay = Color32::from_black_alpha((hover_t * 110.0) as u8);
+                            ui.painter().rect_filled(
+                                thumb_rect,
+                                egui::CornerRadius {
+                                    nw: RADIUS_MD.nw,
+                                    ne: RADIUS_MD.ne,
+                                    sw: 0,
+                                    se: 0,
+                                },
+                                overlay,
+                            );
+
+                            let center = thumb_rect.center();
+                            let circle_bg = lerp_color(
+                                Color32::from_rgba_unmultiplied(20, 20, 25, 0),
+                                ACCENT_NEUTRAL_FILL,
+                                hover_t,
+                            );
+                            let icon_fg = lerp_color(
+                                Color32::from_rgba_unmultiplied(255, 255, 255, 0),
+                                ACCENT_NEUTRAL_TEXT,
+                                hover_t,
+                            );
+                            ui.painter().circle_filled(center, 22.0, circle_bg);
+                            ui.painter().text(
+                                Pos2::new(center.x + 1.0, center.y),
+                                Align2::CENTER_CENTER,
+                                lucide::PLAY,
+                                lucide::font_id(18.0),
+                                icon_fg,
+                            );
+                        }
                     } else {
-                        default_ic
-                    };
-                    let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
-                    let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
+                        ui.painter().rect_filled(
+                            thumb_rect,
+                            egui::CornerRadius {
+                                nw: RADIUS_MD.nw,
+                                ne: RADIUS_MD.ne,
+                                sw: 0,
+                                se: 0,
+                            },
+                            SURFACE_MED,
+                        );
 
-                    ui.painter().circle_filled(center, 22.0, circle_bg);
-                    ui.painter().text(
-                        Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
-                        Align2::CENTER_CENTER,
-                        icon_str,
-                        lucide::font_id(18.0),
-                        icon_fg,
-                    );
+                        // Ícone central de Play / Mídia no Lucide com transição de hover
+                        let center = thumb_rect.center();
+                        let default_ic = match item.kind {
+                            super::scanner::MediaKind::Video => lucide::FILM,
+                            super::scanner::MediaKind::Audio => lucide::MUSIC,
+                            super::scanner::MediaKind::Directory => lucide::FOLDER,
+                        };
+                        let icon_str = if hover_t > 0.4 {
+                            lucide::PLAY
+                        } else {
+                            default_ic
+                        };
+                        let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
+                        let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
+
+                        ui.painter().circle_filled(center, 22.0, circle_bg);
+                        ui.painter().text(
+                            Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
+                            Align2::CENTER_CENTER,
+                            icon_str,
+                            lucide::font_id(18.0),
+                            icon_fg,
+                        );
+                    }
 
                     // Badge com extensão (ex.: MP4, MKV)
                     let badge_rect = Rect::from_min_size(

@@ -5,6 +5,7 @@ use nixo_core::MediaBackend;
 use tracing::{info, warn};
 
 pub use mpv::MpvBackend;
+pub use mpv::thumbnail::ThumbnailService;
 pub use synthetic::SyntheticBackend;
 
 /// Cria o motor de reprodução padrão do Nixo.

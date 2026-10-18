@@ -5,6 +5,7 @@ mod design_system_view;
 mod folders_view;
 mod header;
 mod scanner;
+mod thumbnail_manager;
 
 use std::path::PathBuf;
 
@@ -12,6 +13,7 @@ use egui::{Margin, Rect, ScrollArea, Ui};
 
 pub use self::header::HomeAction;
 pub use self::scanner::BackgroundScanner;
+pub use self::thumbnail_manager::ThumbnailManager;
 
 /// Estado da tela Home: navegação atual, histórico de pastas e scanner assíncrono.
 pub struct HomeState {
@@ -20,6 +22,7 @@ pub struct HomeState {
     pub scanner: BackgroundScanner,
     pub is_design_system: bool,
     pub logo_texture: Option<egui::TextureHandle>,
+    pub thumbnails: ThumbnailManager,
 }
 
 impl Default for HomeState {
@@ -36,6 +39,7 @@ impl HomeState {
             scanner: BackgroundScanner::new(),
             is_design_system: false,
             logo_texture: None,
+            thumbnails: ThumbnailManager::new(),
         }
     }
 
@@ -81,6 +85,7 @@ impl HomeState {
     /// Renderiza a tela Home completa dentro do espaço disponível.
     pub fn render(&mut self, ui: &mut Ui, folders: &[PathBuf], _rect: Rect) -> HomeAction {
         self.scanner.poll();
+        self.thumbnails.poll(ui.ctx());
 
         // Garante contagem de itens para as pastas salvas exibidas na raiz
         for folder in folders {
@@ -137,7 +142,11 @@ impl HomeState {
                         .show(ui, |ui| {
                             if let Some(current) = &self.current_path {
                                 let content = self.scanner.get_or_request(current);
-                                let browser_act = browser_view::render_folder_browser(ui, &content);
+                                let browser_act = browser_view::render_folder_browser(
+                                    ui,
+                                    &content,
+                                    &mut self.thumbnails,
+                                );
                                 if !matches!(browser_act, HomeAction::None) {
                                     action = browser_act;
                                 }

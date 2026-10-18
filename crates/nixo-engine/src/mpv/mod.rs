@@ -3,6 +3,7 @@ mod preview;
 mod properties;
 #[cfg(test)]
 mod tests;
+pub mod thumbnail;
 
 use std::ffi::{CString, c_int, c_void};
 use std::path::PathBuf;
@@ -62,27 +63,31 @@ impl MpvBackend {
                 return Err(NixoError::InitError("mpv_create retornou nulo".into()));
             }
 
-            api.set_opt(handle, c"vo", c"libmpv");
-            api.set_opt(handle, c"hwdec", c"auto-safe");
-            api.set_opt(handle, c"vd-lavc-threads", c"0");
-            api.set_opt(handle, c"sws-scaler", c"bicubic");
-            api.set_opt(handle, c"sws-fast", c"no");
-            api.set_opt(handle, c"blend-subtitles", c"no");
-            api.set_opt(handle, c"sub-gauss", c"0.6");
-            api.set_opt(handle, c"sub-gray", c"yes");
-            api.set_opt(handle, c"keep-open", c"yes");
-            api.set_opt(handle, c"video-timing-offset", c"0");
-            api.set_opt(handle, c"hr-seek", c"default");
-            api.set_opt(handle, c"hr-seek-framedrop", c"yes");
-            api.set_opt(handle, c"demuxer-seekable-cache", c"yes");
-            api.set_opt(handle, c"demuxer-max-bytes", c"150MiB");
-            api.set_opt(handle, c"demuxer-max-back-bytes", c"50MiB");
-            api.set_opt(handle, c"sub-use-margins", c"yes");
-            api.set_opt(handle, c"sub-pos", c"92");
-            api.set_opt(handle, c"sub-margin-y", c"52");
-            api.set_opt(handle, c"screenshot-format", c"png");
-            api.set_opt(handle, c"screenshot-png-compression", c"4");
-            api.set_opt(handle, c"screenshot-tag-colorspace", c"yes");
+            for (k, v) in [
+                (c"vo", c"libmpv"),
+                (c"hwdec", c"auto-safe"),
+                (c"vd-lavc-threads", c"0"),
+                (c"sws-scaler", c"bicubic"),
+                (c"sws-fast", c"no"),
+                (c"blend-subtitles", c"no"),
+                (c"sub-gauss", c"0.6"),
+                (c"sub-gray", c"yes"),
+                (c"keep-open", c"yes"),
+                (c"video-timing-offset", c"0"),
+                (c"hr-seek", c"default"),
+                (c"hr-seek-framedrop", c"yes"),
+                (c"demuxer-seekable-cache", c"yes"),
+                (c"demuxer-max-bytes", c"150MiB"),
+                (c"demuxer-max-back-bytes", c"50MiB"),
+                (c"sub-use-margins", c"yes"),
+                (c"sub-pos", c"92"),
+                (c"sub-margin-y", c"52"),
+                (c"screenshot-format", c"png"),
+                (c"screenshot-png-compression", c"4"),
+                (c"screenshot-tag-colorspace", c"yes"),
+            ] {
+                api.set_opt(handle, k, v);
+            }
 
             let init_rc = (api.initialize)(handle);
             if init_rc < 0 {
