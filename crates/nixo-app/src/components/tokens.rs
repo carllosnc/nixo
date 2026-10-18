@@ -1,48 +1,82 @@
-//! Design tokens do Nixo Neutral Design System.
+//! Design tokens do Nixo Neutral Design System baseados na paleta Tailwind CSS Neutral.
 //!
-//! Todas as cores são neutras, eliminando bordas duras e criando
-//! profundidade através de camadas de elevação sutis (estilo Linear e macOS Dark).
+//! Todas as cores são neutras puras (Tailwind Neutral 50 a 950), eliminando bordas duras e criando
+//! profundidade através de camadas de elevação sutis (estilo Linear, shadcn e macOS Dark).
 
 use egui::{Color32, CornerRadius, FontId};
 
-// ── Camadas de Elevação (Superfícies) ──
-/// Fundo principal OLED da aplicação.
-pub const BG_BASE: Color32 = Color32::from_rgb(11, 11, 14);
+// ── Paleta Tailwind CSS Neutral Oficial ──
+/// Tailwind neutral-50 (#fafafa) - Destaque máximo / hover primário.
+pub const NEUTRAL_50: Color32 = Color32::from_rgb(250, 250, 250);
 
-/// Superfície 1: Cards inativos, agrupadores, barras e cabeçalhos.
-pub const SURFACE_LOW: Color32 = Color32::from_rgb(20, 21, 27);
+/// Tailwind neutral-100 (#f5f5f5) - Ação primária e texto de alto contraste.
+pub const NEUTRAL_100: Color32 = Color32::from_rgb(245, 245, 245);
 
-/// Superfície 2: Botões secundários, chips de pasta e inputs.
-pub const SURFACE_MED: Color32 = Color32::from_rgb(29, 30, 38);
+/// Tailwind neutral-200 (#e5e5e5) - Ícones e realces claros.
+pub const NEUTRAL_200: Color32 = Color32::from_rgb(229, 229, 229);
 
-/// Superfície 3: Estado hover de botões, chips e cartões.
-pub const SURFACE_HIGH: Color32 = Color32::from_rgb(36, 38, 49);
+/// Tailwind neutral-300 (#d4d4d4) - Texto secundário em botões ghost.
+pub const NEUTRAL_300: Color32 = Color32::from_rgb(212, 212, 212);
 
-/// Superfície Ativa: Estado pressionado / selecionado.
-pub const SURFACE_ACTIVE: Color32 = Color32::from_rgb(46, 48, 61);
+/// Tailwind neutral-400 (#a3a3a3) - Texto secundário, subtítulos e breadcrumbs.
+pub const NEUTRAL_400: Color32 = Color32::from_rgb(163, 163, 163);
+
+/// Tailwind neutral-500 (#737373) - Texto muted, separadores e metadados.
+pub const NEUTRAL_500: Color32 = Color32::from_rgb(115, 115, 115);
+
+/// Tailwind neutral-600 (#525252) - Superfície ativa / pressionada.
+pub const NEUTRAL_600: Color32 = Color32::from_rgb(82, 82, 82);
+
+/// Tailwind neutral-700 (#404040) - Superfície hover de botões e cards.
+pub const NEUTRAL_700: Color32 = Color32::from_rgb(64, 64, 64);
+
+/// Tailwind neutral-800 (#262626) - Botões secundários, chips e caixas de mídia.
+pub const NEUTRAL_800: Color32 = Color32::from_rgb(38, 38, 38);
+
+/// Tailwind neutral-900 (#171717) - Cards inativos e agrupadores principais.
+pub const NEUTRAL_900: Color32 = Color32::from_rgb(23, 23, 23);
+
+/// Tailwind neutral-950 (#0a0a0a) - Fundo base OLED da aplicação.
+pub const NEUTRAL_950: Color32 = Color32::from_rgb(10, 10, 10);
+
+// ── Camadas Semânticas de Elevação (Superfícies) ──
+/// Fundo principal OLED da aplicação (Tailwind neutral-950).
+pub const BG_BASE: Color32 = NEUTRAL_950;
+
+/// Superfície 1: Cards inativos, agrupadores, barras e cabeçalhos (Tailwind neutral-900).
+pub const SURFACE_LOW: Color32 = NEUTRAL_900;
+
+/// Superfície 2: Botões secundários, chips de pasta e inputs (Tailwind neutral-800).
+pub const SURFACE_MED: Color32 = NEUTRAL_800;
+
+/// Superfície 3: Estado hover de botões, chips e cartões (Tailwind neutral-700).
+pub const SURFACE_HIGH: Color32 = NEUTRAL_700;
+
+/// Superfície Ativa: Estado pressionado / selecionado (Tailwind neutral-600).
+pub const SURFACE_ACTIVE: Color32 = NEUTRAL_600;
 
 // ── Destaques Neutros para Ações Primárias ──
-/// Fundo do botão de ação primária (alto contraste, limpo).
-pub const ACCENT_NEUTRAL_FILL: Color32 = Color32::from_rgb(238, 238, 242);
-/// Hover do botão de ação primária.
-pub const ACCENT_NEUTRAL_HOVER: Color32 = Color32::WHITE;
-/// Texto escuro sobre o botão primário neutro.
-pub const ACCENT_NEUTRAL_TEXT: Color32 = Color32::from_rgb(18, 18, 21);
+/// Fundo do botão de ação primária (Tailwind neutral-100).
+pub const ACCENT_NEUTRAL_FILL: Color32 = NEUTRAL_100;
+/// Hover do botão de ação primária (Tailwind neutral-50).
+pub const ACCENT_NEUTRAL_HOVER: Color32 = NEUTRAL_50;
+/// Texto escuro sobre o botão primário neutro (Tailwind neutral-950).
+pub const ACCENT_NEUTRAL_TEXT: Color32 = NEUTRAL_950;
 
 // ── Tipografia & Cores de Texto ──
-/// Texto Primário: Títulos principais, itens ativos e texto de alto contraste.
-pub const TEXT_PRIMARY: Color32 = Color32::from_rgb(245, 245, 248);
+/// Texto Primário: Títulos principais, itens ativos e texto de alto contraste (Tailwind neutral-100).
+pub const TEXT_PRIMARY: Color32 = NEUTRAL_100;
 
-/// Texto Secundário: Subtítulos, metadados legíveis e breadcrumbs pais.
-pub const TEXT_SECONDARY: Color32 = Color32::from_rgb(170, 172, 185);
+/// Texto Secundário: Subtítulos, metadados legíveis e breadcrumbs pais (Tailwind neutral-400).
+pub const TEXT_SECONDARY: Color32 = NEUTRAL_400;
 
-/// Texto Muted: Contadores secundários, separadores e extensões.
-pub const TEXT_MUTED: Color32 = Color32::from_rgb(122, 125, 140);
+/// Texto Muted: Contadores secundários, separadores e extensões (Tailwind neutral-500).
+pub const TEXT_MUTED: Color32 = NEUTRAL_500;
 
 // ── Cores para Ações Destrutivas Sutis ──
-pub const DANGER_SURFACE: Color32 = Color32::from_rgb(38, 21, 23);
-pub const DANGER_HOVER: Color32 = Color32::from_rgb(56, 27, 31);
-pub const DANGER_TEXT: Color32 = Color32::from_rgb(255, 142, 148);
+pub const DANGER_SURFACE: Color32 = Color32::from_rgb(43, 20, 22);
+pub const DANGER_HOVER: Color32 = Color32::from_rgb(61, 26, 30);
+pub const DANGER_TEXT: Color32 = Color32::from_rgb(248, 113, 113); // Tailwind red-400
 
 // ── Raios de Curvatura (Corner Radii) ──
 pub const RADIUS_SM: CornerRadius = CornerRadius::same(6);

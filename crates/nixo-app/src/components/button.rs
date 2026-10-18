@@ -68,86 +68,46 @@ pub fn render_button(
     let (bg_color, text_color, icon_color) = match variant {
         ButtonVariant::Primary => {
             if pressed {
-                (
-                    Color32::from_rgb(205, 205, 214),
-                    Color32::from_rgb(14, 15, 18),
-                    Color32::from_rgb(14, 15, 18),
-                )
+                (NEUTRAL_300, NEUTRAL_950, NEUTRAL_950)
             } else if hovered {
-                (
-                    Color32::from_rgb(248, 248, 252),
-                    Color32::from_rgb(12, 13, 16),
-                    Color32::from_rgb(12, 13, 16),
-                )
+                (NEUTRAL_50, NEUTRAL_950, NEUTRAL_950)
             } else {
-                (
-                    Color32::from_rgb(226, 226, 232),
-                    Color32::from_rgb(18, 19, 23),
-                    Color32::from_rgb(18, 19, 23),
-                )
+                (NEUTRAL_100, NEUTRAL_950, NEUTRAL_950)
             }
         }
         ButtonVariant::Secondary => {
             if pressed {
-                (
-                    Color32::from_rgb(46, 50, 64),
-                    Color32::WHITE,
-                    Color32::WHITE,
-                )
+                (NEUTRAL_600, NEUTRAL_50, NEUTRAL_50)
             } else if hovered {
-                (
-                    Color32::from_rgb(36, 39, 50),
-                    Color32::WHITE,
-                    Color32::from_rgb(220, 222, 230),
-                )
+                (NEUTRAL_700, NEUTRAL_50, NEUTRAL_200)
             } else {
-                (
-                    Color32::from_rgb(24, 26, 34),
-                    Color32::from_rgb(220, 222, 230),
-                    Color32::from_rgb(165, 168, 180),
-                )
+                (NEUTRAL_800, NEUTRAL_100, NEUTRAL_400)
             }
         }
         ButtonVariant::Ghost => {
             if pressed {
-                (
-                    Color32::from_rgb(36, 39, 50),
-                    Color32::WHITE,
-                    Color32::WHITE,
-                )
+                (NEUTRAL_700, NEUTRAL_50, NEUTRAL_50)
             } else if hovered {
-                (
-                    Color32::from_rgb(26, 28, 36),
-                    Color32::WHITE,
-                    Color32::from_rgb(220, 222, 230),
-                )
+                (NEUTRAL_800, NEUTRAL_50, NEUTRAL_200)
             } else {
-                (
-                    Color32::TRANSPARENT,
-                    Color32::from_rgb(175, 178, 190),
-                    Color32::from_rgb(145, 148, 160),
-                )
+                (Color32::TRANSPARENT, NEUTRAL_300, NEUTRAL_400)
             }
         }
         ButtonVariant::Danger => {
             if pressed {
                 (
-                    Color32::from_rgb(60, 26, 30),
-                    Color32::from_rgb(255, 165, 170),
-                    Color32::from_rgb(255, 165, 170),
+                    Color32::from_rgb(79, 30, 36),
+                    Color32::from_rgb(254, 202, 202),
+                    Color32::from_rgb(254, 202, 202),
                 )
             } else if hovered {
                 (
-                    Color32::from_rgb(48, 22, 26),
-                    Color32::from_rgb(255, 148, 154),
-                    Color32::from_rgb(255, 148, 154),
+                    DANGER_HOVER,
+                    Color32::from_rgb(252, 165, 165),
+                    Color32::from_rgb(252, 165, 165),
                 )
             } else {
-                (
-                    Color32::from_rgb(34, 18, 21),
-                    Color32::from_rgb(240, 128, 134),
-                    Color32::from_rgb(240, 128, 134),
-                )
+                (DANGER_SURFACE, DANGER_TEXT, DANGER_TEXT)
             }
         }
     };

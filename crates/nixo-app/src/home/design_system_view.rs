@@ -1,9 +1,8 @@
-//! Visualização completa e interativa do Design System do Nixo.
-//!
-//! Reúne em uma única tela todos os tokens de superfície, tipografia desktop,
-//! botões full-rounded, breadcrumbs, cards de pasta e de mídia para validação.
+//! Visualização completa e interativa do Design System do Nixo com a paleta Tailwind CSS Neutral.
 
-use egui::{Align, Align2, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Ui, vec2};
+use egui::{
+    Align, Align2, Color32, CursorIcon, FontId, Layout, Pos2, Rect, RichText, Sense, Ui, vec2,
+};
 
 use super::header::HomeAction;
 use crate::components::button::{ButtonVariant, ghost, primary, render_button, secondary};
@@ -15,12 +14,10 @@ use crate::lucide;
 pub fn render_design_system_view(ui: &mut Ui) -> HomeAction {
     let mut action = HomeAction::None;
 
-    // Cabeçalho da página
     ui.horizontal(|ui| {
         if secondary(ui, Some(lucide::ARROW_LEFT), "Voltar para Biblioteca").clicked() {
             action = HomeAction::CloseDesignSystem;
         }
-
         ui.add_space(14.0);
         ui.label(
             RichText::new("Design System Showcase")
@@ -29,7 +26,7 @@ pub fn render_design_system_view(ui: &mut Ui) -> HomeAction {
         );
         ui.add_space(8.0);
         ui.label(
-            RichText::new("— Especificação de tokens e componentes")
+            RichText::new("— Paleta Tailwind Neutral & Componentes")
                 .font(font_sm())
                 .color(TEXT_MUTED),
         );
@@ -54,21 +51,21 @@ pub fn render_design_system_view(ui: &mut Ui) -> HomeAction {
     action
 }
 
-// ── 01. Superfícies & Elevação Neutra ──
+// ── 01. Paleta Tailwind Neutral & Superfícies ──
 fn render_surfaces_section(ui: &mut Ui) {
     render_section_header(
         ui,
-        "Superfícies & Elevação Neutra",
-        "Camadas tonais puras sem bordas ou strokes artificiais. Elevação por luminância.",
+        "Paleta Tailwind Neutral & Superfícies",
+        "Escala oficial Tailwind Neutral (50 a 950) aplicada sem bordas artificiais.",
     );
 
     let swatches = [
-        ("BG_BASE", BG_BASE, "Fundo base (#0B0B0E)"),
-        ("SURFACE_LOW", SURFACE_LOW, "Superfície 1 (#14151B)"),
-        ("SURFACE_MED", SURFACE_MED, "Superfície 2 (#1D1E26)"),
-        ("SURFACE_HIGH", SURFACE_HIGH, "Hover (#242631)"),
-        ("SURFACE_ACTIVE", SURFACE_ACTIVE, "Ativo (#2E303D)"),
-        ("ACCENT_FILL", ACCENT_NEUTRAL_FILL, "Destaque (#EEEEF2)"),
+        ("BG_BASE", BG_BASE, "neutral-950 (#0a0a0a)"),
+        ("SURFACE_LOW", SURFACE_LOW, "neutral-900 (#171717)"),
+        ("SURFACE_MED", SURFACE_MED, "neutral-800 (#262626)"),
+        ("SURFACE_HIGH", SURFACE_HIGH, "neutral-700 (#404040)"),
+        ("SURFACE_ACTIVE", SURFACE_ACTIVE, "neutral-600 (#525252)"),
+        ("ACCENT_FILL", ACCENT_NEUTRAL_FILL, "neutral-100 (#f5f5f5)"),
     ];
 
     ui.horizontal_wrapped(|ui| {
@@ -76,16 +73,10 @@ fn render_surfaces_section(ui: &mut Ui) {
             let (rect, _) = ui.allocate_exact_size(vec2(180.0, 96.0), Sense::hover());
             ui.painter().rect_filled(rect, RADIUS_MD, color);
 
-            let is_light = color == ACCENT_NEUTRAL_FILL;
-            let text_col = if is_light {
-                ACCENT_NEUTRAL_TEXT
+            let (tc, sc) = if color == ACCENT_NEUTRAL_FILL {
+                (ACCENT_NEUTRAL_TEXT, Color32::from_rgb(80, 80, 88))
             } else {
-                TEXT_PRIMARY
-            };
-            let sub_col = if is_light {
-                Color32::from_rgb(80, 80, 88)
-            } else {
-                TEXT_MUTED
+                (TEXT_PRIMARY, TEXT_MUTED)
             };
 
             ui.painter().text(
@@ -93,16 +84,44 @@ fn render_surfaces_section(ui: &mut Ui) {
                 Align2::LEFT_CENTER,
                 name,
                 font_card_title(),
-                text_col,
+                tc,
             );
             ui.painter().text(
                 Pos2::new(rect.left() + 14.0, rect.top() + 54.0),
                 Align2::LEFT_CENTER,
                 desc,
                 font_xs(),
-                sub_col,
+                sc,
             );
             ui.add_space(10.0);
+        }
+    });
+
+    ui.add_space(12.0);
+
+    // Rampa contínua Tailwind Neutral 950 -> 50
+    let ramp = [
+        ("950", NEUTRAL_950, NEUTRAL_400),
+        ("900", NEUTRAL_900, NEUTRAL_400),
+        ("800", NEUTRAL_800, NEUTRAL_400),
+        ("700", NEUTRAL_700, NEUTRAL_300),
+        ("600", NEUTRAL_600, NEUTRAL_200),
+        ("500", NEUTRAL_500, NEUTRAL_100),
+        ("400", NEUTRAL_400, NEUTRAL_950),
+        ("300", NEUTRAL_300, NEUTRAL_950),
+        ("200", NEUTRAL_200, NEUTRAL_950),
+        ("100", NEUTRAL_100, NEUTRAL_950),
+        ("50", NEUTRAL_50, NEUTRAL_950),
+    ];
+
+    ui.horizontal(|ui| {
+        let block_w = ((ui.available_width() - 10.0 * 6.0) / 11.0).clamp(40.0, 75.0);
+        for (step, color, fg) in ramp {
+            let (rect, _) = ui.allocate_exact_size(vec2(block_w, 34.0), Sense::hover());
+            ui.painter().rect_filled(rect, RADIUS_SM, color);
+            ui.painter()
+                .text(rect.center(), Align2::CENTER_CENTER, step, font_xs(), fg);
+            ui.add_space(6.0);
         }
     });
 }
@@ -112,13 +131,13 @@ fn render_typography_section(ui: &mut Ui) {
     render_section_header(
         ui,
         "Tipografia & Hierarquia Visual",
-        "Escala tipográfica proporcional Inter com pesos dedicados e legibilidade aprimorada para desktop.",
+        "Escala proporcional Inter com pesos dedicados e contraste Tailwind Neutral.",
     );
 
     let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 206.0), Sense::hover());
     ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
-    let levels = [
+    let rows: [(&str, &str, FontId, Color32, &str); 6] = [
         (
             "Display",
             "28.0px Bold",
@@ -163,25 +182,22 @@ fn render_typography_section(ui: &mut Ui) {
         ),
     ];
 
-    let mut y_offset = rect.top() + 18.0;
-    for (role, spec, font, color, sample) in levels {
-        let tag = format!("{role} ({spec}):");
+    for (idx, (role, spec, f, c, s)) in rows.iter().enumerate() {
+        let y = rect.top() + 18.0 + (idx as f32) * 31.0;
         ui.painter().text(
-            Pos2::new(rect.left() + 20.0, y_offset),
+            Pos2::new(rect.left() + 20.0, y),
             Align2::LEFT_CENTER,
-            tag,
+            format!("{role} ({spec}):"),
             font_xs(),
             TEXT_MUTED,
         );
-
         ui.painter().text(
-            Pos2::new(rect.left() + 240.0, y_offset),
+            Pos2::new(rect.left() + 240.0, y),
             Align2::LEFT_CENTER,
-            sample,
-            font,
-            color,
+            *s,
+            f.clone(),
+            *c,
         );
-        y_offset += 31.0;
     }
 }
 
@@ -211,25 +227,15 @@ fn render_buttons_section(ui: &mut Ui) {
         );
 
         ui.add_space(16.0);
-        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PLAY), "", 38.0);
-        ui.add_space(6.0);
-        let _ = render_button(ui, ButtonVariant::Secondary, Some(lucide::PAUSE), "", 38.0);
-        ui.add_space(6.0);
-        let _ = render_button(
-            ui,
-            ButtonVariant::Secondary,
-            Some(lucide::VOLUME_2),
-            "",
-            38.0,
-        );
-        ui.add_space(6.0);
-        let _ = render_button(
-            ui,
-            ButtonVariant::Secondary,
-            Some(lucide::MAXIMIZE),
-            "",
-            38.0,
-        );
+        for icon in [
+            lucide::PLAY,
+            lucide::PAUSE,
+            lucide::VOLUME_2,
+            lucide::MAXIMIZE,
+        ] {
+            let _ = render_button(ui, ButtonVariant::Secondary, Some(icon), "", 38.0);
+            ui.add_space(6.0);
+        }
     });
 }
 
@@ -246,7 +252,6 @@ fn render_navigation_section(ui: &mut Ui) {
 
     let mut cur_x = rect.left() + 18.0;
     let cy = rect.center().y;
-
     let items = [
         ("Início", TEXT_SECONDARY),
         ("Filmes e Séries", TEXT_SECONDARY),
@@ -266,8 +271,7 @@ fn render_navigation_section(ui: &mut Ui) {
             cur_x += 22.0;
         }
 
-        let is_last = idx == items.len() - 1;
-        let font = if is_last {
+        let font = if idx == items.len() - 1 {
             font_card_title()
         } else {
             font_body()
@@ -276,7 +280,6 @@ fn render_navigation_section(ui: &mut Ui) {
             .painter()
             .layout_no_wrap(text.to_string(), font.clone(), *color);
         let w = galley.size().x;
-
         ui.painter().text(
             Pos2::new(cur_x, cy),
             Align2::LEFT_CENTER,
@@ -297,36 +300,39 @@ fn render_folder_cards_section(ui: &mut Ui) {
     );
 
     ui.horizontal(|ui| {
-        // Card de Pasta Raiz (Grande)
         let (rect, resp) = ui.allocate_exact_size(vec2(310.0, 120.0), Sense::click());
-        let hovered = resp.hovered();
-        let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+        let bg = if resp.hovered() {
+            SURFACE_HIGH
+        } else {
+            SURFACE_LOW
+        };
         ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
+        let ic_col = if resp.hovered() {
+            Color32::WHITE
+        } else {
+            TEXT_SECONDARY
+        };
         ui.painter().text(
             Pos2::new(rect.left() + 20.0, rect.top() + 32.0),
             Align2::LEFT_CENTER,
             lucide::FOLDER,
             lucide::font_id(26.0),
-            if hovered {
-                Color32::WHITE
-            } else {
-                TEXT_SECONDARY
-            },
+            ic_col,
         );
 
+        let tc = if resp.hovered() {
+            Color32::WHITE
+        } else {
+            TEXT_PRIMARY
+        };
         ui.painter().text(
             Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
             Align2::LEFT_CENTER,
             "Animes & Séries",
             font_card_title(),
-            if hovered {
-                Color32::WHITE
-            } else {
-                TEXT_PRIMARY
-            },
+            tc,
         );
-
         ui.painter().text(
             Pos2::new(rect.left() + 56.0, rect.top() + 44.0),
             Align2::LEFT_CENTER,
@@ -334,7 +340,6 @@ fn render_folder_cards_section(ui: &mut Ui) {
             font_xs(),
             TEXT_MUTED,
         );
-
         ui.painter().text(
             Pos2::new(rect.left() + 20.0, rect.top() + 92.0),
             Align2::LEFT_CENTER,
@@ -345,38 +350,36 @@ fn render_folder_cards_section(ui: &mut Ui) {
 
         ui.add_space(16.0);
 
-        // Chip de Subpasta (Compacto)
-        let (chip_rect, chip_resp) = ui.allocate_exact_size(vec2(250.0, 50.0), Sense::click());
-        let chip_hovered = chip_resp.hovered();
-        let chip_bg = if chip_hovered {
+        let (cr, cresp) = ui.allocate_exact_size(vec2(250.0, 50.0), Sense::click());
+        let cbg = if cresp.hovered() {
             SURFACE_HIGH
         } else {
             SURFACE_LOW
         };
-        ui.painter().rect_filled(chip_rect, RADIUS_MD, chip_bg);
-
+        ui.painter().rect_filled(cr, RADIUS_MD, cbg);
+        let cic = if cresp.hovered() {
+            Color32::WHITE
+        } else {
+            TEXT_SECONDARY
+        };
         ui.painter().text(
-            Pos2::new(chip_rect.left() + 16.0, chip_rect.center().y),
+            Pos2::new(cr.left() + 16.0, cr.center().y),
             Align2::LEFT_CENTER,
             lucide::FOLDER,
             lucide::font_id(20.0),
-            if chip_hovered {
-                Color32::WHITE
-            } else {
-                TEXT_SECONDARY
-            },
+            cic,
         );
-
+        let ctc = if cresp.hovered() {
+            Color32::WHITE
+        } else {
+            TEXT_PRIMARY
+        };
         ui.painter().text(
-            Pos2::new(chip_rect.left() + 46.0, chip_rect.center().y),
+            Pos2::new(cr.left() + 46.0, cr.center().y),
             Align2::LEFT_CENTER,
             "Season 01",
             font_body(),
-            if chip_hovered {
-                Color32::WHITE
-            } else {
-                TEXT_PRIMARY
-            },
+            ctc,
         );
     });
 }
@@ -408,16 +411,13 @@ fn render_media_cards_section(ui: &mut Ui) {
     });
 }
 
-fn render_sample_media_card(
-    ui: &mut Ui,
-    title: &str,
-    extension: &str,
-    size: &str,
-    icon: &'static str,
-) {
+fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, icon: &'static str) {
     let (rect, resp) = ui.allocate_exact_size(vec2(230.0, 160.0), Sense::click());
-    let hovered = resp.hovered();
-    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+    let bg = if resp.hovered() {
+        SURFACE_HIGH
+    } else {
+        SURFACE_LOW
+    };
     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
     let thumb_h = 96.0;
@@ -434,51 +434,51 @@ fn render_sample_media_card(
     );
 
     let center = thumb_rect.center();
-    let (circle_bg, icon_str, icon_fg) = if hovered {
+    let (cbg, istr, ifg) = if resp.hovered() {
         (ACCENT_NEUTRAL_FILL, lucide::PLAY, ACCENT_NEUTRAL_TEXT)
     } else {
         (SURFACE_LOW, icon, TEXT_SECONDARY)
     };
-    ui.painter().circle_filled(center, 22.0, circle_bg);
+    ui.painter().circle_filled(center, 22.0, cbg);
     ui.painter().text(
-        Pos2::new(center.x + if hovered { 1.0 } else { 0.0 }, center.y),
+        Pos2::new(center.x + if resp.hovered() { 1.0 } else { 0.0 }, center.y),
         Align2::CENTER_CENTER,
-        icon_str,
+        istr,
         lucide::font_id(18.0),
-        icon_fg,
+        ifg,
     );
 
-    let badge_rect = Rect::from_min_size(
+    let brect = Rect::from_min_size(
         Pos2::new(thumb_rect.right() - 48.0, thumb_rect.top() + 8.0),
         vec2(40.0, 18.0),
     );
     ui.painter()
-        .rect_filled(badge_rect, RADIUS_SM, Color32::from_black_alpha(190));
+        .rect_filled(brect, RADIUS_SM, Color32::from_black_alpha(190));
     ui.painter().text(
-        badge_rect.center(),
+        brect.center(),
         Align2::CENTER_CENTER,
-        extension,
+        ext,
         font_xs(),
         TEXT_SECONDARY,
     );
 
-    let display_title = if title.len() > 24 {
+    let name = if title.len() > 24 {
         format!("{}...", &title[..22])
     } else {
         title.to_string()
     };
+    let ncol = if resp.hovered() {
+        TEXT_PRIMARY
+    } else {
+        TEXT_SECONDARY
+    };
     ui.painter().text(
         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
         Align2::LEFT_CENTER,
-        display_title,
+        name,
         font_body(),
-        if hovered {
-            TEXT_PRIMARY
-        } else {
-            TEXT_SECONDARY
-        },
+        ncol,
     );
-
     ui.painter().text(
         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 38.0),
         Align2::LEFT_CENTER,
@@ -506,7 +506,6 @@ fn render_empty_state_section(ui: &mut Ui) {
             .max_rect(rect)
             .layout(Layout::top_down(Align::Center)),
     );
-
     let _ = render_empty_state(
         &mut child_ui,
         lucide::FOLDER_OPEN,
