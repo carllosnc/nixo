@@ -143,7 +143,7 @@ fn render_typography_section(ui: &mut Ui) {
     #[rustfmt::skip]
     let rows: [(&str, &str, FontId, Color32, &str); 6] = [
         ("Display", "28.0px Bold", font_display(), Color32::WHITE, "Cabeçalhos de tela e títulos principais"),
-        ("Seção", "21.0px Bold", font_section_title(), Color32::WHITE, "Títulos de blocos em Title Case"),
+        ("Seção", "18.0px Regular", font_section_title(), Color32::WHITE, "Títulos de blocos em Title Case"),
         ("Card / Item", "17.0px Bold", font_card_title(), TEXT_PRIMARY, "Nomes de pastas, arquivos e módulos"),
         ("Corpo", "15.5px Regular", font_body(), TEXT_PRIMARY, "Botões, inputs e navegação ativa"),
         ("Subtítulo", "14.0px Regular", font_sm(), TEXT_SECONDARY, "Descrições de apoio e contadores"),

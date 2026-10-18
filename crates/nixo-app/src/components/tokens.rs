@@ -98,10 +98,10 @@ pub fn font_display() -> FontId {
     FontId::new(28.0, egui::FontFamily::Name("bold".into()))
 }
 
-/// Título de Seção (hierarquia principal, renderizado em Title Case e branco).
+/// Título de Seção (hierarquia principal, renderizado em fonte normal e proporcional).
 #[inline]
 pub fn font_section_title() -> FontId {
-    FontId::new(21.0, egui::FontFamily::Name("bold".into()))
+    FontId::proportional(18.0)
 }
 
 /// Título de Card / Item em grid ou lista.
