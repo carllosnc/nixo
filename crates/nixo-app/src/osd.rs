@@ -1,6 +1,8 @@
 use std::time::{Duration, Instant};
 
-use egui::{Align, Color32, Context, FontId, Layout, Pos2, Rect, RichText, Sense, Ui, vec2};
+use egui::{
+    Align, Color32, Context, FontId, Layout, Pos2, Rect, RichText, Sense, Stroke, Ui, vec2,
+};
 use nixo_core::{PlaybackState, PlayerCommand, format_duration};
 
 use crate::app::NixoApp;
@@ -288,13 +290,11 @@ impl NixoApp {
             let dot_center = Pos2::new(cc_resp.rect.right() - 8.0, cc_resp.rect.top() + 9.0);
             right_ui
                 .painter()
-                .circle_filled(dot_center, 6.0, Color32::from_rgb(225, 40, 40));
-            right_ui.painter().text(
+                .circle_filled(dot_center, 4.0, Color32::from_rgb(235, 45, 45));
+            right_ui.painter().circle_stroke(
                 dot_center,
-                egui::Align2::CENTER_CENTER,
-                "!",
-                crate::theme::font_bold(9.5),
-                Color32::WHITE,
+                4.0,
+                Stroke::new(1.2_f32, Color32::from_rgb(18, 18, 22)),
             );
         }
         if cc_resp.clicked() {
