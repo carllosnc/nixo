@@ -154,6 +154,9 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     let mut new_delay = None;
 
     let btn_radius = CornerRadius::same(6);
+    let btn_idle_bg = Color32::from_rgb(38, 40, 46);
+    let btn_hover_bg = Color32::from_rgb(52, 55, 64);
+    let btn_active_bg = Color32::from_rgb(66, 70, 82);
 
     // Botão Menos [-]
     let minus_resp = ui
@@ -162,19 +165,13 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
         .on_hover_text("Atrasar (-0.1s)");
     let minus_hover = minus_resp.hovered();
     let minus_bg = if minus_resp.is_pointer_button_down_on() {
-        st.button_fill_active
+        btn_active_bg
     } else if minus_hover {
-        st.button_fill_hover
+        btn_hover_bg
     } else {
-        st.row_selected_fill
+        btn_idle_bg
     };
-    ui.painter().rect(
-        minus_rect,
-        btn_radius,
-        minus_bg,
-        Stroke::new(1.0_f32, st.popover_stroke.color),
-        StrokeKind::Inside,
-    );
+    ui.painter().rect_filled(minus_rect, btn_radius, minus_bg);
     ui.painter().line_segment(
         [
             Pos2::new(minus_rect.center().x - 5.5, cy),
@@ -197,18 +194,14 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     } else {
         format!("{current_delay:+.1}s")
     };
-    let val_bg = if val_hover {
-        st.button_fill_hover
+    let val_bg = if val_resp.is_pointer_button_down_on() {
+        btn_active_bg
+    } else if val_hover {
+        btn_hover_bg
     } else {
-        st.row_selected_fill
+        btn_idle_bg
     };
-    ui.painter().rect(
-        val_rect,
-        btn_radius,
-        val_bg,
-        Stroke::new(1.0_f32, st.popover_stroke.color),
-        StrokeKind::Inside,
-    );
+    ui.painter().rect_filled(val_rect, btn_radius, val_bg);
     paint_text(
         ui,
         &val_text,
@@ -229,19 +222,13 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
         .on_hover_text("Adiantar (+0.1s)");
     let plus_hover = plus_resp.hovered();
     let plus_bg = if plus_resp.is_pointer_button_down_on() {
-        st.button_fill_active
+        btn_active_bg
     } else if plus_hover {
-        st.button_fill_hover
+        btn_hover_bg
     } else {
-        st.row_selected_fill
+        btn_idle_bg
     };
-    ui.painter().rect(
-        plus_rect,
-        btn_radius,
-        plus_bg,
-        Stroke::new(1.0_f32, st.popover_stroke.color),
-        StrokeKind::Inside,
-    );
+    ui.painter().rect_filled(plus_rect, btn_radius, plus_bg);
     let px = plus_rect.center().x;
     ui.painter().line_segment(
         [Pos2::new(px - 5.5, cy), Pos2::new(px + 5.5, cy)],
