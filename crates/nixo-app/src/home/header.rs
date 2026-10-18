@@ -8,7 +8,7 @@ use egui::{
 };
 
 use crate::components::tokens::*;
-use crate::components::{primary, secondary};
+use crate::components::{icon_primary, icon_secondary};
 use crate::lucide;
 
 const LOGO_PNG: &[u8] = include_bytes!("../../../../assets/logo.png");
@@ -67,10 +67,7 @@ pub fn render_header(
 
     ui.horizontal(|ui| {
         if let Some(_path) = current_path {
-            if secondary(ui, Some(lucide::ARROW_LEFT), "")
-                .on_hover_text("Voltar")
-                .clicked()
-            {
+            if icon_secondary(ui, lucide::ARROW_LEFT, "Voltar").clicked() {
                 action = HomeAction::GoBack;
             }
 
@@ -149,28 +146,34 @@ pub fn render_header(
             );
         }
 
-        // Os botões de ação rápida são exibidos exclusivamente na tela inicial (Home)
+        // Os botões de ação rápida em formato icon button na tela inicial (Home)
         if current_path.is_none() {
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if secondary(ui, Some(lucide::SPARKLES), "Design System").clicked() {
+                if icon_secondary(ui, lucide::SPARKLES, "Design System Showcase").clicked() {
                     action = HomeAction::OpenDesignSystem;
                 }
 
                 ui.add_space(6.0);
 
-                if secondary(ui, Some(lucide::FLASK_CONICAL), "Testar").clicked() {
+                if icon_secondary(
+                    ui,
+                    lucide::FLASK_CONICAL,
+                    "Sinal de teste sintético (60 FPS)",
+                )
+                .clicked()
+                {
                     action = HomeAction::PlayTestSignal;
                 }
 
                 ui.add_space(6.0);
 
-                if secondary(ui, Some(lucide::FOLDER_OPEN), "Arquivo").clicked() {
+                if icon_secondary(ui, lucide::FOLDER_OPEN, "Abrir arquivo de mídia").clicked() {
                     action = HomeAction::OpenFile;
                 }
 
                 ui.add_space(6.0);
 
-                if primary(ui, Some(lucide::FOLDER_PLUS), "Pasta").clicked() {
+                if icon_primary(ui, lucide::FOLDER_PLUS, "Adicionar pasta de mídia").clicked() {
                     action = HomeAction::AddFolder;
                 }
             });

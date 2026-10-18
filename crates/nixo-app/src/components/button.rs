@@ -30,6 +30,13 @@ pub fn render_button(
     let has_icon = icon.is_some_and(|ic| !ic.is_empty());
     let has_text = !text.is_empty();
 
+    let font = font_body();
+    let icon_font = if has_text {
+        lucide::font_id(16.5)
+    } else {
+        lucide::font_id(18.0)
+    };
+
     let icon_str = icon.unwrap_or("");
     let icon_galley = if has_icon {
         Some(
@@ -101,32 +108,41 @@ pub fn render_button(
         }
     };
 
-    // 1. Fundo Full Rounded (Pill)
+    // 1. Fundo Full Rounded (Pill / Circle)
     ui.painter().rect_filled(rect, RADIUS_FULL, bg_color);
 
-    // 2. Conteúdo centralizado com espaçamento de 8px entre ícone e texto
-    let start_x = rect.left() + (rect.width() - content_w) / 2.0;
-
-    let mut current_x = start_x;
-    if has_icon {
+    // 2. Conteúdo perfeitamente centralizado
+    if has_icon && !has_text {
         ui.painter().text(
-            Pos2::new(current_x, rect.center().y),
-            Align2::LEFT_CENTER,
+            rect.center(),
+            Align2::CENTER_CENTER,
             icon_str,
             icon_font,
             icon_color,
         );
-        current_x += icon_w + gap;
-    }
+    } else {
+        let start_x = rect.left() + (rect.width() - content_w) / 2.0;
+        let mut current_x = start_x;
+        if has_icon {
+            ui.painter().text(
+                Pos2::new(current_x, rect.center().y),
+                Align2::LEFT_CENTER,
+                icon_str,
+                icon_font,
+                icon_color,
+            );
+            current_x += icon_w + gap;
+        }
 
-    if has_text {
-        ui.painter().text(
-            Pos2::new(current_x, rect.center().y),
-            Align2::LEFT_CENTER,
-            text,
-            font,
-            text_color,
-        );
+        if has_text {
+            ui.painter().text(
+                Pos2::new(current_x, rect.center().y),
+                Align2::LEFT_CENTER,
+                text,
+                font,
+                text_color,
+            );
+        }
     }
 
     resp.on_hover_cursor(CursorIcon::PointingHand)
@@ -148,4 +164,28 @@ pub fn secondary(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
 #[inline]
 pub fn ghost(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
     render_button(ui, ButtonVariant::Ghost, icon, text, 38.0)
+}
+
+/// Botão de ícone circular padronizado com hover suave e tooltip.
+#[inline]
+pub fn icon_button(ui: &mut Ui, variant: ButtonVariant, icon: &str, tooltip: &str) -> Response {
+    render_button(ui, variant, Some(icon), "", 38.0).on_hover_text(tooltip)
+}
+
+/// Atalho para botão de ícone primário (branco com contraste alto).
+#[inline]
+pub fn icon_primary(ui: &mut Ui, icon: &str, tooltip: &str) -> Response {
+    icon_button(ui, ButtonVariant::Primary, icon, tooltip)
+}
+
+/// Atalho para botão de ícone secundário (neutro dark).
+#[inline]
+pub fn icon_secondary(ui: &mut Ui, icon: &str, tooltip: &str) -> Response {
+    icon_button(ui, ButtonVariant::Secondary, icon, tooltip)
+}
+
+/// Atalho para botão de ícone ghost transparente.
+#[inline]
+pub fn icon_ghost(ui: &mut Ui, icon: &str, tooltip: &str) -> Response {
+    icon_button(ui, ButtonVariant::Ghost, icon, tooltip)
 }
