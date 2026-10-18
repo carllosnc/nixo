@@ -119,7 +119,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 56.0;
+        let item_h = 62.0;
         let spacing = 6.0;
         let item_w = ui.available_width();
 
@@ -141,7 +141,10 @@ pub fn render_folder_browser(
                 vec2(thumb_w, thumb_h),
             );
 
-            if matches!(item.kind, super::scanner::MediaKind::Video) {
+            if matches!(
+                item.kind,
+                super::scanner::MediaKind::Video | super::scanner::MediaKind::Audio
+            ) {
                 thumbnails.request(&item.path);
             }
 
@@ -205,7 +208,7 @@ pub fn render_folder_browser(
                 );
             }
 
-            // Nome do arquivo centralizado verticalmente com tipografia nítida
+            // Nome do arquivo (Linha 1 do item)
             let clean_name = item
                 .path
                 .file_stem()
@@ -219,13 +222,115 @@ pub fn render_folder_browser(
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.center().y),
+                Pos2::new(text_x, rect.top() + 19.0),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
                 title_color,
                 max_w,
             );
+
+            // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
+            let desc_y = rect.top() + 43.0;
+
+            // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
+            let badge_text = if !item.extension.is_empty() {
+                item.extension.to_uppercase()
+            } else {
+                match item.kind {
+                    super::scanner::MediaKind::Video => "VÍDEO".to_string(),
+                    super::scanner::MediaKind::Audio => "ÁUDIO".to_string(),
+                    super::scanner::MediaKind::Directory => "PASTA".to_string(),
+                }
+            };
+
+            let badge_font = font_xs();
+            let badge_text_w = ui
+                .painter()
+                .layout_no_wrap(badge_text.clone(), badge_font.clone(), Color32::WHITE)
+                .size()
+                .x;
+            let badge_w = (badge_text_w + 10.0).max(28.0);
+            let badge_rect =
+                Rect::from_min_size(Pos2::new(text_x, desc_y - 8.0), vec2(badge_w, 16.0));
+
+            let badge_bg = lerp_color(
+                Color32::from_rgba_unmultiplied(255, 255, 255, 12),
+                Color32::from_rgba_unmultiplied(255, 255, 255, 24),
+                hover_t,
+            );
+            let badge_stroke = egui::Stroke::new(
+                1.0_f32,
+                lerp_color(
+                    Color32::from_rgba_unmultiplied(255, 255, 255, 20),
+                    Color32::from_rgba_unmultiplied(255, 255, 255, 36),
+                    hover_t,
+                ),
+            );
+            let badge_fg = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
+            ui.painter()
+                .rect_filled(badge_rect, egui::CornerRadius::same(3), badge_bg);
+            ui.painter().rect_stroke(
+                badge_rect,
+                egui::CornerRadius::same(3),
+                badge_stroke,
+                egui::StrokeKind::Inside,
+            );
+            ui.painter().text(
+                badge_rect.center(),
+                Align2::CENTER_CENTER,
+                &badge_text,
+                badge_font,
+                badge_fg,
+            );
+
+            // 2. Metadados de duração e resolução
+            let details = thumbnails.get_details(&item.path);
+            let dur_str = details.and_then(|d| d.duration_formatted());
+            let res_str = details.and_then(|d| d.resolution_formatted()).or_else(|| {
+                super::thumbnail_manager::parse_resolution_from_name(&item.name).map(str::to_string)
+            });
+
+            let mut meta_x = badge_rect.right() + 8.0;
+            let meta_color = lerp_color(TEXT_MUTED, TEXT_SECONDARY, hover_t);
+
+            if let Some(dur) = dur_str {
+                ui.painter().text(
+                    Pos2::new(meta_x, desc_y),
+                    Align2::LEFT_CENTER,
+                    "•",
+                    font_xs(),
+                    TEXT_MUTED,
+                );
+                meta_x += 10.0;
+
+                let dur_galley = ui.painter().layout_no_wrap(dur, font_xs(), meta_color);
+                let dur_w = dur_galley.size().x;
+                ui.painter().galley(
+                    Pos2::new(meta_x, desc_y - dur_galley.size().y * 0.5),
+                    dur_galley,
+                    meta_color,
+                );
+                meta_x += dur_w + 8.0;
+            }
+
+            if let Some(res) = res_str {
+                ui.painter().text(
+                    Pos2::new(meta_x, desc_y),
+                    Align2::LEFT_CENTER,
+                    "•",
+                    font_xs(),
+                    TEXT_MUTED,
+                );
+                meta_x += 10.0;
+
+                let res_galley = ui.painter().layout_no_wrap(res, font_xs(), meta_color);
+                ui.painter().galley(
+                    Pos2::new(meta_x, desc_y - res_galley.size().y * 0.5),
+                    res_galley,
+                    meta_color,
+                );
+            }
 
             // Tamanho do arquivo alinhado à direita de forma limpa
             let size_color = lerp_color(TEXT_MUTED, TEXT_SECONDARY, hover_t);

@@ -15,16 +15,26 @@ use std::time::{Duration, Instant};
 use nixo_core::VideoFrame;
 
 use super::ffi::{
-    MPV_FORMAT_DOUBLE, MPV_RENDER_PARAM_API_TYPE, MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
-    MPV_RENDER_PARAM_INVALID, MPV_RENDER_PARAM_SW_FORMAT, MPV_RENDER_PARAM_SW_POINTER,
-    MPV_RENDER_PARAM_SW_SIZE, MPV_RENDER_PARAM_SW_STRIDE, MPV_RENDER_UPDATE_FRAME, MpvApi,
-    MpvRenderContext, MpvRenderParam, on_mpv_render_update,
+    MPV_FORMAT_DOUBLE, MPV_FORMAT_INT64, MPV_RENDER_PARAM_API_TYPE,
+    MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, MPV_RENDER_PARAM_INVALID, MPV_RENDER_PARAM_SW_FORMAT,
+    MPV_RENDER_PARAM_SW_POINTER, MPV_RENDER_PARAM_SW_SIZE, MPV_RENDER_PARAM_SW_STRIDE,
+    MPV_RENDER_UPDATE_FRAME, MpvApi, MpvRenderContext, MpvRenderParam, on_mpv_render_update,
 };
+
+/// Metadados e miniatura extraídos assincronamente pelo worker do libmpv.
+#[derive(Debug, Clone)]
+pub struct ThumbnailResult {
+    pub path: PathBuf,
+    pub frame: Option<VideoFrame>,
+    pub duration_secs: Option<f64>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+}
 
 /// Serviço em background para extração não-bloqueante de miniaturas de vídeo.
 pub struct ThumbnailService {
     req_tx: Sender<PathBuf>,
-    res_rx: Receiver<(PathBuf, VideoFrame)>,
+    res_rx: Receiver<ThumbnailResult>,
     shutdown: Arc<AtomicBool>,
 }
 
@@ -34,7 +44,7 @@ impl ThumbnailService {
     pub fn new() -> Option<Self> {
         let api = Arc::new(MpvApi::load().ok()?);
         let (req_tx, req_rx) = channel::<PathBuf>();
-        let (res_tx, res_rx) = channel::<(PathBuf, VideoFrame)>();
+        let (res_tx, res_rx) = channel::<ThumbnailResult>();
         let shutdown = Arc::new(AtomicBool::new(false));
         let worker_shutdown = Arc::clone(&shutdown);
 
@@ -58,7 +68,7 @@ impl ThumbnailService {
     }
 
     /// Retorna uma miniatura recém-processada, se houver alguma pronta.
-    pub fn try_recv(&self) -> Option<(PathBuf, VideoFrame)> {
+    pub fn try_recv(&self) -> Option<ThumbnailResult> {
         self.res_rx.try_recv().ok()
     }
 
@@ -66,7 +76,7 @@ impl ThumbnailService {
     fn worker_loop(
         api: Arc<MpvApi>,
         req_rx: Receiver<PathBuf>,
-        res_tx: Sender<(PathBuf, VideoFrame)>,
+        res_tx: Sender<ThumbnailResult>,
         shutdown: Arc<AtomicBool>,
     ) {
         // SAFETY: Cria uma instância dedicada e silenciosa do libmpv exclusiva para miniaturas.
@@ -154,6 +164,7 @@ impl ThumbnailService {
                 // Aguarda metadados e duração inicial (até 60ms)
                 let start_wait = Instant::now();
                 let mut target_sec = 2.0_f64;
+                let mut found_dur: Option<f64> = None;
                 while start_wait.elapsed() < Duration::from_millis(60) {
                     let mut dur: c_double = 0.0;
                     let rc = (api.get_property)(
@@ -162,10 +173,13 @@ impl ThumbnailService {
                         MPV_FORMAT_DOUBLE,
                         (&raw mut dur).cast::<c_void>(),
                     );
-                    if rc >= 0 && dur > 2.0 {
-                        // Tira miniatura aos 8% ou 15s para evitar tela preta de introdução
-                        target_sec = (dur * 0.08).clamp(2.0, 30.0);
-                        break;
+                    if rc >= 0 && dur > 0.0 {
+                        found_dur = Some(dur);
+                        if dur > 2.0 {
+                            // Tira miniatura aos 8% ou 15s para evitar tela preta de introdução
+                            target_sec = (dur * 0.08).clamp(2.0, 30.0);
+                            break;
+                        }
                     }
                     thread::sleep(Duration::from_millis(4));
                 }
@@ -185,6 +199,7 @@ impl ThumbnailService {
 
                 // Aguarda renderização do quadro pelo MPV (até 80ms)
                 let render_start = Instant::now();
+                let mut captured_frame: Option<VideoFrame> = None;
                 while render_start.elapsed() < Duration::from_millis(80)
                     && !shutdown.load(Ordering::Acquire)
                 {
@@ -229,19 +244,81 @@ impl ThumbnailService {
                                     px[3] = 255;
                                 }
                                 frame_id += 1;
-                                let frame = VideoFrame {
+                                captured_frame = Some(VideoFrame {
                                     width: thumb_w,
                                     height: thumb_h,
                                     rgba: pixel_buf.clone(),
                                     frame_id,
-                                };
-                                let _ = res_tx.send((path.clone(), frame));
+                                });
                                 break;
                             }
                         }
                     }
                     thread::sleep(Duration::from_millis(3));
                 }
+
+                if found_dur.is_none() {
+                    let mut dur: c_double = 0.0;
+                    let rc = (api.get_property)(
+                        handle,
+                        c"duration".as_ptr(),
+                        MPV_FORMAT_DOUBLE,
+                        (&raw mut dur).cast::<c_void>(),
+                    );
+                    if rc >= 0 && dur > 0.0 {
+                        found_dur = Some(dur);
+                    }
+                }
+
+                let mut vid_w: i64 = 0;
+                let mut vid_h: i64 = 0;
+                let found_w = if ((api.get_property)(
+                    handle,
+                    c"dwidth".as_ptr(),
+                    MPV_FORMAT_INT64,
+                    (&raw mut vid_w).cast::<c_void>(),
+                ) >= 0
+                    && vid_w > 0)
+                    || ((api.get_property)(
+                        handle,
+                        c"width".as_ptr(),
+                        MPV_FORMAT_INT64,
+                        (&raw mut vid_w).cast::<c_void>(),
+                    ) >= 0
+                        && vid_w > 0)
+                {
+                    Some(vid_w as u32)
+                } else {
+                    None
+                };
+
+                let found_h = if ((api.get_property)(
+                    handle,
+                    c"dheight".as_ptr(),
+                    MPV_FORMAT_INT64,
+                    (&raw mut vid_h).cast::<c_void>(),
+                ) >= 0
+                    && vid_h > 0)
+                    || ((api.get_property)(
+                        handle,
+                        c"height".as_ptr(),
+                        MPV_FORMAT_INT64,
+                        (&raw mut vid_h).cast::<c_void>(),
+                    ) >= 0
+                        && vid_h > 0)
+                {
+                    Some(vid_h as u32)
+                } else {
+                    None
+                };
+
+                let _ = res_tx.send(ThumbnailResult {
+                    path: path.clone(),
+                    frame: captured_frame,
+                    duration_secs: found_dur,
+                    width: found_w,
+                    height: found_h,
+                });
 
                 // Libera o arquivo atual antes da próxima requisição
                 let c_stop = c"stop";
