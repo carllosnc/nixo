@@ -3,7 +3,10 @@
 //! Todas as cores são neutras puras (Tailwind Neutral 50 a 950), eliminando bordas duras e criando
 //! profundidade através de camadas de elevação sutis (estilo Linear, shadcn e macOS Dark).
 
-use egui::{Color32, CornerRadius, FontId};
+use std::sync::Arc;
+
+use egui::text::{LayoutJob, TextFormat, TextWrapping};
+use egui::{Align2, Color32, CornerRadius, FontId, Galley, Pos2, Rect, Ui};
 
 // ── Paleta Tailwind CSS Neutral Oficial ──
 /// Tailwind neutral-50 (#fafafa) - Destaque máximo / hover primário.
@@ -137,4 +140,38 @@ pub fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
         (a.b() as f32 + (b.b() as f32 - a.b() as f32) * t).round() as u8,
         (a.a() as f32 + (b.a() as f32 - a.a() as f32) * t).round() as u8,
     )
+}
+
+/// Faz o layout de uma linha única de texto, truncando com `…` pela largura máxima em pixels.
+pub fn layout_single_line(
+    ui: &Ui,
+    text: &str,
+    font: FontId,
+    color: Color32,
+    max_width: f32,
+) -> Arc<Galley> {
+    let mut job = LayoutJob::single_section(text.to_owned(), TextFormat::simple(font, color));
+    job.wrap = TextWrapping {
+        max_width: max_width.max(0.0),
+        max_rows: 1,
+        break_anywhere: true,
+        overflow_character: Some('…'),
+    };
+    ui.fonts(|f| f.layout_job(job))
+}
+
+/// Desenha uma linha única de texto truncada com `…` dentro da largura máxima informada.
+pub fn paint_truncated_text(
+    ui: &Ui,
+    anchor: Pos2,
+    align: Align2,
+    text: &str,
+    font: FontId,
+    color: Color32,
+    max_width: f32,
+) -> Rect {
+    let galley = layout_single_line(ui, text, font, color, max_width);
+    let rect = align.anchor_size(anchor, galley.size());
+    ui.painter().galley(rect.min, galley, Color32::PLACEHOLDER);
+    rect
 }

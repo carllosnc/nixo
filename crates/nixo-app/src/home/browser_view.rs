@@ -67,21 +67,17 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         icon_color,
                     );
 
-                    // Nome da subpasta truncado
+                    // Nome da subpasta truncado com precisão de pixel
                     let name_x = rect.left() + 46.0;
-                    let max_chars = 24;
-                    let display_name = if dir.name.len() > max_chars {
-                        format!("{}...", &dir.name[..max_chars - 2])
-                    } else {
-                        dir.name.clone()
-                    };
-
-                    ui.painter().text(
+                    let max_w = (rect.right() - 14.0) - name_x;
+                    paint_truncated_text(
+                        ui,
                         Pos2::new(name_x, rect.center().y),
                         Align2::LEFT_CENTER,
-                        display_name,
+                        &dir.name,
                         font_body(),
                         text_color,
+                        max_w,
                     );
 
                     if resp.clicked() {
@@ -190,28 +186,29 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         .and_then(|s| s.to_str())
                         .unwrap_or(&item.name);
 
-                    let display_name = if clean_name.len() > 24 {
-                        format!("{}...", &clean_name[..22])
-                    } else {
-                        clean_name.to_string()
-                    };
-
                     let text_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
-                    ui.painter().text(
+                    let max_w = rect.width() - 24.0;
+
+                    // Nome do arquivo com truncamento seguro
+                    paint_truncated_text(
+                        ui,
                         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
                         Align2::LEFT_CENTER,
-                        display_name,
+                        clean_name,
                         font_body(),
                         text_color,
+                        max_w,
                     );
 
                     // Tamanho / Metadados
-                    ui.painter().text(
+                    paint_truncated_text(
+                        ui,
                         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 38.0),
                         Align2::LEFT_CENTER,
                         &item.size_formatted,
                         font_xs(),
                         TEXT_MUTED,
+                        max_w,
                     );
 
                     if resp.clicked() {
@@ -219,7 +216,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     }
 
                     resp.on_hover_cursor(CursorIcon::PointingHand)
-                        .on_hover_text(&item.name);
+                        .on_hover_text(format!("{}\n{}", item.name, item.size_formatted));
 
                     if (idx + 1) % cols == 0 {
                         ui.end_row();

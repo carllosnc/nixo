@@ -285,19 +285,25 @@ fn render_folder_cards_section(ui: &mut Ui) {
         );
 
         let tc = lerp_color(TEXT_PRIMARY, Color32::WHITE, ht);
-        ui.painter().text(
-            Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
+        let text_left = rect.left() + 56.0;
+        let max_w = (rect.right() - 38.0) - text_left;
+        paint_truncated_text(
+            ui,
+            Pos2::new(text_left, rect.top() + 24.0),
             Align2::LEFT_CENTER,
             "Animes & Séries",
             font_card_title(),
             tc,
+            max_w,
         );
-        ui.painter().text(
-            Pos2::new(rect.left() + 56.0, rect.top() + 44.0),
+        paint_truncated_text(
+            ui,
+            Pos2::new(text_left, rect.top() + 46.0),
             Align2::LEFT_CENTER,
             "D:\\Media\\Animes & Séries",
             font_xs(),
             TEXT_MUTED,
+            (rect.right() - 16.0) - text_left,
         );
         ui.painter().text(
             Pos2::new(rect.left() + 20.0, rect.top() + 92.0),
@@ -324,12 +330,15 @@ fn render_folder_cards_section(ui: &mut Ui) {
             cic,
         );
         let ctc = lerp_color(TEXT_PRIMARY, Color32::WHITE, cht);
-        ui.painter().text(
+        let max_cw = (cr.right() - 14.0) - (cr.left() + 46.0);
+        paint_truncated_text(
+            ui,
             Pos2::new(cr.left() + 46.0, cr.center().y),
             Align2::LEFT_CENTER,
             "Season 01",
             font_body(),
             ctc,
+            max_cw,
         );
     });
 }
@@ -409,25 +418,25 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
         TEXT_SECONDARY,
     );
 
-    let name = if title.len() > 24 {
-        format!("{}...", &title[..22])
-    } else {
-        title.to_string()
-    };
     let ncol = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, ht);
-    ui.painter().text(
+    let max_w = rect.width() - 24.0;
+    paint_truncated_text(
+        ui,
         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
         Align2::LEFT_CENTER,
-        name,
+        title,
         font_body(),
         ncol,
+        max_w,
     );
-    ui.painter().text(
+    paint_truncated_text(
+        ui,
         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 38.0),
         Align2::LEFT_CENTER,
         size,
         font_xs(),
         TEXT_MUTED,
+        max_w,
     );
 
     resp.on_hover_cursor(CursorIcon::PointingHand);

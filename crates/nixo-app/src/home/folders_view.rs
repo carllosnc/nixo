@@ -40,7 +40,7 @@ pub fn render_folders_view(
         );
         ui.add_space(14.0);
 
-        let card_w = 310.0;
+        let card_w = 320.0;
         let card_h = 120.0;
         let spacing = 14.0;
         let avail_w = ui.available_width().max(card_w);
@@ -56,6 +56,7 @@ pub fn render_folders_view(
                         .unwrap_or("Pasta");
 
                     let count_text = match folder_counts.get(folder) {
+                        Some(1) => "1 item".to_string(),
                         Some(c) => format!("{c} itens"),
                         None => "calculando...".to_string(),
                     };
@@ -119,29 +120,42 @@ pub fn render_folders_view(
                         action = HomeAction::OpenFolder(folder.clone());
                     }
 
-                    // Nome da pasta
-                    ui.painter().text(
-                        Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
+                    let text_left = rect.left() + 56.0;
+                    let max_title_w = (rect.right() - 38.0) - text_left;
+
+                    // Nome da pasta com truncamento pixel-perfect
+                    paint_truncated_text(
+                        ui,
+                        Pos2::new(text_left, rect.top() + 24.0),
                         Align2::LEFT_CENTER,
                         folder_name,
                         font_card_title(),
                         title_color,
+                        max_title_w,
                     );
 
-                    // Caminho da pasta
+                    // Caminho/localização da pasta no disco
                     let path_str = folder.to_string_lossy();
-                    let display_path = if path_str.len() > 34 {
-                        format!("...{}", &path_str[path_str.len() - 31..])
+                    let display_path = if let Some(parent) = folder.parent() {
+                        let p_str = parent.to_string_lossy();
+                        if p_str.ends_with(":\\") || p_str == "/" || p_str.is_empty() {
+                            path_str.to_string()
+                        } else {
+                            p_str.to_string()
+                        }
                     } else {
                         path_str.to_string()
                     };
 
-                    ui.painter().text(
-                        Pos2::new(rect.left() + 56.0, rect.top() + 44.0),
+                    let max_path_w = (rect.right() - 16.0) - text_left;
+                    paint_truncated_text(
+                        ui,
+                        Pos2::new(text_left, rect.top() + 46.0),
                         Align2::LEFT_CENTER,
-                        display_path,
+                        &display_path,
                         font_xs(),
                         TEXT_MUTED,
+                        max_path_w,
                     );
 
                     // Contador de itens
@@ -153,7 +167,8 @@ pub fn render_folders_view(
                         TEXT_SECONDARY,
                     );
 
-                    resp.on_hover_cursor(CursorIcon::PointingHand);
+                    resp.on_hover_cursor(CursorIcon::PointingHand)
+                        .on_hover_text(format!("{folder_name}\n{}", folder.display()));
 
                     if (idx + 1) % cols == 0 {
                         ui.end_row();
