@@ -31,9 +31,8 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
         ui.add_space(8.0);
         ui.label(
             RichText::new(format!("SUBPASTAS ({})", content.subdirs.len()))
-                .font(font_xs())
-                .strong()
-                .color(TEXT_MUTED),
+                .font(crate::theme::font_bold(13.0))
+                .color(Color32::WHITE),
         );
         ui.add_space(10.0);
 
@@ -54,26 +53,21 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-                    // Ícone Lucide de pasta
-                    let icon_box = Rect::from_min_size(
-                        Pos2::new(rect.left() + 10.0, rect.top() + 8.0),
-                        vec2(26.0, 26.0),
-                    );
-                    ui.painter().rect_filled(icon_box, RADIUS_SM, SURFACE_MED);
+                    // Ícone Lucide de pasta sem wrapper
                     ui.painter().text(
-                        icon_box.center(),
-                        Align2::CENTER_CENTER,
+                        Pos2::new(rect.left() + 14.0, rect.center().y),
+                        Align2::LEFT_CENTER,
                         lucide::FOLDER,
-                        lucide::font_id(14.0),
+                        lucide::font_id(16.0),
                         if hovered {
-                            TEXT_PRIMARY
+                            Color32::WHITE
                         } else {
                             TEXT_SECONDARY
                         },
                     );
 
                     // Nome da subpasta truncado
-                    let name_x = rect.left() + 44.0;
+                    let name_x = rect.left() + 38.0;
                     let max_chars = 24;
                     let display_name = if dir.name.len() > max_chars {
                         format!("{}...", &dir.name[..max_chars - 2])
@@ -87,9 +81,9 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         display_name,
                         font_body(),
                         if hovered {
-                            TEXT_PRIMARY
+                            Color32::WHITE
                         } else {
-                            TEXT_SECONDARY
+                            TEXT_PRIMARY
                         },
                     );
 
@@ -112,9 +106,8 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
     // Seção de Arquivos de Mídia Executáveis
     ui.label(
         RichText::new(format!("ARQUIVOS EXECUTÁVEIS ({})", content.files.len()))
-            .font(font_xs())
-            .strong()
-            .color(TEXT_MUTED),
+            .font(crate::theme::font_bold(13.0))
+            .color(Color32::WHITE),
     );
     ui.add_space(10.0);
 

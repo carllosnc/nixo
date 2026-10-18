@@ -3,12 +3,13 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use egui::{Align2, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
+use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
 use super::header::HomeAction;
 use crate::components::empty_state::render_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
+use crate::theme::font_bold;
 
 /// Renderiza a lista de pastas de mídia configuradas pelo usuário.
 pub fn render_folders_view(
@@ -35,9 +36,8 @@ pub fn render_folders_view(
         ui.add_space(8.0);
         ui.label(
             RichText::new("SUAS PASTAS DE MÍDIA")
-                .font(font_xs())
-                .strong()
-                .color(TEXT_MUTED),
+                .font(font_bold(13.0))
+                .color(Color32::WHITE),
         );
         ui.add_space(12.0);
 
@@ -69,19 +69,15 @@ pub fn render_folders_view(
 
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-                    // Ícone Lucide da pasta dentro de uma caixinha sutil
-                    let icon_box = Rect::from_min_size(
-                        Pos2::new(rect.left() + 14.0, rect.top() + 14.0),
-                        vec2(34.0, 34.0),
-                    );
-                    ui.painter().rect_filled(icon_box, RADIUS_SM, SURFACE_MED);
+                    // Ícone Lucide da pasta sem wrapper
+                    let icon_pos = Pos2::new(rect.left() + 18.0, rect.top() + 27.0);
                     ui.painter().text(
-                        icon_box.center(),
-                        Align2::CENTER_CENTER,
+                        icon_pos,
+                        Align2::LEFT_CENTER,
                         lucide::FOLDER,
-                        lucide::font_id(18.0),
+                        lucide::font_id(20.0),
                         if hovered {
-                            TEXT_PRIMARY
+                            Color32::WHITE
                         } else {
                             TEXT_SECONDARY
                         },
@@ -125,11 +121,15 @@ pub fn render_folders_view(
 
                     // Nome da pasta
                     ui.painter().text(
-                        Pos2::new(rect.left() + 58.0, rect.top() + 22.0),
+                        Pos2::new(rect.left() + 48.0, rect.top() + 20.0),
                         Align2::LEFT_CENTER,
                         folder_name,
                         font_body(),
-                        TEXT_PRIMARY,
+                        if hovered {
+                            Color32::WHITE
+                        } else {
+                            TEXT_PRIMARY
+                        },
                     );
 
                     // Caminho da pasta
@@ -141,7 +141,7 @@ pub fn render_folders_view(
                     };
 
                     ui.painter().text(
-                        Pos2::new(rect.left() + 58.0, rect.top() + 38.0),
+                        Pos2::new(rect.left() + 48.0, rect.top() + 37.0),
                         Align2::LEFT_CENTER,
                         display_path,
                         font_xs(),
