@@ -23,6 +23,7 @@ pub struct HomeState {
     pub is_design_system: bool,
     pub logo_texture: Option<egui::TextureHandle>,
     pub folder_texture: Option<egui::TextureHandle>,
+    pub video_clapper_texture: Option<egui::TextureHandle>,
     pub thumbnails: ThumbnailManager,
 }
 
@@ -41,6 +42,7 @@ impl HomeState {
             is_design_system: false,
             logo_texture: None,
             folder_texture: None,
+            video_clapper_texture: None,
             thumbnails: ThumbnailManager::new(),
         }
     }
@@ -136,6 +138,16 @@ impl HomeState {
                 ));
             }
 
+            if self.video_clapper_texture.is_none()
+                && let Some(color_img) = header::load_video_clapper_image()
+            {
+                self.video_clapper_texture = Some(ui.ctx().load_texture(
+                    "nixo_video_clapper",
+                    color_img,
+                    egui::TextureOptions::LINEAR,
+                ));
+            }
+
             // 1. Cabeçalho fixo no topo com padding interno
             egui::Frame::NONE
                 .inner_margin(Margin {
@@ -175,6 +187,7 @@ impl HomeState {
                                     &content,
                                     &mut self.thumbnails,
                                     self.folder_texture.as_ref(),
+                                    self.video_clapper_texture.as_ref(),
                                 );
                                 if !matches!(browser_act, HomeAction::None) {
                                     action = browser_act;

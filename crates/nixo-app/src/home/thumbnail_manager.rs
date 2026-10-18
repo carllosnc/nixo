@@ -89,6 +89,7 @@ impl ThumbnailManager {
     }
 
     /// Retorna a textura GPU da miniatura caso já tenha sido processada e carregada.
+    #[allow(dead_code)]
     pub fn get(&self, path: &Path) -> Option<&TextureHandle> {
         self.textures.get(path)
     }

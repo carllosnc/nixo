@@ -14,6 +14,7 @@ pub fn render_folder_browser(
     content: &FolderContent,
     thumbnails: &mut super::ThumbnailManager,
     folder_texture: Option<&egui::TextureHandle>,
+    video_clapper_texture: Option<&egui::TextureHandle>,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -136,7 +137,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 70.0;
+        let item_h = 66.0;
         let spacing = 6.0;
         let item_w = ui.available_width();
 
@@ -150,14 +151,7 @@ pub fn render_folder_browser(
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Miniatura 16:9 limpa à esquerda com proporção e tamanho ampliados
-            let thumb_w = 96.0;
-            let thumb_h = 54.0;
-            let thumb_rect = Rect::from_min_size(
-                Pos2::new(rect.left() + 10.0, rect.top() + (item_h - thumb_h) * 0.5),
-                vec2(thumb_w, thumb_h),
-            );
-
+            // Dispara requisição de metadados de vídeo/áudio em background se necessário
             if matches!(
                 item.kind,
                 super::scanner::MediaKind::Video | super::scanner::MediaKind::Audio
@@ -165,65 +159,39 @@ pub fn render_folder_browser(
                 thumbnails.request(&item.path);
             }
 
-            if let Some(tex) = thumbnails.get(&item.path) {
+            // Ícone do arquivo de mídia: usa o ícone clapperboard nos vídeos
+            let text_x = if matches!(item.kind, super::scanner::MediaKind::Video)
+                && let Some(tex) = video_clapper_texture
+            {
+                let icon_size = vec2(42.0, 38.0);
+                let icon_rect = Rect::from_center_size(
+                    Pos2::new(rect.left() + 30.0, rect.center().y),
+                    icon_size,
+                );
+                let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
                 ui.painter().image(
                     tex.id(),
-                    thumb_rect,
+                    icon_rect,
                     Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-                    Color32::WHITE,
+                    tint,
                 );
-
-                if hover_t > 0.05 {
-                    let overlay = Color32::from_black_alpha((hover_t * 110.0) as u8);
-                    ui.painter().rect_filled(thumb_rect, RADIUS_SM, overlay);
-
-                    let center = thumb_rect.center();
-                    let circle_bg = lerp_color(
-                        Color32::from_rgba_unmultiplied(20, 20, 25, 0),
-                        ACCENT_NEUTRAL_FILL,
-                        hover_t,
-                    );
-                    let icon_fg = lerp_color(
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 0),
-                        ACCENT_NEUTRAL_TEXT,
-                        hover_t,
-                    );
-                    ui.painter().circle_filled(center, 15.0, circle_bg);
-                    ui.painter().text(
-                        Pos2::new(center.x + 1.0, center.y),
-                        Align2::CENTER_CENTER,
-                        lucide::PLAY,
-                        lucide::font_id(14.0),
-                        icon_fg,
-                    );
-                }
+                icon_rect.right() + 14.0
             } else {
-                ui.painter().rect_filled(thumb_rect, RADIUS_SM, SURFACE_MED);
-
-                // Ícone central de Play / Mídia no Lucide com transição de hover
-                let center = thumb_rect.center();
                 let default_ic = match item.kind {
                     super::scanner::MediaKind::Video => lucide::FILM,
                     super::scanner::MediaKind::Audio => lucide::MUSIC,
                     super::scanner::MediaKind::Directory => lucide::FOLDER,
                 };
-                let icon_str = if hover_t > 0.4 {
-                    lucide::PLAY
-                } else {
-                    default_ic
-                };
-                let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
-                let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
-
-                ui.painter().circle_filled(center, 16.0, circle_bg);
+                let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
                 ui.painter().text(
-                    Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
-                    Align2::CENTER_CENTER,
-                    icon_str,
-                    lucide::font_id(15.0),
-                    icon_fg,
+                    icon_pos,
+                    Align2::LEFT_CENTER,
+                    default_ic,
+                    lucide::font_id(26.0),
+                    lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t),
                 );
-            }
+                rect.left() + 58.0
+            };
 
             // Nome do arquivo (Linha 1 do item)
             let clean_name = item
@@ -232,14 +200,13 @@ pub fn render_folder_browser(
                 .and_then(|s| s.to_str())
                 .unwrap_or(&item.name);
 
-            let text_x = thumb_rect.right() + 14.0;
             let right_reserve = 100.0;
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 22.0),
+                Pos2::new(text_x, rect.top() + 21.0),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
@@ -248,7 +215,7 @@ pub fn render_folder_browser(
             );
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
-            let desc_y = rect.top() + 48.0;
+            let desc_y = rect.top() + 45.0;
 
             // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
             let badge_text = if !item.extension.is_empty() {
