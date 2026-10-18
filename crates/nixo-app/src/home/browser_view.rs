@@ -42,8 +42,8 @@ pub fn render_folder_browser(
         );
         ui.add_space(12.0);
 
-        let item_h = 56.0;
-        let spacing = 6.0;
+        let item_h = 64.0;
+        let spacing = 8.0;
         let item_w = ui.available_width();
 
         for dir in &content.subdirs {
@@ -59,11 +59,11 @@ pub fn render_folder_browser(
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Ícone da subpasta à esquerda: usa o ícone 3D nativo se disponível
+            // Ícone da subpasta à esquerda: usa o ícone 3D nativo ampliado com padding confortável
             let text_x = if let Some(tex) = folder_texture {
-                let icon_size = vec2(37.0, 32.0);
+                let icon_size = vec2(46.0, 40.0);
                 let icon_rect = Rect::from_center_size(
-                    Pos2::new(rect.left() + 26.0, rect.center().y),
+                    Pos2::new(rect.left() + 41.0, rect.center().y),
                     icon_size,
                 );
                 let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
@@ -73,22 +73,22 @@ pub fn render_folder_browser(
                     Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                     tint,
                 );
-                icon_rect.right() + 14.0
+                icon_rect.right() + 16.0
             } else {
                 let folder_icon = if hover_t > 0.4 {
                     lucide::FOLDER_OPEN
                 } else {
                     lucide::FOLDER
                 };
-                let icon_pos = Pos2::new(rect.left() + 18.0, rect.center().y);
+                let icon_pos = Pos2::new(rect.left() + 22.0, rect.center().y);
                 ui.painter().text(
                     icon_pos,
                     Align2::LEFT_CENTER,
                     folder_icon,
-                    lucide::font_id(24.0),
+                    lucide::font_id(28.0),
                     icon_color,
                 );
-                rect.left() + 52.0
+                rect.left() + 64.0
             };
 
             // Nome da subpasta centralizado
@@ -103,7 +103,7 @@ pub fn render_folder_browser(
                 max_w,
             );
 
-            // Chevron sutil à direita indicando navegação
+            // Chevron sutil à direita indicando navegação com padding arejado
             let chevron_pos = Pos2::new(rect.right() - 24.0, rect.center().y);
             let chevron_color = lerp_color(TEXT_MUTED, TEXT_PRIMARY, hover_t);
             ui.painter().text(
@@ -137,8 +137,8 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 66.0;
-        let spacing = 6.0;
+        let item_h = 76.0;
+        let spacing = 8.0;
         let item_w = ui.available_width();
 
         for item in &content.files {
@@ -159,13 +159,13 @@ pub fn render_folder_browser(
                 thumbnails.request(&item.path);
             }
 
-            // Ícone do arquivo de mídia: usa o ícone clapperboard nos vídeos
+            // Ícone do arquivo de mídia: usa o ícone clapperboard ampliado nos vídeos
             let text_x = if matches!(item.kind, super::scanner::MediaKind::Video)
                 && let Some(tex) = video_clapper_texture
             {
-                let icon_size = vec2(42.0, 38.0);
+                let icon_size = vec2(50.0, 46.0);
                 let icon_rect = Rect::from_center_size(
-                    Pos2::new(rect.left() + 30.0, rect.center().y),
+                    Pos2::new(rect.left() + 43.0, rect.center().y),
                     icon_size,
                 );
                 let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
@@ -175,22 +175,22 @@ pub fn render_folder_browser(
                     Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                     tint,
                 );
-                icon_rect.right() + 14.0
+                icon_rect.right() + 16.0
             } else {
                 let default_ic = match item.kind {
                     super::scanner::MediaKind::Video => lucide::FILM,
                     super::scanner::MediaKind::Audio => lucide::MUSIC,
                     super::scanner::MediaKind::Directory => lucide::FOLDER,
                 };
-                let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
+                let icon_pos = Pos2::new(rect.left() + 24.0, rect.center().y);
                 ui.painter().text(
                     icon_pos,
                     Align2::LEFT_CENTER,
                     default_ic,
-                    lucide::font_id(26.0),
+                    lucide::font_id(30.0),
                     lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t),
                 );
-                rect.left() + 58.0
+                rect.left() + 68.0
             };
 
             // Nome do arquivo (Linha 1 do item)
@@ -206,7 +206,7 @@ pub fn render_folder_browser(
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 21.0),
+                Pos2::new(text_x, rect.top() + 25.0),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
@@ -215,7 +215,7 @@ pub fn render_folder_browser(
             );
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
-            let desc_y = rect.top() + 45.0;
+            let desc_y = rect.top() + 51.0;
 
             // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
             let badge_text = if !item.extension.is_empty() {
@@ -302,10 +302,10 @@ pub fn render_folder_browser(
                 );
             }
 
-            // Tamanho do arquivo alinhado à direita de forma limpa
+            // Tamanho do arquivo alinhado à direita com padding arejado
             let size_color = lerp_color(TEXT_MUTED, TEXT_SECONDARY, hover_t);
             ui.painter().text(
-                Pos2::new(rect.right() - 20.0, rect.center().y),
+                Pos2::new(rect.right() - 24.0, rect.center().y),
                 Align2::RIGHT_CENTER,
                 &item.size_formatted,
                 font_sm(),

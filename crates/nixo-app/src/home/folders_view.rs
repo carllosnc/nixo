@@ -65,8 +65,8 @@ pub fn render_folders_view(
         );
         ui.add_space(14.0);
 
-        let item_h = 66.0;
-        let spacing = 6.0;
+        let item_h = 76.0;
+        let spacing = 8.0;
         let item_w = ui.available_width();
 
         for folder in folders {
@@ -91,11 +91,11 @@ pub fn render_folders_view(
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Ícone da pasta à esquerda: usa o ícone 3D nativo se disponível
+            // Ícone da pasta à esquerda: usa o ícone 3D nativo ampliado com padding generoso
             let text_x = if let Some(tex) = folder_texture {
-                let icon_size = vec2(42.0, 36.0);
+                let icon_size = vec2(50.0, 44.0);
                 let icon_rect = Rect::from_center_size(
-                    Pos2::new(rect.left() + 30.0, rect.center().y),
+                    Pos2::new(rect.left() + 43.0, rect.center().y),
                     icon_size,
                 );
                 let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
@@ -105,32 +105,32 @@ pub fn render_folders_view(
                     Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                     tint,
                 );
-                icon_rect.right() + 14.0
+                icon_rect.right() + 16.0
             } else {
                 let folder_icon = if hover_t > 0.4 {
                     lucide::FOLDER_OPEN
                 } else {
                     lucide::FOLDER
                 };
-                let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
+                let icon_pos = Pos2::new(rect.left() + 24.0, rect.center().y);
                 ui.painter().text(
                     icon_pos,
                     Align2::LEFT_CENTER,
                     folder_icon,
-                    lucide::font_id(28.0),
+                    lucide::font_id(32.0),
                     icon_color,
                 );
-                rect.left() + 58.0
+                rect.left() + 68.0
             };
 
             // Nome e caminho centralizados
-            let right_reserve = 180.0;
+            let right_reserve = 190.0;
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
             // Nome da pasta
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 23.0),
+                Pos2::new(text_x, rect.top() + 26.0),
                 Align2::LEFT_CENTER,
                 folder_name,
                 font_body(),
@@ -141,7 +141,7 @@ pub fn render_folders_view(
             // Caminho da pasta no disco
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 45.0),
+                Pos2::new(text_x, rect.top() + 50.0),
                 Align2::LEFT_CENTER,
                 &display_path,
                 font_xs(),
@@ -149,20 +149,20 @@ pub fn render_folders_view(
                 max_w,
             );
 
-            // Contador de itens à direita
+            // Contador de itens à direita com padding arejado
             let count_color = lerp_color(TEXT_MUTED, TEXT_SECONDARY, hover_t);
             ui.painter().text(
-                Pos2::new(rect.right() - 60.0, rect.center().y),
+                Pos2::new(rect.right() - 64.0, rect.center().y),
                 Align2::RIGHT_CENTER,
                 &count_text,
                 font_sm(),
                 count_color,
             );
 
-            // Botão sutil de remover pasta na extremidade direita
+            // Botão sutil de remover pasta na extremidade direita com padding confortável
             let remove_rect = Rect::from_min_size(
-                Pos2::new(rect.right() - 36.0, rect.top() + (item_h - 24.0) * 0.5),
-                vec2(24.0, 24.0),
+                Pos2::new(rect.right() - 42.0, rect.top() + (item_h - 26.0) * 0.5),
+                vec2(26.0, 26.0),
             );
             let rem_resp = ui
                 .interact(remove_rect, resp.id.with("rem"), Sense::click())
@@ -183,7 +183,7 @@ pub fn render_folders_view(
                 remove_rect.center(),
                 Align2::CENTER_CENTER,
                 lucide::X,
-                lucide::font_id(14.0),
+                lucide::font_id(15.0),
                 rem_fg,
             );
 
