@@ -1,4 +1,6 @@
 use std::ffi::{CStr, CString, c_double, c_int, c_void};
+use std::path::Path;
+use std::ptr;
 use std::time::{Duration, Instant};
 
 use nixo_core::{
@@ -456,5 +458,24 @@ impl MpvBackend {
         };
         self.set_double(c"panscan", panscan);
         self.first_frame_pending = true;
+    }
+
+    pub(super) fn take_screenshot(&self, path: &Path) {
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let path_str = path.to_string_lossy().into_owned();
+        if let Ok(c_path) = CString::new(path_str) {
+            let args = [
+                c"screenshot-to-file".as_ptr(),
+                c_path.as_ptr(),
+                c"subtitles".as_ptr(),
+                ptr::null(),
+            ];
+            // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas ao libmpv.
+            unsafe {
+                let _ = (self.api.command)(self.handle, args.as_ptr());
+            }
+        }
     }
 }

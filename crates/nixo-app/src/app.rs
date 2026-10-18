@@ -59,6 +59,7 @@ pub struct NixoApp {
     pub(crate) always_on_top: bool,
     pub(crate) aspect_ratio_fit: bool,
     pub(crate) last_window_size: Vec2,
+    pub(crate) toast: Option<crate::toast::ToastNotification>,
 }
 
 impl NixoApp {
@@ -107,6 +108,7 @@ impl NixoApp {
             always_on_top,
             aspect_ratio_fit,
             last_window_size: Vec2::ZERO,
+            toast: None,
         }
     }
 
@@ -186,6 +188,33 @@ impl NixoApp {
                 }
             }
         }
+    }
+
+    pub(crate) fn show_toast(&mut self, text: impl Into<String>, path: Option<PathBuf>) {
+        self.toast = Some(crate::toast::ToastNotification::new(text.into(), path));
+    }
+
+    pub(crate) fn take_screenshot(&mut self) {
+        let base_dir = dirs::picture_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("Nixo");
+
+        if let Err(err) = std::fs::create_dir_all(&base_dir) {
+            warn!("Falha ao criar diretório de capturas: {err}");
+        }
+
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let filename = format!("Nixo_{timestamp}.png");
+        let target_path = base_dir.join(&filename);
+
+        self.dispatch(PlayerCommand::TakeScreenshot(target_path.clone()));
+        self.show_toast(
+            format!("Captura de tela salva: {filename}"),
+            Some(target_path),
+        );
     }
 }
 
@@ -405,6 +434,17 @@ impl eframe::App for NixoApp {
                         .show(ui, |ui| {
                             ui.label(RichText::new(format!("⚠ {err}")).color(Color32::WHITE));
                         });
+                });
+        }
+
+        // D. Notificação Toast Flutuante (ex: Captura de tela realizada)
+        if self.toast.is_some() {
+            egui::Area::new(Id::new("floating_toast_layer"))
+                .order(egui::Order::Foreground)
+                .interactable(true)
+                .fixed_pos(Pos2::ZERO)
+                .show(ctx, |ui| {
+                    crate::toast::render_toast(ui, &mut self.toast, ctx.screen_rect());
                 });
         }
 

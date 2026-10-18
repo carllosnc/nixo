@@ -8,6 +8,7 @@ mod osd;
 mod popovers;
 mod settings;
 mod theme;
+mod toast;
 mod widgets;
 
 use std::path::PathBuf;

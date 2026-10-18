@@ -377,6 +377,9 @@ impl MediaBackend for MpvBackend {
             PlayerCommand::SetVideoFit(fit) => {
                 self.set_video_fit(fit);
             }
+            PlayerCommand::TakeScreenshot(path) => {
+                self.take_screenshot(&path);
+            }
         }
         self.status_dirty = true;
         Ok(())

@@ -13,6 +13,7 @@ pub(crate) enum ControlIcon {
     OpenFile,
     Fullscreen { is_fullscreen: bool },
     AspectFit { active: bool },
+    Screenshot,
 }
 
 impl NixoApp {
@@ -243,6 +244,25 @@ impl NixoApp {
                         painter.line_segment([p(6.5, 7.0), p(6.5, 17.0)], bar_st);
                         painter.line_segment([p(17.5, 7.0), p(17.5, 17.0)], bar_st);
                     }
+                }
+                ControlIcon::Screenshot => {
+                    // Lucide 'camera': corpo canônico da câmera com visor superior e lente central
+                    let body_pts = vec![
+                        p(9.8, 4.0),
+                        p(14.2, 4.0),
+                        p(16.0, 7.0),
+                        p(20.0, 7.0),
+                        p(21.5, 8.5),
+                        p(21.5, 18.5),
+                        p(20.0, 20.0),
+                        p(4.0, 20.0),
+                        p(2.5, 18.5),
+                        p(2.5, 8.5),
+                        p(4.0, 7.0),
+                        p(8.0, 7.0),
+                    ];
+                    painter.add(Shape::closed_line(body_pts, stroke));
+                    painter.circle_stroke(p(12.0, 13.0), 3.2 * scale, stroke);
                 }
             }
         }

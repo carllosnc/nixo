@@ -191,9 +191,9 @@ impl NixoApp {
                 .color(Color32::from_gray(215)),
         );
 
-        // B. Bloco da Direita (Badge de Alerta de Legenda, CC, Configurações ⚙, Abrir Arquivo, Tela Cheia)
+        // B. Bloco da Direita (Badge de Alerta de Legenda, CC, Configurações ⚙, Abrir Arquivo, Capturar Tela, Proporção, Tela Cheia)
         let has_sub_warning = self.status.subtitle_health.is_warning();
-        let right_w = if has_sub_warning { 390.0 } else { 240.0 };
+        let right_w = if has_sub_warning { 435.0 } else { 285.0 };
         let left_max_w = (row_rect.width() - right_w - 8.0).max(260.0);
         let _ = left_max_w;
         let right_rect = Rect::from_min_size(
@@ -246,7 +246,19 @@ impl NixoApp {
             self.toggle_aspect_ratio_fit(ctx);
         }
 
-        // 2. Abrir Arquivo (Ctrl+O)
+        // 3. Captura de Tela (Ctrl+S / P)
+        if Self::render_ghost_icon_btn(
+            &mut right_ui,
+            vec2(40.0, BTN_HEIGHT),
+            ControlIcon::Screenshot,
+            "Capturar tela (Ctrl+S / P)",
+        )
+        .clicked()
+        {
+            self.take_screenshot();
+        }
+
+        // 4. Abrir Arquivo (Ctrl+O)
         if Self::render_ghost_icon_btn(
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),

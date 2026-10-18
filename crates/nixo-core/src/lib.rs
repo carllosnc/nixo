@@ -232,6 +232,7 @@ pub enum PlayerCommand {
     SetAudioDelay(f64),
     SetAspectRatio(VideoAspect),
     SetVideoFit(VideoFit),
+    TakeScreenshot(PathBuf),
 }
 
 #[derive(Debug, Clone)]
