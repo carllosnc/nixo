@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use egui::{Align, Color32, CursorIcon, Layout, RichText, Ui};
+use egui::{Align, Color32, CursorIcon, Layout, RichText, Sense, Stroke, Ui, vec2};
 
 use crate::components::tokens::*;
 use crate::components::{primary, secondary};
@@ -106,17 +106,26 @@ pub fn render_header(
 
             ui.add_space(6.0);
 
-            if secondary(ui, Some(lucide::FOLDER_OPEN), "Abrir Arquivo").clicked() {
+            if secondary(ui, Some(lucide::FOLDER_OPEN), "Arquivo").clicked() {
                 action = HomeAction::OpenFile;
             }
 
             ui.add_space(6.0);
 
-            if primary(ui, Some(lucide::FOLDER_PLUS), "Adicionar Pasta").clicked() {
+            if primary(ui, Some(lucide::FOLDER_PLUS), "Pasta").clicked() {
                 action = HomeAction::AddFolder;
             }
         });
     });
+
+    ui.add_space(14.0);
+
+    // Linha divisória horizontal sutil do cabeçalho
+    let (sep_rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 1.0), Sense::hover());
+    ui.painter().line_segment(
+        [sep_rect.left_center(), sep_rect.right_center()],
+        Stroke::new(1.0_f32, SURFACE_MED),
+    );
 
     action
 }

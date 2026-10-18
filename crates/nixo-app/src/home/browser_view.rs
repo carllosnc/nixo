@@ -38,7 +38,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
         let chip_w = 250.0;
         let chip_h = 50.0;
-        let spacing = 12.0;
+        let spacing = 10.0;
         let avail_w = ui.available_width().max(chip_w);
         let cols = ((avail_w + spacing) / (chip_w + spacing)).floor().max(1.0) as usize;
 
@@ -109,7 +109,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
 
         let card_w = 230.0;
         let card_h = 160.0;
-        let spacing = 14.0;
+        let spacing = 10.0;
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 

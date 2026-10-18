@@ -178,9 +178,9 @@ fn render_buttons_section(ui: &mut Ui) {
     );
 
     ui.horizontal(|ui| {
-        let _ = primary(ui, Some(lucide::FOLDER_PLUS), "Ação Primária");
+        let _ = primary(ui, Some(lucide::FOLDER_PLUS), "Pasta");
         ui.add_space(8.0);
-        let _ = secondary(ui, Some(lucide::FOLDER_OPEN), "Secundário");
+        let _ = secondary(ui, Some(lucide::FOLDER_OPEN), "Arquivo");
         ui.add_space(8.0);
         let _ = secondary(ui, Some(lucide::FLASK_CONICAL), "Testar");
         ui.add_space(8.0);
@@ -313,7 +313,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
             TEXT_SECONDARY,
         );
 
-        ui.add_space(16.0);
+        ui.add_space(10.0);
 
         let (cr, cresp) = ui.allocate_exact_size(vec2(250.0, 50.0), Sense::click());
         let cht =

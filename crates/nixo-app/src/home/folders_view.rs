@@ -42,7 +42,7 @@ pub fn render_folders_view(
 
         let card_w = 320.0;
         let card_h = 120.0;
-        let spacing = 14.0;
+        let spacing = 10.0;
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
 
