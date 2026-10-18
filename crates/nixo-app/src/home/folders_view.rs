@@ -9,7 +9,6 @@ use super::header::HomeAction;
 use crate::components::empty_state::render_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
-use crate::theme::font_bold;
 
 /// Renderiza a lista de pastas de mídia configuradas pelo usuário.
 pub fn render_folders_view(
@@ -35,11 +34,11 @@ pub fn render_folders_view(
     } else {
         ui.add_space(8.0);
         ui.label(
-            RichText::new("SUAS PASTAS DE MÍDIA")
-                .font(font_bold(13.0))
+            RichText::new("Pastas de Mídia")
+                .font(font_section_title())
                 .color(Color32::WHITE),
         );
-        ui.add_space(12.0);
+        ui.add_space(14.0);
 
         let card_w = 280.0;
         let card_h = 105.0;
@@ -121,10 +120,10 @@ pub fn render_folders_view(
 
                     // Nome da pasta
                     ui.painter().text(
-                        Pos2::new(rect.left() + 48.0, rect.top() + 20.0),
+                        Pos2::new(rect.left() + 50.0, rect.top() + 20.0),
                         Align2::LEFT_CENTER,
                         folder_name,
-                        font_body(),
+                        font_card_title(),
                         if hovered {
                             Color32::WHITE
                         } else {
@@ -141,7 +140,7 @@ pub fn render_folders_view(
                     };
 
                     ui.painter().text(
-                        Pos2::new(rect.left() + 48.0, rect.top() + 37.0),
+                        Pos2::new(rect.left() + 50.0, rect.top() + 38.0),
                         Align2::LEFT_CENTER,
                         display_path,
                         font_xs(),
@@ -150,10 +149,10 @@ pub fn render_folders_view(
 
                     // Contador de itens
                     ui.painter().text(
-                        Pos2::new(rect.left() + 14.0, rect.top() + 78.0),
+                        Pos2::new(rect.left() + 16.0, rect.top() + 78.0),
                         Align2::LEFT_CENTER,
                         count_text,
-                        font_xs(),
+                        font_sm(),
                         TEXT_SECONDARY,
                     );
 

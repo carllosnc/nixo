@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use egui::{Align, CursorIcon, Layout, RichText, Ui};
+use egui::{Align, Color32, CursorIcon, Layout, RichText, Ui};
 
 use crate::components::tokens::*;
 use crate::components::{primary, secondary};
@@ -81,16 +81,15 @@ pub fn render_header(
             }
         } else {
             ui.label(
-                RichText::new("N I X O")
-                    .font(font_title())
-                    .strong()
-                    .color(TEXT_PRIMARY),
+                RichText::new("Nixo")
+                    .font(font_display())
+                    .color(Color32::WHITE),
             );
-            ui.add_space(8.0);
+            ui.add_space(10.0);
             ui.label(
                 RichText::new("Biblioteca de Mídia")
                     .font(font_body())
-                    .color(TEXT_MUTED),
+                    .color(TEXT_SECONDARY),
             );
         }
 

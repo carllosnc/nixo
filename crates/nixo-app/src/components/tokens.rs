@@ -30,14 +30,14 @@ pub const ACCENT_NEUTRAL_HOVER: Color32 = Color32::WHITE;
 pub const ACCENT_NEUTRAL_TEXT: Color32 = Color32::from_rgb(18, 18, 21);
 
 // ── Tipografia & Cores de Texto ──
-/// Texto Primário: Títulos, itens ativos, texto de alto contraste.
-pub const TEXT_PRIMARY: Color32 = Color32::from_rgb(238, 238, 242);
+/// Texto Primário: Títulos principais, itens ativos e texto de alto contraste.
+pub const TEXT_PRIMARY: Color32 = Color32::from_rgb(245, 245, 248);
 
-/// Texto Secundário: Subtítulos, metadados, breadcrumbs pais.
-pub const TEXT_SECONDARY: Color32 = Color32::from_rgb(156, 156, 168);
+/// Texto Secundário: Subtítulos, metadados legíveis e breadcrumbs pais.
+pub const TEXT_SECONDARY: Color32 = Color32::from_rgb(170, 172, 185);
 
-/// Texto Muted: Contadores, separadores, descrições discretas.
-pub const TEXT_MUTED: Color32 = Color32::from_rgb(94, 95, 110);
+/// Texto Muted: Contadores secundários, separadores e extensões.
+pub const TEXT_MUTED: Color32 = Color32::from_rgb(122, 125, 140);
 
 // ── Cores para Ações Destrutivas Sutis ──
 pub const DANGER_SURFACE: Color32 = Color32::from_rgb(38, 21, 23);
@@ -50,23 +50,45 @@ pub const RADIUS_MD: CornerRadius = CornerRadius::same(9);
 pub const RADIUS_LG: CornerRadius = CornerRadius::same(14);
 pub const RADIUS_FULL: CornerRadius = CornerRadius::same(99);
 
-// ── Tamanhos de Fontes Padronizados ──
+// ── Escala Tipográfica Padronizada (Hierarquia & Legibilidade) ──
+/// Título Principal de Tela / Ecrã (ex.: cabeçalho do showcase ou da biblioteca).
+#[inline]
+pub fn font_display() -> FontId {
+    FontId::new(22.0, egui::FontFamily::Name("bold".into()))
+}
+
+/// Título de Seção (hierarquia principal, renderizado em Title Case e branco).
+#[inline]
+pub fn font_section_title() -> FontId {
+    FontId::new(16.5, egui::FontFamily::Name("bold".into()))
+}
+
+/// Título de Card / Item em grid ou lista.
+#[inline]
+pub fn font_card_title() -> FontId {
+    FontId::new(14.5, egui::FontFamily::Name("bold".into()))
+}
+
+/// Título padrão para compatibilidade de componentes existentes.
 #[inline]
 pub fn font_title() -> FontId {
-    FontId::proportional(16.0)
+    FontId::new(15.5, egui::FontFamily::Name("bold".into()))
 }
 
+/// Corpo de texto padrão para nomes, navegação, inputs e botões.
 #[inline]
 pub fn font_body() -> FontId {
-    FontId::proportional(13.0)
+    FontId::proportional(13.5)
 }
 
+/// Subtítulo e texto descritivo secundário (confortável e legível).
 #[inline]
 pub fn font_sm() -> FontId {
-    FontId::proportional(11.5)
+    FontId::proportional(12.5)
 }
 
+/// Metadados, badges, contadores e timestamps (tamanho mínimo para nitidez).
 #[inline]
 pub fn font_xs() -> FontId {
-    FontId::proportional(10.5)
+    FontId::proportional(11.5)
 }

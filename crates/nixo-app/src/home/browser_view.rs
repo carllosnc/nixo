@@ -30,11 +30,11 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
     if !content.subdirs.is_empty() {
         ui.add_space(8.0);
         ui.label(
-            RichText::new(format!("SUBPASTAS ({})", content.subdirs.len()))
-                .font(crate::theme::font_bold(13.0))
+            RichText::new(format!("Subpastas ({})", content.subdirs.len()))
+                .font(font_section_title())
                 .color(Color32::WHITE),
         );
-        ui.add_space(10.0);
+        ui.add_space(12.0);
 
         let chip_w = 230.0;
         let chip_h = 42.0;
@@ -107,11 +107,11 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
     if !content.files.is_empty() {
         if !content.subdirs.is_empty() {
             ui.label(
-                RichText::new(format!("ARQUIVOS ({})", content.files.len()))
-                    .font(crate::theme::font_bold(13.0))
+                RichText::new(format!("Arquivos ({})", content.files.len()))
+                    .font(font_section_title())
                     .color(Color32::WHITE),
             );
-            ui.add_space(10.0);
+            ui.add_space(12.0);
         }
 
         let card_w = 210.0;
