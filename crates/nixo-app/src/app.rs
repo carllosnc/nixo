@@ -57,6 +57,7 @@ pub struct NixoApp {
     pub(crate) settings_store: SettingsStore,
     pub(crate) always_on_top: bool,
     pub(crate) aspect_ratio_fit: bool,
+    pub(crate) saved_aspect_ratio_fit: bool,
     pub(crate) last_window_size: Vec2,
     pub(crate) toast: Option<crate::toast::ToastNotification>,
     pub(crate) home_state: crate::home::HomeState,
@@ -73,6 +74,7 @@ impl NixoApp {
         let mut backend = nixo_engine::create_default_backend();
         Self::apply_settings(backend.as_mut(), &settings);
 
+        let has_initial_file = initial_file.is_some();
         if let Some(path) = initial_file
             && let Err(err) = backend.execute(PlayerCommand::LoadFile(path))
         {
@@ -88,7 +90,8 @@ impl NixoApp {
                     egui::WindowLevel::AlwaysOnTop,
                 ));
         }
-        let aspect_ratio_fit = settings.window.aspect_ratio_fit;
+        let saved_aspect_ratio_fit = settings.window.aspect_ratio_fit;
+        let aspect_ratio_fit = has_initial_file && saved_aspect_ratio_fit;
 
         Self {
             backend,
@@ -108,6 +111,7 @@ impl NixoApp {
             settings_store,
             always_on_top,
             aspect_ratio_fit,
+            saved_aspect_ratio_fit,
             last_window_size: Vec2::ZERO,
             toast: None,
             home_state: crate::home::HomeState::new(),
@@ -152,7 +156,7 @@ impl NixoApp {
             },
             window: WindowSettings {
                 always_on_top: self.always_on_top,
-                aspect_ratio_fit: self.aspect_ratio_fit,
+                aspect_ratio_fit: self.saved_aspect_ratio_fit,
             },
             library: crate::settings::LibrarySettings {
                 folders: self.media_folders.clone(),
@@ -161,11 +165,16 @@ impl NixoApp {
     }
 
     pub(crate) fn dispatch(&mut self, cmd: PlayerCommand) {
-        if matches!(cmd, PlayerCommand::LoadFile(_) | PlayerCommand::Stop) {
+        if matches!(cmd, PlayerCommand::LoadFile(_) | PlayerCommand::Stop)
+            || (matches!(cmd, PlayerCommand::Play) && self.status.state == PlaybackState::Stopped)
+        {
             self.seek_override = None;
             self.preview_texture = None;
             if matches!(cmd, PlayerCommand::Stop) {
                 self.video_texture = None;
+                self.aspect_ratio_fit = false;
+            } else {
+                self.aspect_ratio_fit = self.saved_aspect_ratio_fit;
             }
         }
         if let Err(err) = self.backend.execute(cmd) {
@@ -179,6 +188,7 @@ impl NixoApp {
 
     pub(crate) fn go_home(&mut self) {
         self.video_texture = None;
+        self.aspect_ratio_fit = false;
         self.home_state.go_root();
         self.dispatch(PlayerCommand::Stop);
     }
@@ -258,6 +268,9 @@ impl eframe::App for NixoApp {
         }
 
         self.status = self.backend.status();
+        if self.status.state == PlaybackState::Stopped {
+            self.aspect_ratio_fit = false;
+        }
 
         // Persistência: detecta mudanças e grava em background após o debounce.
         self.settings_store.observe(self.current_settings());
@@ -271,6 +284,7 @@ impl eframe::App for NixoApp {
         let screen_size = ctx.screen_rect().size();
         if !self.is_fullscreen
             && self.aspect_ratio_fit
+            && self.status.state != PlaybackState::Stopped
             && screen_size.x > 100.0
             && screen_size.y > 100.0
             && (self.last_window_size.x > 0.0 && self.last_window_size.y > 0.0)
@@ -466,7 +480,7 @@ impl eframe::App for NixoApp {
                         .corner_radius(CornerRadius::same(8))
                         .inner_margin(Margin::symmetric(14, 8))
                         .show(ui, |ui| {
-                            ui.label(RichText::new(format!("⚠ {err}")).color(Color32::WHITE));
+                            ui.label(RichText::new(format!("⚠ {err}")).color(Color32::WHITE))
                         });
                 });
         }
@@ -478,7 +492,7 @@ impl eframe::App for NixoApp {
                 .interactable(true)
                 .fixed_pos(Pos2::ZERO)
                 .show(ctx, |ui| {
-                    crate::toast::render_toast(ui, &mut self.toast, ctx.screen_rect());
+                    crate::toast::render_toast(ui, &mut self.toast, ctx.screen_rect())
                 });
         }
 

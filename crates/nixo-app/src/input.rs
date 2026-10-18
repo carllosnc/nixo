@@ -189,7 +189,11 @@ impl NixoApp {
     }
 
     pub(crate) fn toggle_aspect_ratio_fit(&mut self, ctx: &Context) {
+        if self.status.state == nixo_core::PlaybackState::Stopped {
+            return;
+        }
         self.aspect_ratio_fit = !self.aspect_ratio_fit;
+        self.saved_aspect_ratio_fit = self.aspect_ratio_fit;
         if self.aspect_ratio_fit {
             self.snap_window_to_aspect(ctx);
         }
