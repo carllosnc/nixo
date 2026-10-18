@@ -49,7 +49,13 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let (rect, resp) = ui.allocate_exact_size(vec2(chip_w, chip_h), Sense::click());
                     let hovered = resp.hovered();
 
-                    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+                    let hover_t =
+                        ui.ctx()
+                            .animate_bool_with_time(resp.id.with("chip_hover"), hovered, 0.15);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
+                    let icon_color = lerp_color(TEXT_SECONDARY, Color32::WHITE, hover_t);
+                    let text_color = lerp_color(TEXT_PRIMARY, Color32::WHITE, hover_t);
+
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide de pasta sem wrapper
@@ -58,11 +64,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         Align2::LEFT_CENTER,
                         lucide::FOLDER,
                         lucide::font_id(20.0),
-                        if hovered {
-                            Color32::WHITE
-                        } else {
-                            TEXT_SECONDARY
-                        },
+                        icon_color,
                     );
 
                     // Nome da subpasta truncado
@@ -79,11 +81,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         Align2::LEFT_CENTER,
                         display_name,
                         font_body(),
-                        if hovered {
-                            Color32::WHITE
-                        } else {
-                            TEXT_PRIMARY
-                        },
+                        text_color,
                     );
 
                     if resp.clicked() {
@@ -126,7 +124,10 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let (rect, resp) = ui.allocate_exact_size(vec2(card_w, card_h), Sense::click());
                     let hovered = resp.hovered();
 
-                    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+                    let hover_t =
+                        ui.ctx()
+                            .animate_bool_with_time(resp.id.with("file_hover"), hovered, 0.15);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Área de thumbnail com cantos arredondados no topo
@@ -143,21 +144,24 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         SURFACE_MED,
                     );
 
-                    // Ícone central de Play / Mídia no Lucide
+                    // Ícone central de Play / Mídia no Lucide com transição de hover
                     let center = thumb_rect.center();
-                    let (circle_bg, icon_str, icon_fg) = if hovered {
-                        (ACCENT_NEUTRAL_FILL, lucide::PLAY, ACCENT_NEUTRAL_TEXT)
-                    } else {
-                        let ic = match item.kind {
-                            super::scanner::MediaKind::Video => lucide::FILM,
-                            super::scanner::MediaKind::Audio => lucide::MUSIC,
-                            super::scanner::MediaKind::Directory => lucide::FOLDER,
-                        };
-                        (SURFACE_LOW, ic, TEXT_SECONDARY)
+                    let default_ic = match item.kind {
+                        super::scanner::MediaKind::Video => lucide::FILM,
+                        super::scanner::MediaKind::Audio => lucide::MUSIC,
+                        super::scanner::MediaKind::Directory => lucide::FOLDER,
                     };
+                    let icon_str = if hover_t > 0.4 {
+                        lucide::PLAY
+                    } else {
+                        default_ic
+                    };
+                    let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
+                    let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
+
                     ui.painter().circle_filled(center, 22.0, circle_bg);
                     ui.painter().text(
-                        Pos2::new(center.x + if hovered { 1.0 } else { 0.0 }, center.y),
+                        Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
                         Align2::CENTER_CENTER,
                         icon_str,
                         lucide::font_id(18.0),
@@ -192,16 +196,13 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         clean_name.to_string()
                     };
 
+                    let text_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
                     ui.painter().text(
                         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
                         Align2::LEFT_CENTER,
                         display_name,
                         font_body(),
-                        if hovered {
-                            TEXT_PRIMARY
-                        } else {
-                            TEXT_SECONDARY
-                        },
+                        text_color,
                     );
 
                     // Tamanho / Metadados

@@ -65,50 +65,39 @@ pub fn render_button(
     let hovered = resp.hovered();
     let pressed = resp.is_pointer_button_down_on();
 
+    // Transição suave de hover e press usando animação temporal (150ms estilo CSS transition)
+    let hover_t = ui
+        .ctx()
+        .animate_bool_with_time(resp.id.with("btn_hover"), hovered, 0.15);
+    let press_t = ui
+        .ctx()
+        .animate_bool_with_time(resp.id.with("btn_press"), pressed, 0.08);
+
     let (bg_color, text_color, icon_color) = match variant {
         ButtonVariant::Primary => {
-            if pressed {
-                (NEUTRAL_300, NEUTRAL_950, NEUTRAL_950)
-            } else if hovered {
-                (NEUTRAL_50, NEUTRAL_950, NEUTRAL_950)
-            } else {
-                (NEUTRAL_100, NEUTRAL_950, NEUTRAL_950)
-            }
+            let bg = lerp_color(NEUTRAL_100, NEUTRAL_50, hover_t);
+            let bg = lerp_color(bg, NEUTRAL_300, press_t);
+            (bg, NEUTRAL_950, NEUTRAL_950)
         }
         ButtonVariant::Secondary => {
-            if pressed {
-                (NEUTRAL_600, NEUTRAL_50, NEUTRAL_50)
-            } else if hovered {
-                (NEUTRAL_700, NEUTRAL_50, NEUTRAL_200)
-            } else {
-                (NEUTRAL_800, NEUTRAL_100, NEUTRAL_400)
-            }
+            let bg = lerp_color(NEUTRAL_800, NEUTRAL_700, hover_t);
+            let bg = lerp_color(bg, NEUTRAL_600, press_t);
+            let tc = lerp_color(NEUTRAL_100, NEUTRAL_50, hover_t);
+            let ic = lerp_color(NEUTRAL_400, NEUTRAL_200, hover_t);
+            (bg, tc, ic)
         }
         ButtonVariant::Ghost => {
-            if pressed {
-                (NEUTRAL_700, NEUTRAL_50, NEUTRAL_50)
-            } else if hovered {
-                (NEUTRAL_800, NEUTRAL_50, NEUTRAL_200)
-            } else {
-                (Color32::TRANSPARENT, NEUTRAL_300, NEUTRAL_400)
-            }
+            let bg = lerp_color(Color32::TRANSPARENT, NEUTRAL_800, hover_t);
+            let bg = lerp_color(bg, NEUTRAL_700, press_t);
+            let tc = lerp_color(NEUTRAL_300, NEUTRAL_50, hover_t);
+            let ic = lerp_color(NEUTRAL_400, NEUTRAL_200, hover_t);
+            (bg, tc, ic)
         }
         ButtonVariant::Danger => {
-            if pressed {
-                (
-                    Color32::from_rgb(79, 30, 36),
-                    Color32::from_rgb(254, 202, 202),
-                    Color32::from_rgb(254, 202, 202),
-                )
-            } else if hovered {
-                (
-                    DANGER_HOVER,
-                    Color32::from_rgb(252, 165, 165),
-                    Color32::from_rgb(252, 165, 165),
-                )
-            } else {
-                (DANGER_SURFACE, DANGER_TEXT, DANGER_TEXT)
-            }
+            let bg = lerp_color(DANGER_SURFACE, DANGER_HOVER, hover_t);
+            let bg = lerp_color(bg, Color32::from_rgb(79, 30, 36), press_t);
+            let fg = lerp_color(DANGER_TEXT, Color32::from_rgb(252, 165, 165), hover_t);
+            (bg, fg, fg)
         }
     };
 

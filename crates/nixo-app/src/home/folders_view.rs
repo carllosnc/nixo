@@ -63,7 +63,16 @@ pub fn render_folders_view(
                     let (rect, resp) = ui.allocate_exact_size(vec2(card_w, card_h), Sense::click());
                     let hovered = resp.hovered();
 
-                    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+                    // Transição suave de hover do card de pasta (150ms)
+                    let hover_t = ui.ctx().animate_bool_with_time(
+                        resp.id.with("folder_hover"),
+                        hovered,
+                        0.15,
+                    );
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
+                    let icon_color = lerp_color(TEXT_SECONDARY, Color32::WHITE, hover_t);
+                    let title_color = lerp_color(TEXT_PRIMARY, Color32::WHITE, hover_t);
+
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide da pasta sem wrapper
@@ -73,11 +82,7 @@ pub fn render_folders_view(
                         Align2::LEFT_CENTER,
                         lucide::FOLDER,
                         lucide::font_id(26.0),
-                        if hovered {
-                            Color32::WHITE
-                        } else {
-                            TEXT_SECONDARY
-                        },
+                        icon_color,
                     );
 
                     // Botão sutil de remover pasta
@@ -90,25 +95,23 @@ pub fn render_folders_view(
                         .on_hover_cursor(CursorIcon::PointingHand)
                         .on_hover_text("Remover pasta da biblioteca");
 
-                    if rem_resp.hovered() {
-                        ui.painter()
-                            .rect_filled(remove_rect, RADIUS_SM, DANGER_SURFACE);
-                        ui.painter().text(
-                            remove_rect.center(),
-                            Align2::CENTER_CENTER,
-                            lucide::X,
-                            lucide::font_id(14.0),
-                            DANGER_TEXT,
-                        );
-                    } else {
-                        ui.painter().text(
-                            remove_rect.center(),
-                            Align2::CENTER_CENTER,
-                            lucide::X,
-                            lucide::font_id(13.0),
-                            TEXT_MUTED,
-                        );
+                    let rem_hover_t = ui.ctx().animate_bool_with_time(
+                        rem_resp.id.with("rem_hover"),
+                        rem_resp.hovered(),
+                        0.12,
+                    );
+                    if rem_hover_t > 0.0 {
+                        let rem_bg = lerp_color(Color32::TRANSPARENT, DANGER_SURFACE, rem_hover_t);
+                        ui.painter().rect_filled(remove_rect, RADIUS_SM, rem_bg);
                     }
+                    let rem_fg = lerp_color(TEXT_MUTED, DANGER_TEXT, rem_hover_t);
+                    ui.painter().text(
+                        remove_rect.center(),
+                        Align2::CENTER_CENTER,
+                        lucide::X,
+                        lucide::font_id(13.5),
+                        rem_fg,
+                    );
 
                     if rem_resp.clicked() {
                         action = HomeAction::RemoveFolder(folder.clone());
@@ -122,11 +125,7 @@ pub fn render_folders_view(
                         Align2::LEFT_CENTER,
                         folder_name,
                         font_card_title(),
-                        if hovered {
-                            Color32::WHITE
-                        } else {
-                            TEXT_PRIMARY
-                        },
+                        title_color,
                     );
 
                     // Caminho da pasta

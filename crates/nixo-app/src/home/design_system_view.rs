@@ -70,8 +70,16 @@ fn render_surfaces_section(ui: &mut Ui) {
 
     ui.horizontal_wrapped(|ui| {
         for (name, color, desc) in swatches {
-            let (rect, _) = ui.allocate_exact_size(vec2(180.0, 96.0), Sense::hover());
-            ui.painter().rect_filled(rect, RADIUS_MD, color);
+            let (rect, resp) = ui.allocate_exact_size(vec2(180.0, 96.0), Sense::hover());
+            let ht = ui
+                .ctx()
+                .animate_bool_with_time(resp.id.with("swatch"), resp.hovered(), 0.15);
+            let bg = if color == ACCENT_NEUTRAL_FILL {
+                color
+            } else {
+                lerp_color(color, SURFACE_HIGH, ht)
+            };
+            ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
             let (tc, sc) = if color == ACCENT_NEUTRAL_FILL {
                 (ACCENT_NEUTRAL_TEXT, Color32::from_rgb(80, 80, 88))
@@ -99,7 +107,6 @@ fn render_surfaces_section(ui: &mut Ui) {
 
     ui.add_space(12.0);
 
-    // Rampa contínua Tailwind Neutral 950 -> 50
     let ramp = [
         ("950", NEUTRAL_950, NEUTRAL_400),
         ("900", NEUTRAL_900, NEUTRAL_400),
@@ -206,7 +213,7 @@ fn render_buttons_section(ui: &mut Ui) {
     render_section_header(
         ui,
         "Botões Full-Rounded (Pill Buttons)",
-        "Cantos 100% arredondados (RADIUS_FULL), espaçamento exato de 8px entre ícone e texto e altura 38px.",
+        "Cantos 100% arredondados (RADIUS_FULL), espaçamento exato de 8px e transição suave de 150ms.",
     );
 
     ui.horizontal(|ui| {
@@ -295,24 +302,19 @@ fn render_navigation_section(ui: &mut Ui) {
 fn render_folder_cards_section(ui: &mut Ui) {
     render_section_header(
         ui,
-        "Cards de Pasta (Sem Wrapper no Ícone)",
-        "Ícones Lucide renderizados diretamente sobre a superfície elevada, sem molduras quadradas.",
+        "Cards de Pasta (Com Transição no Hover)",
+        "Transição fluida de 150ms de neutral-900 para neutral-700 e realce suave dos ícones.",
     );
 
     ui.horizontal(|ui| {
         let (rect, resp) = ui.allocate_exact_size(vec2(310.0, 120.0), Sense::click());
-        let bg = if resp.hovered() {
-            SURFACE_HIGH
-        } else {
-            SURFACE_LOW
-        };
+        let ht = ui
+            .ctx()
+            .animate_bool_with_time(resp.id.with("demo_folder"), resp.hovered(), 0.15);
+        let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
         ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-        let ic_col = if resp.hovered() {
-            Color32::WHITE
-        } else {
-            TEXT_SECONDARY
-        };
+        let ic_col = lerp_color(TEXT_SECONDARY, Color32::WHITE, ht);
         ui.painter().text(
             Pos2::new(rect.left() + 20.0, rect.top() + 32.0),
             Align2::LEFT_CENTER,
@@ -321,11 +323,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
             ic_col,
         );
 
-        let tc = if resp.hovered() {
-            Color32::WHITE
-        } else {
-            TEXT_PRIMARY
-        };
+        let tc = lerp_color(TEXT_PRIMARY, Color32::WHITE, ht);
         ui.painter().text(
             Pos2::new(rect.left() + 56.0, rect.top() + 23.0),
             Align2::LEFT_CENTER,
@@ -351,17 +349,12 @@ fn render_folder_cards_section(ui: &mut Ui) {
         ui.add_space(16.0);
 
         let (cr, cresp) = ui.allocate_exact_size(vec2(250.0, 50.0), Sense::click());
-        let cbg = if cresp.hovered() {
-            SURFACE_HIGH
-        } else {
-            SURFACE_LOW
-        };
+        let cht =
+            ui.ctx()
+                .animate_bool_with_time(cresp.id.with("demo_chip"), cresp.hovered(), 0.15);
+        let cbg = lerp_color(SURFACE_LOW, SURFACE_HIGH, cht);
         ui.painter().rect_filled(cr, RADIUS_MD, cbg);
-        let cic = if cresp.hovered() {
-            Color32::WHITE
-        } else {
-            TEXT_SECONDARY
-        };
+        let cic = lerp_color(TEXT_SECONDARY, Color32::WHITE, cht);
         ui.painter().text(
             Pos2::new(cr.left() + 16.0, cr.center().y),
             Align2::LEFT_CENTER,
@@ -369,11 +362,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
             lucide::font_id(20.0),
             cic,
         );
-        let ctc = if cresp.hovered() {
-            Color32::WHITE
-        } else {
-            TEXT_PRIMARY
-        };
+        let ctc = lerp_color(TEXT_PRIMARY, Color32::WHITE, cht);
         ui.painter().text(
             Pos2::new(cr.left() + 46.0, cr.center().y),
             Align2::LEFT_CENTER,
@@ -388,8 +377,8 @@ fn render_folder_cards_section(ui: &mut Ui) {
 fn render_media_cards_section(ui: &mut Ui) {
     render_section_header(
         ui,
-        "Cards de Mídia Executáveis",
-        "Thumbnail com cantos arredondados, badge translúcido de formato e play circle com hover neutro.",
+        "Cards de Mídia (Com Transição no Hover)",
+        "Thumbnail com transição suave, play circle dinâmico e elevação de luminância.",
     );
 
     ui.horizontal(|ui| {
@@ -413,11 +402,10 @@ fn render_media_cards_section(ui: &mut Ui) {
 
 fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, icon: &'static str) {
     let (rect, resp) = ui.allocate_exact_size(vec2(230.0, 160.0), Sense::click());
-    let bg = if resp.hovered() {
-        SURFACE_HIGH
-    } else {
-        SURFACE_LOW
-    };
+    let ht = ui
+        .ctx()
+        .animate_bool_with_time(resp.id.with("demo_media"), resp.hovered(), 0.15);
+    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
     let thumb_h = 96.0;
@@ -434,14 +422,12 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
     );
 
     let center = thumb_rect.center();
-    let (cbg, istr, ifg) = if resp.hovered() {
-        (ACCENT_NEUTRAL_FILL, lucide::PLAY, ACCENT_NEUTRAL_TEXT)
-    } else {
-        (SURFACE_LOW, icon, TEXT_SECONDARY)
-    };
+    let cbg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, ht);
+    let istr = if ht > 0.4 { lucide::PLAY } else { icon };
+    let ifg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, ht);
     ui.painter().circle_filled(center, 22.0, cbg);
     ui.painter().text(
-        Pos2::new(center.x + if resp.hovered() { 1.0 } else { 0.0 }, center.y),
+        Pos2::new(center.x + if ht > 0.4 { 1.0 } else { 0.0 }, center.y),
         Align2::CENTER_CENTER,
         istr,
         lucide::font_id(18.0),
@@ -467,11 +453,7 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
     } else {
         title.to_string()
     };
-    let ncol = if resp.hovered() {
-        TEXT_PRIMARY
-    } else {
-        TEXT_SECONDARY
-    };
+    let ncol = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, ht);
     ui.painter().text(
         Pos2::new(rect.left() + 12.0, rect.top() + thumb_h + 18.0),
         Align2::LEFT_CENTER,
