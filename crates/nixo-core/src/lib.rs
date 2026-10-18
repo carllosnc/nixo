@@ -73,10 +73,34 @@ pub struct TrackInfo {
 
 impl TrackInfo {
     pub fn display_name(&self) -> String {
-        match (&self.title, &self.lang) {
-            (Some(t), Some(l)) => format!("{t} [{l}]"),
-            (Some(t), None) => t.clone(),
-            (None, Some(l)) => format!("Faixa {} [{l}]", self.id),
+        let lang_upper = self
+            .lang
+            .as_deref()
+            .map(|l| l.trim().to_ascii_uppercase())
+            .filter(|l| !l.is_empty());
+
+        let title_clean = self
+            .title
+            .as_deref()
+            .map(str::trim)
+            .filter(|t| !t.is_empty());
+
+        match (title_clean, lang_upper) {
+            (Some(t), Some(l)) => {
+                let t_upper = t.to_ascii_uppercase();
+                if t_upper == format!("FAIXA {}", self.id)
+                    || t_upper == format!("TRACK {}", self.id)
+                    || t_upper == l
+                {
+                    format!("Faixa {} - {l}", self.id)
+                } else if t_upper.ends_with(&format!(" - {l}")) {
+                    t.to_string()
+                } else {
+                    format!("{t} - {l}")
+                }
+            }
+            (Some(t), None) => t.to_string(),
+            (None, Some(l)) => format!("Faixa {} - {l}", self.id),
             (None, None) => format!("Faixa {}", self.id),
         }
     }
@@ -335,7 +359,7 @@ mod tests {
             lang: Some("por".to_string()),
             selected: true,
         };
-        assert_eq!(t1.display_name(), "Português [por]");
+        assert_eq!(t1.display_name(), "Português - POR");
 
         let t2 = TrackInfo {
             id: 2,
@@ -343,7 +367,7 @@ mod tests {
             lang: Some("eng".to_string()),
             selected: false,
         };
-        assert_eq!(t2.display_name(), "Faixa 2 [eng]");
+        assert_eq!(t2.display_name(), "Faixa 2 - ENG");
 
         let t3 = TrackInfo {
             id: 3,
@@ -352,6 +376,14 @@ mod tests {
             selected: false,
         };
         assert_eq!(t3.display_name(), "Faixa 3");
+
+        let t4 = TrackInfo {
+            id: 1,
+            title: Some("Faixa 1".to_string()),
+            lang: Some("eng".to_string()),
+            selected: true,
+        };
+        assert_eq!(t4.display_name(), "Faixa 1 - ENG");
     }
 
     #[test]

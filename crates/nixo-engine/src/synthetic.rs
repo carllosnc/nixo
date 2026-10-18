@@ -52,13 +52,13 @@ impl SyntheticBackend {
             audio_tracks: vec![
                 TrackInfo {
                     id: 1,
-                    title: Some("Português (Original)".to_string()),
+                    title: None,
                     lang: Some("por".to_string()),
                     selected: true,
                 },
                 TrackInfo {
                     id: 2,
-                    title: Some("English (Stereo)".to_string()),
+                    title: None,
                     lang: Some("eng".to_string()),
                     selected: false,
                 },
@@ -66,13 +66,13 @@ impl SyntheticBackend {
             subtitle_tracks: vec![
                 TrackInfo {
                     id: 1,
-                    title: Some("Português [SRT]".to_string()),
+                    title: None,
                     lang: Some("por".to_string()),
                     selected: false,
                 },
                 TrackInfo {
                     id: 2,
-                    title: Some("English [CC]".to_string()),
+                    title: None,
                     lang: Some("eng".to_string()),
                     selected: false,
                 },
