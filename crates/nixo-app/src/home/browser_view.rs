@@ -1,13 +1,12 @@
 //! Visão detalhada de dentro de uma pasta: subpastas e grid de arquivos executáveis.
 
-use egui::{
-    Align2, Color32, CornerRadius, CursorIcon, FontId, Pos2, Rect, RichText, Sense, Stroke,
-    StrokeKind, Ui, Vec2, vec2,
-};
+use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
 use super::header::HomeAction;
-use super::scanner::{FolderContent, MediaKind};
-use crate::app::ACCENT_COLOR;
+use super::scanner::FolderContent;
+use crate::components::empty_state::render_empty_state;
+use crate::components::tokens::*;
+use crate::lucide;
 
 /// Renderiza o conteúdo da pasta aberta (subpastas e arquivos de mídia executáveis).
 pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction {
@@ -20,83 +19,116 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
             ui.add_space(10.0);
             ui.label(
                 RichText::new("Carregando itens da pasta...")
-                    .font(FontId::proportional(14.0))
-                    .color(Color32::from_gray(180)),
+                    .font(font_body())
+                    .color(TEXT_SECONDARY),
             );
         });
         return action;
     }
 
-    // Seção de Subpastas (se houver)
+    // Seção de Subpastas estruturada em grade limpa (sem tags desordenadas)
     if !content.subdirs.is_empty() {
         ui.add_space(8.0);
         ui.label(
-            RichText::new("SUBPASTAS")
-                .font(FontId::proportional(11.5))
+            RichText::new(format!("SUBPASTAS ({})", content.subdirs.len()))
+                .font(font_xs())
                 .strong()
-                .color(Color32::from_gray(135)),
+                .color(TEXT_MUTED),
         );
-        ui.add_space(8.0);
+        ui.add_space(10.0);
 
-        ui.horizontal_wrapped(|ui| {
-            for dir in &content.subdirs {
-                let btn = egui::Button::new(
-                    RichText::new(format!("📁 {}", dir.name))
-                        .font(FontId::proportional(13.0))
-                        .color(Color32::from_gray(230)),
-                )
-                .fill(Color32::from_rgb(26, 28, 36))
-                .stroke(Stroke::new(1.0_f32, Color32::from_rgb(46, 50, 62)))
-                .corner_radius(CornerRadius::same(8));
+        let chip_w = 230.0;
+        let chip_h = 42.0;
+        let spacing = 10.0;
+        let avail_w = ui.available_width().max(chip_w);
+        let cols = ((avail_w + spacing) / (chip_w + spacing)).floor().max(1.0) as usize;
 
-                if ui
-                    .add(btn)
-                    .on_hover_cursor(CursorIcon::PointingHand)
-                    .clicked()
-                {
-                    action = HomeAction::OpenFolder(dir.path.clone());
+        egui::Grid::new("subfolders_grid")
+            .spacing([spacing, spacing])
+            .show(ui, |ui| {
+                for (idx, dir) in content.subdirs.iter().enumerate() {
+                    let (rect, resp) = ui.allocate_exact_size(vec2(chip_w, chip_h), Sense::click());
+                    let hovered = resp.hovered();
+
+                    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
+
+                    ui.painter().rect_filled(rect, RADIUS_MD, bg);
+
+                    // Ícone Lucide de pasta
+                    let icon_box = Rect::from_min_size(
+                        Pos2::new(rect.left() + 10.0, rect.top() + 8.0),
+                        vec2(26.0, 26.0),
+                    );
+                    ui.painter().rect_filled(icon_box, RADIUS_SM, SURFACE_MED);
+                    ui.painter().text(
+                        icon_box.center(),
+                        Align2::CENTER_CENTER,
+                        lucide::FOLDER,
+                        lucide::font_id(14.0),
+                        if hovered {
+                            TEXT_PRIMARY
+                        } else {
+                            TEXT_SECONDARY
+                        },
+                    );
+
+                    // Nome da subpasta truncado
+                    let name_x = rect.left() + 44.0;
+                    let max_chars = 24;
+                    let display_name = if dir.name.len() > max_chars {
+                        format!("{}...", &dir.name[..max_chars - 2])
+                    } else {
+                        dir.name.clone()
+                    };
+
+                    ui.painter().text(
+                        Pos2::new(name_x, rect.center().y),
+                        Align2::LEFT_CENTER,
+                        display_name,
+                        font_body(),
+                        if hovered {
+                            TEXT_PRIMARY
+                        } else {
+                            TEXT_SECONDARY
+                        },
+                    );
+
+                    if resp.clicked() {
+                        action = HomeAction::OpenFolder(dir.path.clone());
+                    }
+
+                    resp.on_hover_cursor(CursorIcon::PointingHand)
+                        .on_hover_text(&dir.name);
+
+                    if (idx + 1) % cols == 0 {
+                        ui.end_row();
+                    }
                 }
-            }
-        });
-        ui.add_space(14.0);
+            });
+
+        ui.add_space(16.0);
     }
 
-    // Seção de Arquivos de Mídia
+    // Seção de Arquivos de Mídia Executáveis
     ui.label(
         RichText::new(format!("ARQUIVOS EXECUTÁVEIS ({})", content.files.len()))
-            .font(FontId::proportional(11.5))
+            .font(font_xs())
             .strong()
-            .color(Color32::from_gray(135)),
+            .color(TEXT_MUTED),
     );
     ui.add_space(10.0);
 
     if content.files.is_empty() {
-        ui.add_space(24.0);
-        ui.vertical_centered(|ui| {
-            let box_size = Vec2::new(420.0, 90.0);
-            let (empty_box, _) = ui.allocate_exact_size(box_size, Sense::hover());
-            ui.painter().rect_filled(
-                empty_box,
-                CornerRadius::same(12),
-                Color32::from_rgb(20, 22, 28),
-            );
-            ui.painter().rect_stroke(
-                empty_box,
-                CornerRadius::same(12),
-                Stroke::new(1.0_f32, Color32::from_rgb(42, 45, 56)),
-                StrokeKind::Inside,
-            );
-            ui.painter().text(
-                empty_box.center(),
-                Align2::CENTER_CENTER,
-                "Nenhum arquivo executável de mídia encontrado nesta pasta.",
-                FontId::proportional(13.0),
-                Color32::from_gray(180),
-            );
-        });
+        render_empty_state(
+            ui,
+            lucide::FILM,
+            "Nenhum arquivo executável na raiz desta pasta",
+            "Selecione uma das subpastas acima para navegar pelos episódios ou vídeos.",
+            None,
+        );
     } else {
         let card_w = 210.0;
-        let card_h = 135.0;
+        let card_h = 138.0;
         let spacing = 12.0;
         let avail_w = ui.available_width().max(card_w);
         let cols = ((avail_w + spacing) / (card_w + spacing)).floor().max(1.0) as usize;
@@ -108,58 +140,61 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let (rect, resp) = ui.allocate_exact_size(vec2(card_w, card_h), Sense::click());
                     let hovered = resp.hovered();
 
-                    let bg = if hovered {
-                        Color32::from_rgb(30, 33, 42)
-                    } else {
-                        Color32::from_rgb(18, 20, 26)
-                    };
-                    let border_st = if hovered {
-                        Stroke::new(1.4_f32, ACCENT_COLOR)
-                    } else {
-                        Stroke::new(1.0_f32, Color32::from_rgb(38, 41, 52))
-                    };
+                    let bg = if hovered { SURFACE_HIGH } else { SURFACE_LOW };
 
-                    ui.painter().rect_filled(rect, CornerRadius::same(10), bg);
-                    ui.painter().rect_stroke(
-                        rect,
-                        CornerRadius::same(10),
-                        border_st,
-                        StrokeKind::Inside,
-                    );
+                    ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-                    let thumb_h = 80.0;
+                    // Área de thumbnail com cantos arredondados no topo
+                    let thumb_h = 82.0;
                     let thumb_rect = Rect::from_min_size(rect.min, vec2(card_w, thumb_h));
                     ui.painter().rect_filled(
                         thumb_rect,
-                        CornerRadius {
-                            nw: 10,
-                            ne: 10,
+                        egui::CornerRadius {
+                            nw: RADIUS_MD.nw,
+                            ne: RADIUS_MD.ne,
                             sw: 0,
                             se: 0,
                         },
-                        Color32::from_rgb(24, 26, 34),
+                        SURFACE_MED,
                     );
 
+                    // Ícone central de Play / Mídia no Lucide
                     let center = thumb_rect.center();
-                    paint_media_icon(ui, center, item.kind, hovered);
+                    let (circle_bg, icon_str, icon_fg) = if hovered {
+                        (ACCENT_NEUTRAL_FILL, lucide::PLAY, ACCENT_NEUTRAL_TEXT)
+                    } else {
+                        let ic = match item.kind {
+                            super::scanner::MediaKind::Video => lucide::FILM,
+                            super::scanner::MediaKind::Audio => lucide::MUSIC,
+                            super::scanner::MediaKind::Directory => lucide::FOLDER,
+                        };
+                        (SURFACE_LOW, ic, TEXT_SECONDARY)
+                    };
+                    ui.painter().circle_filled(center, 18.0, circle_bg);
+                    ui.painter().text(
+                        Pos2::new(center.x + if hovered { 1.0 } else { 0.0 }, center.y),
+                        Align2::CENTER_CENTER,
+                        icon_str,
+                        lucide::font_id(16.0),
+                        icon_fg,
+                    );
 
+                    // Badge com extensão (ex.: MP4, MKV)
                     let badge_rect = Rect::from_min_size(
                         Pos2::new(thumb_rect.right() - 44.0, thumb_rect.top() + 6.0),
                         vec2(38.0, 16.0),
                     );
-                    ui.painter().rect_filled(
-                        badge_rect,
-                        CornerRadius::same(4),
-                        Color32::from_black_alpha(180),
-                    );
+                    ui.painter()
+                        .rect_filled(badge_rect, RADIUS_SM, Color32::from_black_alpha(190));
                     ui.painter().text(
                         badge_rect.center(),
                         Align2::CENTER_CENTER,
                         &item.extension,
-                        FontId::proportional(10.0),
-                        Color32::from_gray(210),
+                        font_xs(),
+                        TEXT_SECONDARY,
                     );
 
+                    // Nome do arquivo
                     let clean_name = item
                         .path
                         .file_stem()
@@ -176,20 +211,21 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 16.0),
                         Align2::LEFT_CENTER,
                         display_name,
-                        FontId::proportional(12.5),
+                        font_body(),
                         if hovered {
-                            Color32::WHITE
+                            TEXT_PRIMARY
                         } else {
-                            Color32::from_gray(220)
+                            TEXT_SECONDARY
                         },
                     );
 
+                    // Tamanho / Metadados
                     ui.painter().text(
                         Pos2::new(rect.left() + 10.0, rect.top() + thumb_h + 34.0),
                         Align2::LEFT_CENTER,
                         &item.size_formatted,
-                        FontId::proportional(11.0),
-                        Color32::from_gray(140),
+                        font_xs(),
+                        TEXT_MUTED,
                     );
 
                     if resp.clicked() {
@@ -207,31 +243,4 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
     }
 
     action
-}
-
-fn paint_media_icon(ui: &Ui, center: Pos2, kind: MediaKind, hovered: bool) {
-    let fg = if hovered {
-        ACCENT_COLOR
-    } else {
-        Color32::from_gray(150)
-    };
-
-    let scale = 0.88_f32;
-    let p =
-        |x: f32, y: f32| Pos2::new(center.x + (x - 12.0) * scale, center.y + (y - 12.0) * scale);
-
-    match kind {
-        MediaKind::Video => {
-            let pts = vec![p(7.0, 6.0), p(18.5, 12.0), p(7.0, 18.0)];
-            ui.painter().add(egui::Shape::convex_polygon(
-                pts,
-                fg,
-                Stroke::new(1.5_f32, fg),
-            ));
-        }
-        MediaKind::Audio | MediaKind::Directory => {
-            ui.painter()
-                .circle_stroke(center, 12.0 * scale, Stroke::new(1.6_f32, fg));
-        }
-    }
 }

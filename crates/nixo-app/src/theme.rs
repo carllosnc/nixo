@@ -8,6 +8,7 @@ use crate::app::{ACCENT_COLOR, BG_OLED_BLACK, NixoApp};
 /// Fonte principal da UI (Inter), embutida no binário.
 const INTER_REGULAR: &[u8] = include_bytes!("../../../assets/fonts/Inter-Regular.ttf");
 const INTER_BOLD: &[u8] = include_bytes!("../../../assets/fonts/Inter-Bold.ttf");
+const LUCIDE: &[u8] = include_bytes!("../../../assets/fonts/lucide.ttf");
 
 #[inline]
 pub(crate) fn font_bold(size: f32) -> FontId {
@@ -27,11 +28,26 @@ impl NixoApp {
             "inter_bold".to_owned(),
             std::sync::Arc::new(egui::FontData::from_static(INTER_BOLD)),
         );
+        fonts.font_data.insert(
+            "lucide".to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(LUCIDE)),
+        );
+
+        fonts.families.insert(
+            egui::FontFamily::Name("lucide".into()),
+            vec!["lucide".to_owned()],
+        );
+
         fonts
             .families
             .entry(egui::FontFamily::Proportional)
             .or_default()
             .insert(0, "inter_regular".to_owned());
+        fonts
+            .families
+            .entry(egui::FontFamily::Proportional)
+            .or_default()
+            .push("lucide".to_owned());
 
         // Fontes do sistema ficam apenas como fallback de glifos não cobertos pela Inter.
         let (regular_path, bold_path) = Self::find_system_fonts();

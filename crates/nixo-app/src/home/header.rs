@@ -2,9 +2,11 @@
 
 use std::path::{Path, PathBuf};
 
-use egui::{Align, Color32, CornerRadius, CursorIcon, FontId, Layout, RichText, Ui};
+use egui::{Align, CursorIcon, Layout, RichText, Ui};
 
-use crate::app::ACCENT_COLOR;
+use crate::components::tokens::*;
+use crate::components::{primary, secondary};
+use crate::lucide;
 
 /// Ação disparada por interações do usuário na tela inicial.
 #[derive(Debug, Clone)]
@@ -20,7 +22,7 @@ pub enum HomeAction {
     PlayTestSignal,
 }
 
-/// Renderiza o cabeçalho superior da Home.
+/// Renderiza o cabeçalho superior da Home no padrão Lucide e tons neutros sem bordas.
 pub fn render_header(
     ui: &mut Ui,
     current_path: Option<&Path>,
@@ -30,25 +32,18 @@ pub fn render_header(
 
     ui.horizontal(|ui| {
         if let Some(_path) = current_path {
-            let back_btn = egui::Button::new(
-                RichText::new("← Voltar")
-                    .font(FontId::proportional(13.5))
-                    .color(Color32::WHITE),
-            )
-            .fill(Color32::from_rgb(32, 35, 44))
-            .corner_radius(CornerRadius::same(8));
-
-            if ui.add_sized([86.0, 32.0], back_btn).clicked() {
+            if secondary(ui, Some(lucide::ARROW_LEFT), "Voltar").clicked() {
                 action = HomeAction::GoBack;
             }
 
-            ui.add_space(8.0);
+            ui.add_space(10.0);
 
+            // Breadcrumb limpo
             let root_link = ui
                 .link(
                     RichText::new("Início")
-                        .font(FontId::proportional(13.5))
-                        .color(ACCENT_COLOR),
+                        .font(font_body())
+                        .color(TEXT_SECONDARY),
                 )
                 .on_hover_cursor(CursorIcon::PointingHand);
             if root_link.clicked() {
@@ -56,7 +51,11 @@ pub fn render_header(
             }
 
             for crumb in breadcrumbs {
-                ui.label(RichText::new("/").color(Color32::from_gray(120)));
+                ui.label(
+                    RichText::new(lucide::CHEVRON_RIGHT)
+                        .font(lucide::font_id(12.0))
+                        .color(TEXT_MUTED),
+                );
                 let crumb_name = crumb
                     .file_name()
                     .and_then(|n| n.to_str())
@@ -64,11 +63,11 @@ pub fn render_header(
 
                 let is_current = current_path.is_some_and(|p| p == crumb);
                 let crumb_text = RichText::new(crumb_name)
-                    .font(FontId::proportional(13.5))
+                    .font(font_body())
                     .color(if is_current {
-                        Color32::WHITE
+                        TEXT_PRIMARY
                     } else {
-                        Color32::from_gray(185)
+                        TEXT_SECONDARY
                     });
 
                 let link_resp = ui
@@ -81,53 +80,32 @@ pub fn render_header(
         } else {
             ui.label(
                 RichText::new("N I X O")
-                    .font(FontId::proportional(18.0))
+                    .font(font_title())
                     .strong()
-                    .color(ACCENT_COLOR),
+                    .color(TEXT_PRIMARY),
             );
             ui.add_space(8.0);
             ui.label(
                 RichText::new("Biblioteca de Mídia")
-                    .font(FontId::proportional(13.5))
-                    .color(Color32::from_gray(150)),
+                    .font(font_body())
+                    .color(TEXT_MUTED),
             );
         }
 
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            let test_btn = egui::Button::new(
-                RichText::new("▶ Testar")
-                    .font(FontId::proportional(13.0))
-                    .color(Color32::from_gray(210)),
-            )
-            .fill(Color32::from_rgb(26, 28, 35))
-            .corner_radius(CornerRadius::same(8));
-            if ui.add_sized([84.0, 32.0], test_btn).clicked() {
+            if secondary(ui, Some(lucide::FLASK_CONICAL), "Testar").clicked() {
                 action = HomeAction::PlayTestSignal;
             }
 
-            ui.add_space(4.0);
+            ui.add_space(6.0);
 
-            let open_btn = egui::Button::new(
-                RichText::new("📂 Abrir Arquivo")
-                    .font(FontId::proportional(13.0))
-                    .color(Color32::WHITE),
-            )
-            .fill(Color32::from_rgb(34, 37, 46))
-            .corner_radius(CornerRadius::same(8));
-            if ui.add_sized([126.0, 32.0], open_btn).clicked() {
+            if secondary(ui, Some(lucide::FOLDER_OPEN), "Abrir Arquivo").clicked() {
                 action = HomeAction::OpenFile;
             }
 
-            ui.add_space(4.0);
+            ui.add_space(6.0);
 
-            let add_btn = egui::Button::new(
-                RichText::new("+ Adicionar Pasta")
-                    .font(FontId::proportional(13.0))
-                    .color(Color32::WHITE),
-            )
-            .fill(ACCENT_COLOR)
-            .corner_radius(CornerRadius::same(8));
-            if ui.add_sized([138.0, 32.0], add_btn).clicked() {
+            if primary(ui, Some(lucide::FOLDER_PLUS), "Adicionar Pasta").clicked() {
                 action = HomeAction::AddFolder;
             }
         });

@@ -1,10 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod app;
+mod components;
 mod flags;
 mod home;
 mod icons;
 mod input;
+mod lucide;
 mod osd;
 mod popovers;
 mod settings;
