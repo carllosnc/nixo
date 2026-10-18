@@ -153,6 +153,8 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
 
     let mut new_delay = None;
 
+    let btn_radius = CornerRadius::same(6);
+
     // Botão Menos [-]
     let minus_resp = ui
         .allocate_rect(minus_rect, Sense::click())
@@ -168,7 +170,7 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     };
     ui.painter().rect(
         minus_rect,
-        CornerRadius::same(99),
+        btn_radius,
         minus_bg,
         Stroke::new(1.0_f32, st.popover_stroke.color),
         StrokeKind::Inside,
@@ -202,7 +204,7 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     };
     ui.painter().rect(
         val_rect,
-        CornerRadius::same(99),
+        btn_radius,
         val_bg,
         Stroke::new(1.0_f32, st.popover_stroke.color),
         StrokeKind::Inside,
@@ -235,7 +237,7 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     };
     ui.painter().rect(
         plus_rect,
-        CornerRadius::same(99),
+        btn_radius,
         plus_bg,
         Stroke::new(1.0_f32, st.popover_stroke.color),
         StrokeKind::Inside,

@@ -197,7 +197,7 @@ impl MenuStyle {
             button_height: 38.0,
             button_inset_x: 4.0,
             button_margin_y: 2.0,
-            button_radius: CornerRadius::same(99),
+            button_radius: CornerRadius::same(8),
             button_fill: Color32::from_rgb(26, 26, 31),
             button_fill_hover: Color32::from_rgb(40, 40, 48),
             button_fill_active: Color32::from_rgb(50, 50, 60),
