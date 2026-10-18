@@ -3,8 +3,8 @@
 use std::path::{Path, PathBuf};
 
 use egui::{
-    Align, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Stroke, TextureHandle, Ui,
-    vec2,
+    Align, Align2, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Stroke, TextureHandle,
+    Ui, vec2,
 };
 
 use crate::components::tokens::*;
@@ -101,34 +101,32 @@ pub fn render_header(
                     action = HomeAction::OpenFolder(crumb.clone());
                 }
             }
-        } else {
-            if let Some(tex) = logo_texture {
-                let logo_h = 24.0_f32;
-                let logo_w = (logo_h * (1024.0_f32 / 270.0_f32)).round();
-                let (rect, resp) = ui.allocate_exact_size(vec2(logo_w, logo_h), Sense::click());
-                ui.painter().image(
-                    tex.id(),
-                    rect,
-                    Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-                    Color32::WHITE,
-                );
-                if resp.clicked() {
-                    action = HomeAction::GoRoot;
-                }
-                resp.on_hover_cursor(CursorIcon::PointingHand)
-                    .on_hover_text("Nixo Media Player");
-            } else {
-                ui.label(
-                    RichText::new("Nixo")
-                        .font(font_display())
-                        .color(Color32::WHITE),
-                );
+        } else if let Some(tex) = logo_texture {
+            let header_h = 38.0_f32;
+            let logo_h = 18.0_f32;
+            let logo_w = (logo_h * (1024.0_f32 / 270.0_f32)).round();
+            let (rect, resp) = ui.allocate_exact_size(vec2(logo_w, header_h), Sense::click());
+            let logo_rect = Rect::from_center_size(rect.center(), vec2(logo_w, logo_h));
+            ui.painter().image(
+                tex.id(),
+                logo_rect,
+                Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                Color32::WHITE,
+            );
+            if resp.clicked() {
+                action = HomeAction::GoRoot;
             }
-            ui.add_space(12.0);
-            ui.label(
-                RichText::new("Biblioteca de Mídia")
-                    .font(font_body())
-                    .color(TEXT_SECONDARY),
+            resp.on_hover_cursor(CursorIcon::PointingHand)
+                .on_hover_text("Nixo Media Player");
+        } else {
+            let header_h = 38.0_f32;
+            let (rect, _) = ui.allocate_exact_size(vec2(60.0, header_h), Sense::hover());
+            ui.painter().text(
+                rect.center(),
+                Align2::CENTER_CENTER,
+                "Nixo",
+                font_card_title(),
+                Color32::WHITE,
             );
         }
 
