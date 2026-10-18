@@ -3,7 +3,7 @@
 //! Todas as cores são neutras puras (Tailwind Neutral 50 a 950), eliminando bordas duras e criando
 //! profundidade através de camadas de elevação sutis (estilo Linear, shadcn e macOS Dark).
 
-use egui::{Color32, CornerRadius, FontId, Pos2, Rect, Stroke, StrokeKind, vec2};
+use egui::{Color32, CornerRadius, FontId};
 
 // ── Paleta Tailwind CSS Neutral Oficial ──
 /// Tailwind neutral-50 (#fafafa) - Destaque máximo / hover primário.
@@ -137,69 +137,4 @@ pub fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
         (a.b() as f32 + (b.b() as f32 - a.b() as f32) * t).round() as u8,
         (a.a() as f32 + (b.a() as f32 - a.a() as f32) * t).round() as u8,
     )
-}
-
-// ── Superfície de Cards (Borda Leve Clara & Gradiente Vertical Sutil) ──
-
-/// Renderiza a superfície de um card moderno:
-/// 1. Fundo base neutro com elevação no hover (`SURFACE_LOW` -> `SURFACE_HIGH`).
-/// 2. Gradiente vertical sutil (iluminação ambiente superior e profundidade inferior).
-/// 3. Borda perimetral clara e sutil (1.0px, translúcida, elevando brilho no hover).
-pub fn paint_card_surface(painter: &egui::Painter, rect: Rect, radius: CornerRadius, hover_t: f32) {
-    let hover_t = hover_t.clamp(0.0, 1.0);
-
-    // 1. Fundo base com transição
-    let base_bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
-    painter.rect_filled(rect, radius, base_bg);
-
-    // 2. Gradiente vertical sutil:
-    // Faixa superior com brilho suave (luz difusa de topo)
-    let top_h = (rect.height() * 0.45).min(56.0);
-    let top_rect = Rect::from_min_size(rect.min, vec2(rect.width(), top_h));
-    let top_radius = CornerRadius {
-        nw: radius.nw,
-        ne: radius.ne,
-        sw: 0,
-        se: 0,
-    };
-    let top_alpha = (10.0 + 14.0 * hover_t).round() as u8;
-    painter.rect_filled(top_rect, top_radius, Color32::from_white_alpha(top_alpha));
-
-    // Crista superior ultra-sutil (specular highlight nos primeiros 18%)
-    let apex_h = (rect.height() * 0.18).min(20.0);
-    let apex_rect = Rect::from_min_size(rect.min, vec2(rect.width(), apex_h));
-    let apex_alpha = (6.0 + 8.0 * hover_t).round() as u8;
-    painter.rect_filled(apex_rect, top_radius, Color32::from_white_alpha(apex_alpha));
-
-    // Faixa inferior sutilmente escurecida para efeito de gradiente vertical
-    let btm_h = (rect.height() * 0.35).min(44.0);
-    let btm_rect = Rect::from_min_size(
-        Pos2::new(rect.left(), rect.bottom() - btm_h),
-        vec2(rect.width(), btm_h),
-    );
-    let btm_radius = CornerRadius {
-        nw: 0,
-        ne: 0,
-        sw: radius.sw,
-        se: radius.se,
-    };
-    let btm_alpha = (12.0 * (1.0 - hover_t * 0.4)).round() as u8;
-    painter.rect_filled(btm_rect, btm_radius, Color32::from_black_alpha(btm_alpha));
-
-    // 3. Borda perimetral clara sutil (1.0px)
-    paint_card_border(painter, rect, radius, hover_t);
-}
-
-/// Desenha a borda perimetral clara e refinada de 1.0px (com transição suave no hover).
-pub fn paint_card_border(painter: &egui::Painter, rect: Rect, radius: CornerRadius, hover_t: f32) {
-    let hover_t = hover_t.clamp(0.0, 1.0);
-    let border_alpha = (18.0 + 28.0 * hover_t).round() as u8;
-    let stroke = Stroke::new(1.0_f32, Color32::from_white_alpha(border_alpha));
-    painter.rect(
-        rect,
-        radius,
-        Color32::TRANSPARENT,
-        stroke,
-        StrokeKind::Inside,
-    );
 }

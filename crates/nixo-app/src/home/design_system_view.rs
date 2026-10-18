@@ -1,6 +1,8 @@
 //! Visualização completa e interativa do Design System do Nixo com a paleta Tailwind CSS Neutral.
 
-use egui::{Align, Align2, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Ui, vec2};
+use egui::{
+    Align, Align2, Color32, CursorIcon, FontId, Layout, Pos2, Rect, RichText, Sense, Ui, vec2,
+};
 
 use super::header::HomeAction;
 use crate::components::button::{ButtonVariant, ghost, primary, render_button, secondary};
@@ -136,32 +138,33 @@ fn render_typography_section(ui: &mut Ui) {
     );
 
     let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 206.0), Sense::hover());
-    paint_card_surface(ui.painter(), rect, RADIUS_MD, 0.0);
+    ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
     #[rustfmt::skip]
-    let specs = [
-        ("Display (28px Bold):", "Títulos principais", font_display(), Color32::WHITE),
-        ("Seção (21px Bold):", "Títulos de blocos", font_section_title(), Color32::WHITE),
-        ("Card (17px Bold):", "Pastas e arquivos", font_card_title(), TEXT_PRIMARY),
-        ("Corpo (15.5px):", "Botões e navegação", font_body(), TEXT_PRIMARY),
-        ("Subtítulo (14px):", "Descrições de apoio", font_sm(), TEXT_SECONDARY),
-        ("Metadados (12.5px):", "Badges e contadores", font_xs(), TEXT_MUTED),
+    let rows: [(&str, &str, FontId, Color32, &str); 6] = [
+        ("Display", "28.0px Bold", font_display(), Color32::WHITE, "Cabeçalhos de tela e títulos principais"),
+        ("Seção", "21.0px Bold", font_section_title(), Color32::WHITE, "Títulos de blocos em Title Case"),
+        ("Card / Item", "17.0px Bold", font_card_title(), TEXT_PRIMARY, "Nomes de pastas, arquivos e módulos"),
+        ("Corpo", "15.5px Regular", font_body(), TEXT_PRIMARY, "Botões, inputs e navegação ativa"),
+        ("Subtítulo", "14.0px Regular", font_sm(), TEXT_SECONDARY, "Descrições de apoio e contadores"),
+        ("Metadados", "12.5px Regular", font_xs(), TEXT_MUTED, "Extensões, badges e detalhes: 1080P • MKV • 24:12"),
     ];
-    for (i, (lbl, txt, font, col)) in specs.into_iter().enumerate() {
-        let y = rect.top() + 18.0 + (i as f32) * 31.0;
+
+    for (idx, (role, spec, f, c, s)) in rows.iter().enumerate() {
+        let y = rect.top() + 18.0 + (idx as f32) * 31.0;
         ui.painter().text(
             Pos2::new(rect.left() + 20.0, y),
             Align2::LEFT_CENTER,
-            lbl,
+            format!("{role} ({spec}):"),
             font_xs(),
             TEXT_MUTED,
         );
         ui.painter().text(
-            Pos2::new(rect.left() + 220.0, y),
+            Pos2::new(rect.left() + 240.0, y),
             Align2::LEFT_CENTER,
-            txt,
-            font,
-            col,
+            *s,
+            f.clone(),
+            *c,
         );
     }
 }
@@ -179,6 +182,8 @@ fn render_buttons_section(ui: &mut Ui) {
         ui.add_space(8.0);
         let _ = secondary(ui, Some(lucide::FOLDER_OPEN), "Secundário");
         ui.add_space(8.0);
+        let _ = secondary(ui, Some(lucide::FLASK_CONICAL), "Testar");
+        ui.add_space(8.0);
         let _ = ghost(ui, Some(lucide::SETTINGS), "Ghost");
         ui.add_space(8.0);
         let _ = render_button(
@@ -188,6 +193,7 @@ fn render_buttons_section(ui: &mut Ui) {
             "Excluir",
             38.0,
         );
+
         ui.add_space(16.0);
         for icon in [
             lucide::PLAY,
@@ -210,7 +216,7 @@ fn render_navigation_section(ui: &mut Ui) {
     );
 
     let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 54.0), Sense::hover());
-    paint_card_surface(ui.painter(), rect, RADIUS_MD, 0.0);
+    ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
     let mut cur_x = rect.left() + 18.0;
     let cy = rect.center().y;
@@ -257,8 +263,8 @@ fn render_navigation_section(ui: &mut Ui) {
 fn render_folder_cards_section(ui: &mut Ui) {
     render_section_header(
         ui,
-        "Cards de Pasta (Borda Leve Clara & Gradiente)",
-        "Borda perimetral sutil de 1.0px translúcida, gradiente vertical de iluminação e transição suave no hover.",
+        "Cards de Pasta (Com Transição no Hover)",
+        "Transição fluida de 150ms de neutral-900 para neutral-700 e realce suave dos ícones.",
     );
 
     ui.horizontal(|ui| {
@@ -266,7 +272,8 @@ fn render_folder_cards_section(ui: &mut Ui) {
         let ht = ui
             .ctx()
             .animate_bool_with_time(resp.id.with("demo_folder"), resp.hovered(), 0.15);
-        paint_card_surface(ui.painter(), rect, RADIUS_MD, ht);
+        let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
+        ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
         let ic_col = lerp_color(TEXT_SECONDARY, Color32::WHITE, ht);
         ui.painter().text(
@@ -306,7 +313,8 @@ fn render_folder_cards_section(ui: &mut Ui) {
         let cht =
             ui.ctx()
                 .animate_bool_with_time(cresp.id.with("demo_chip"), cresp.hovered(), 0.15);
-        paint_card_surface(ui.painter(), cr, RADIUS_MD, cht);
+        let cbg = lerp_color(SURFACE_LOW, SURFACE_HIGH, cht);
+        ui.painter().rect_filled(cr, RADIUS_MD, cbg);
         let cic = lerp_color(TEXT_SECONDARY, Color32::WHITE, cht);
         ui.painter().text(
             Pos2::new(cr.left() + 16.0, cr.center().y),
@@ -330,8 +338,8 @@ fn render_folder_cards_section(ui: &mut Ui) {
 fn render_media_cards_section(ui: &mut Ui) {
     render_section_header(
         ui,
-        "Cards de Mídia (Borda Leve Clara & Gradiente)",
-        "Thumbnail com iluminação superior, divisor sutil e borda perimetral clara de 1.0px.",
+        "Cards de Mídia (Com Transição no Hover)",
+        "Thumbnail com transição suave, play circle dinâmico e elevação de luminância.",
     );
 
     ui.horizontal(|ui| {
@@ -358,32 +366,20 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
     let ht = ui
         .ctx()
         .animate_bool_with_time(resp.id.with("demo_media"), resp.hovered(), 0.15);
-    paint_card_surface(ui.painter(), rect, RADIUS_MD, ht);
+    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
+    ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
     let thumb_h = 96.0;
     let thumb_rect = Rect::from_min_size(rect.min, vec2(230.0, thumb_h));
-    let thumb_radius = egui::CornerRadius {
-        nw: RADIUS_MD.nw,
-        ne: RADIUS_MD.ne,
-        sw: 0,
-        se: 0,
-    };
-    ui.painter()
-        .rect_filled(thumb_rect, thumb_radius, SURFACE_MED);
-
-    // Gradiente sutil no topo da thumbnail
-    let t_sheen_h = 36.0;
-    let t_sheen_rect = Rect::from_min_size(thumb_rect.min, vec2(230.0, t_sheen_h));
-    ui.painter()
-        .rect_filled(t_sheen_rect, thumb_radius, Color32::from_white_alpha(8));
-
-    // Linha divisória sutil
-    ui.painter().line_segment(
-        [
-            Pos2::new(rect.left(), thumb_rect.bottom()),
-            Pos2::new(rect.right(), thumb_rect.bottom()),
-        ],
-        egui::Stroke::new(1.0_f32, Color32::from_white_alpha(12)),
+    ui.painter().rect_filled(
+        thumb_rect,
+        egui::CornerRadius {
+            nw: RADIUS_MD.nw,
+            ne: RADIUS_MD.ne,
+            sw: 0,
+            se: 0,
+        },
+        SURFACE_MED,
     );
 
     let center = thumb_rect.center();
@@ -434,8 +430,6 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
         TEXT_MUTED,
     );
 
-    // Borda clara perimetral sobreposta
-    paint_card_border(ui.painter(), rect, RADIUS_MD, ht);
     resp.on_hover_cursor(CursorIcon::PointingHand);
 }
 
@@ -448,7 +442,7 @@ fn render_empty_state_section(ui: &mut Ui) {
     );
 
     let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width(), 170.0), Sense::hover());
-    paint_card_surface(ui.painter(), rect, RADIUS_MD, 0.0);
+    ui.painter().rect_filled(rect, RADIUS_MD, SURFACE_LOW);
 
     let mut child_ui = ui.new_child(
         egui::UiBuilder::new()

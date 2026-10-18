@@ -52,9 +52,11 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hover_t =
                         ui.ctx()
                             .animate_bool_with_time(resp.id.with("chip_hover"), hovered, 0.15);
-                    paint_card_surface(ui.painter(), rect, RADIUS_MD, hover_t);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
                     let icon_color = lerp_color(TEXT_SECONDARY, Color32::WHITE, hover_t);
                     let text_color = lerp_color(TEXT_PRIMARY, Color32::WHITE, hover_t);
+
+                    ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide de pasta sem wrapper
                     ui.painter().text(
@@ -125,36 +127,21 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hover_t =
                         ui.ctx()
                             .animate_bool_with_time(resp.id.with("file_hover"), hovered, 0.15);
-                    paint_card_surface(ui.painter(), rect, RADIUS_MD, hover_t);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
+                    ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-                    // Área de thumbnail com cantos arredondados no topo e iluminação sutil
+                    // Área de thumbnail com cantos arredondados no topo
                     let thumb_h = 96.0;
                     let thumb_rect = Rect::from_min_size(rect.min, vec2(card_w, thumb_h));
-                    let thumb_radius = egui::CornerRadius {
-                        nw: RADIUS_MD.nw,
-                        ne: RADIUS_MD.ne,
-                        sw: 0,
-                        se: 0,
-                    };
-                    ui.painter()
-                        .rect_filled(thumb_rect, thumb_radius, SURFACE_MED);
-
-                    // Gradiente de iluminação sutil no topo da thumbnail
-                    let t_sheen_h = 36.0;
-                    let t_sheen_rect = Rect::from_min_size(thumb_rect.min, vec2(card_w, t_sheen_h));
                     ui.painter().rect_filled(
-                        t_sheen_rect,
-                        thumb_radius,
-                        Color32::from_white_alpha(8),
-                    );
-
-                    // Linha divisória sutil entre thumbnail e informações do arquivo
-                    ui.painter().line_segment(
-                        [
-                            Pos2::new(rect.left(), thumb_rect.bottom()),
-                            Pos2::new(rect.right(), thumb_rect.bottom()),
-                        ],
-                        egui::Stroke::new(1.0_f32, Color32::from_white_alpha(12)),
+                        thumb_rect,
+                        egui::CornerRadius {
+                            nw: RADIUS_MD.nw,
+                            ne: RADIUS_MD.ne,
+                            sw: 0,
+                            se: 0,
+                        },
+                        SURFACE_MED,
                     );
 
                     // Ícone central de Play / Mídia no Lucide com transição de hover
@@ -226,9 +213,6 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                         font_xs(),
                         TEXT_MUTED,
                     );
-
-                    // Borda clara perimetral sobreposta
-                    paint_card_border(ui.painter(), rect, RADIUS_MD, hover_t);
 
                     if resp.clicked() {
                         action = HomeAction::PlayFile(item.path.clone());
