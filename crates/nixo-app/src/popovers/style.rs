@@ -75,12 +75,8 @@ pub(crate) struct MenuStyle {
 
     // ── Ícones ──
     pub badge_size: Vec2,
-    pub action_badge_size: Vec2,
     pub badge_radius: CornerRadius,
-    pub action_badge_radius: CornerRadius,
     pub badge_neutral: BadgeColors,
-    pub badge_subtle: BadgeColors,
-    pub badge_accent: BadgeColors,
     pub icon_fg: Color32,
     pub icon_accent: Color32,
     pub icon_glyph_stroke: f32,
@@ -173,20 +169,10 @@ impl MenuStyle {
             header_text_gap: 12.0,
 
             badge_size: vec2(26.0, 18.0),
-            action_badge_size: vec2(28.0, 20.0),
             badge_radius: CornerRadius::same(4),
-            action_badge_radius: CornerRadius::same(6),
             badge_neutral: BadgeColors {
                 fill: Color32::from_rgb(26, 26, 32),
                 stroke: Stroke::new(1.2_f32, Color32::from_rgb(68, 68, 80)),
-            },
-            badge_subtle: BadgeColors {
-                fill: Color32::from_rgb(26, 26, 32),
-                stroke: Stroke::new(1.2_f32, Color32::from_rgb(72, 72, 86)),
-            },
-            badge_accent: BadgeColors {
-                fill: Color32::from_rgb(14, 42, 12),
-                stroke: Stroke::new(1.2_f32, Color32::from_rgb(44, 190, 16)),
             },
             icon_fg: Color32::WHITE,
             icon_accent: ACCENT_COLOR,

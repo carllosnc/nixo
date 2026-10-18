@@ -56,11 +56,9 @@ impl LeadingIcon {
             }
             Self::Disabled => paint_disabled(ui, c),
             Self::AddExternalSubtitle => {
-                paint_action_badge(ui, c, st.badge_subtle);
                 paint_folder_plus_glyph(ui, c, fg);
             }
             Self::SubtitleStyle => {
-                paint_action_badge(ui, c, st.badge_accent);
                 ui.painter().text(
                     Pos2::new(c.x, c.y - 0.5),
                     Align2::CENTER_CENTER,
@@ -84,19 +82,6 @@ fn paint_badge(ui: &Ui, c: Pos2, colors: BadgeColors) {
     ui.painter().rect_filled(rect, st.badge_radius, colors.fill);
     ui.painter()
         .rect_stroke(rect, st.badge_radius, colors.stroke, StrokeKind::Inside);
-}
-
-fn paint_action_badge(ui: &Ui, c: Pos2, colors: BadgeColors) {
-    let st = menu_style();
-    let rect = Rect::from_center_size(c, st.action_badge_size);
-    ui.painter()
-        .rect_filled(rect, st.action_badge_radius, colors.fill);
-    ui.painter().rect_stroke(
-        rect,
-        st.action_badge_radius,
-        colors.stroke,
-        StrokeKind::Inside,
-    );
 }
 
 fn paint_subtitle_glyph(ui: &Ui, c: Pos2, fg: Color32) {
@@ -160,32 +145,30 @@ fn paint_speaker_glyph(ui: &Ui, c: Pos2, fg: Color32) {
 }
 
 fn paint_folder_plus_glyph(ui: &Ui, c: Pos2, fg: Color32) {
-    let stroke = Stroke::new(1.4_f32, fg);
+    let scale = 0.82_f32;
+    let p = |x: f32, y: f32| Pos2::new(c.x + (x - 12.0) * scale, c.y + (y - 12.0) * scale);
+    let stroke = Stroke::new(1.65_f32, fg);
     let painter = ui.painter();
-    // Lucide 'folder-plus': silhueta de pasta com aba superior esquerda
+
+    // Lucide 'folder-plus': silhueta canônica de pasta
     let pts = vec![
-        Pos2::new(c.x - 7.0, c.y - 4.5),
-        Pos2::new(c.x - 3.2, c.y - 4.5),
-        Pos2::new(c.x - 1.2, c.y - 2.5),
-        Pos2::new(c.x + 7.0, c.y - 2.5),
-        Pos2::new(c.x + 7.0, c.y + 5.0),
-        Pos2::new(c.x - 7.0, c.y + 5.0),
+        p(4.0, 4.0),
+        p(8.0, 4.0),
+        p(10.2, 6.5),
+        p(20.0, 6.5),
+        p(21.5, 8.0),
+        p(21.5, 18.5),
+        p(20.0, 20.0),
+        p(4.0, 20.0),
+        p(2.5, 18.5),
+        p(2.5, 5.5),
     ];
     painter.add(Shape::closed_line(pts, stroke));
 
-    // '+' central
-    let plus_stroke = Stroke::new(1.6_f32, fg);
-    painter.line_segment(
-        [Pos2::new(c.x, c.y - 1.0), Pos2::new(c.x, c.y + 3.4)],
-        plus_stroke,
-    );
-    painter.line_segment(
-        [
-            Pos2::new(c.x - 2.2, c.y + 1.2),
-            Pos2::new(c.x + 2.2, c.y + 1.2),
-        ],
-        plus_stroke,
-    );
+    // '+' centralizado
+    let plus_stroke = Stroke::new(1.75_f32, fg);
+    painter.line_segment([p(12.0, 10.0), p(12.0, 16.0)], plus_stroke);
+    painter.line_segment([p(9.0, 13.0), p(15.0, 13.0)], plus_stroke);
 }
 
 fn paint_disabled(ui: &Ui, c: Pos2) {
