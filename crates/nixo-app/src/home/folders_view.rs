@@ -90,31 +90,23 @@ pub fn render_folders_view(
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Bloco visual da pasta à esquerda (mesma proporção do container de thumbnail)
-            let icon_box_w = 92.0;
-            let icon_box_h = 52.0;
-            let icon_box_rect = Rect::from_min_size(
-                Pos2::new(rect.left() + 8.0, rect.top() + (item_h - icon_box_h) * 0.5),
-                vec2(icon_box_w, icon_box_h),
-            );
-            ui.painter()
-                .rect_filled(icon_box_rect, RADIUS_SM, SURFACE_MED);
-
+            // Ícone da pasta à esquerda sem wrapper (limpo e com tamanho ampliado)
             let folder_icon = if hover_t > 0.4 {
                 lucide::FOLDER_OPEN
             } else {
                 lucide::FOLDER
             };
+            let icon_pos = Pos2::new(rect.left() + 20.0, rect.center().y);
             ui.painter().text(
-                icon_box_rect.center(),
-                Align2::CENTER_CENTER,
+                icon_pos,
+                Align2::LEFT_CENTER,
                 folder_icon,
-                lucide::font_id(22.0),
+                lucide::font_id(28.0),
                 icon_color,
             );
 
             // Nome e caminho centralizados
-            let text_x = icon_box_rect.right() + 14.0;
+            let text_x = rect.left() + 58.0;
             let right_reserve = 180.0;
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
