@@ -103,23 +103,17 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
         ui.add_space(16.0);
     }
 
-    // Seção de Arquivos de Mídia Executáveis
-    ui.label(
-        RichText::new(format!("ARQUIVOS EXECUTÁVEIS ({})", content.files.len()))
-            .font(crate::theme::font_bold(13.0))
-            .color(Color32::WHITE),
-    );
-    ui.add_space(10.0);
+    // Seção de Arquivos de Mídia (exibida apenas quando houver arquivos na pasta)
+    if !content.files.is_empty() {
+        if !content.subdirs.is_empty() {
+            ui.label(
+                RichText::new(format!("ARQUIVOS ({})", content.files.len()))
+                    .font(crate::theme::font_bold(13.0))
+                    .color(Color32::WHITE),
+            );
+            ui.add_space(10.0);
+        }
 
-    if content.files.is_empty() {
-        render_empty_state(
-            ui,
-            lucide::FILM,
-            "Nenhum arquivo executável na raiz desta pasta",
-            "Selecione uma das subpastas acima para navegar pelos episódios ou vídeos.",
-            None,
-        );
-    } else {
         let card_w = 210.0;
         let card_h = 138.0;
         let spacing = 12.0;
@@ -233,6 +227,14 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     }
                 }
             });
+    } else if content.subdirs.is_empty() {
+        render_empty_state(
+            ui,
+            lucide::FOLDER_OPEN,
+            "Esta pasta está vazia",
+            "Nenhum arquivo de mídia ou subpasta foi encontrado aqui.",
+            None,
+        );
     }
 
     action

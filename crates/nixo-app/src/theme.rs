@@ -35,7 +35,7 @@ impl NixoApp {
 
         fonts.families.insert(
             egui::FontFamily::Name("lucide".into()),
-            vec!["lucide".to_owned()],
+            vec!["lucide".to_owned(), "inter_regular".to_owned()],
         );
 
         fonts
