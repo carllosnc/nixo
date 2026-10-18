@@ -142,8 +142,8 @@ impl ThumbnailService {
                 cb_ctx,
             );
 
-            let thumb_w = 230u32;
-            let thumb_h = 96u32;
+            let thumb_w = 256u32;
+            let thumb_h = 144u32;
             let stride = (thumb_w as usize) * 4;
             let mut pixel_buf = vec![255u8; stride * (thumb_h as usize)];
             let mut frame_id = 0u64;
@@ -161,11 +161,11 @@ impl ThumbnailService {
                 let args = [c_cmd.as_ptr(), c_path.as_ptr(), ptr::null()];
                 let _ = (api.command)(handle, args.as_ptr());
 
-                // Aguarda metadados e duração inicial (até 60ms)
+                // Aguarda metadados e duração inicial (até 80ms)
                 let start_wait = Instant::now();
-                let mut target_sec = 2.0_f64;
+                let mut target_sec = 60.0_f64;
                 let mut found_dur: Option<f64> = None;
-                while start_wait.elapsed() < Duration::from_millis(60) {
+                while start_wait.elapsed() < Duration::from_millis(80) {
                     let mut dur: c_double = 0.0;
                     let rc = (api.get_property)(
                         handle,
@@ -176,8 +176,16 @@ impl ThumbnailService {
                     if rc >= 0 && dur > 0.0 {
                         found_dur = Some(dur);
                         if dur > 2.0 {
-                            // Tira miniatura aos 8% ou 15s para evitar tela preta de introdução
-                            target_sec = (dur * 0.08).clamp(2.0, 30.0);
+                            // Captura aos 10:00 (600s) para episódios/filmes para evitar telas pretas e introduções
+                            target_sec = if dur >= 900.0 {
+                                600.0
+                            } else if dur >= 600.0 {
+                                dur * 0.35
+                            } else if dur >= 120.0 {
+                                dur * 0.25
+                            } else {
+                                (dur * 0.15).clamp(3.0, 20.0)
+                            };
                             break;
                         }
                     }

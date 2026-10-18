@@ -119,7 +119,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 62.0;
+        let item_h = 70.0;
         let spacing = 6.0;
         let item_w = ui.available_width();
 
@@ -133,11 +133,11 @@ pub fn render_folder_browser(
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Miniatura 16:9 limpa à esquerda
-            let thumb_w = 78.0;
-            let thumb_h = 44.0;
+            // Miniatura 16:9 limpa à esquerda com proporção e tamanho ampliados
+            let thumb_w = 96.0;
+            let thumb_h = 54.0;
             let thumb_rect = Rect::from_min_size(
-                Pos2::new(rect.left() + 8.0, rect.top() + (item_h - thumb_h) * 0.5),
+                Pos2::new(rect.left() + 10.0, rect.top() + (item_h - thumb_h) * 0.5),
                 vec2(thumb_w, thumb_h),
             );
 
@@ -171,12 +171,12 @@ pub fn render_folder_browser(
                         ACCENT_NEUTRAL_TEXT,
                         hover_t,
                     );
-                    ui.painter().circle_filled(center, 13.0, circle_bg);
+                    ui.painter().circle_filled(center, 15.0, circle_bg);
                     ui.painter().text(
                         Pos2::new(center.x + 1.0, center.y),
                         Align2::CENTER_CENTER,
                         lucide::PLAY,
-                        lucide::font_id(12.0),
+                        lucide::font_id(14.0),
                         icon_fg,
                     );
                 }
@@ -198,12 +198,12 @@ pub fn render_folder_browser(
                 let circle_bg = lerp_color(SURFACE_LOW, ACCENT_NEUTRAL_FILL, hover_t);
                 let icon_fg = lerp_color(TEXT_SECONDARY, ACCENT_NEUTRAL_TEXT, hover_t);
 
-                ui.painter().circle_filled(center, 14.0, circle_bg);
+                ui.painter().circle_filled(center, 16.0, circle_bg);
                 ui.painter().text(
                     Pos2::new(center.x + if hover_t > 0.4 { 1.0 } else { 0.0 }, center.y),
                     Align2::CENTER_CENTER,
                     icon_str,
-                    lucide::font_id(13.0),
+                    lucide::font_id(15.0),
                     icon_fg,
                 );
             }
@@ -222,7 +222,7 @@ pub fn render_folder_browser(
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 19.0),
+                Pos2::new(text_x, rect.top() + 22.0),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
@@ -231,7 +231,7 @@ pub fn render_folder_browser(
             );
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
-            let desc_y = rect.top() + 43.0;
+            let desc_y = rect.top() + 48.0;
 
             // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
             let badge_text = if !item.extension.is_empty() {
