@@ -228,7 +228,7 @@ pub fn render_folder_browser(
                 }
             };
 
-            let badge_font = font_xs();
+            let badge_font = font_xs_bold();
             let badge_text_w = ui
                 .painter()
                 .layout_no_wrap(badge_text.clone(), badge_font.clone(), Color32::WHITE)
@@ -239,27 +239,13 @@ pub fn render_folder_browser(
                 Rect::from_min_size(Pos2::new(text_x, desc_y - 8.0), vec2(badge_w, 16.0));
 
             let badge_bg = lerp_color(
-                Color32::from_rgba_unmultiplied(255, 255, 255, 12),
-                Color32::from_rgba_unmultiplied(255, 255, 255, 24),
+                Color32::from_rgba_unmultiplied(255, 255, 255, 14),
+                Color32::from_rgba_unmultiplied(255, 255, 255, 28),
                 hover_t,
-            );
-            let badge_stroke = egui::Stroke::new(
-                1.0_f32,
-                lerp_color(
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 20),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 36),
-                    hover_t,
-                ),
             );
             let badge_fg = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             ui.painter()
                 .rect_filled(badge_rect, egui::CornerRadius::same(3), badge_bg);
-            ui.painter().rect_stroke(
-                badge_rect,
-                egui::CornerRadius::same(3),
-                badge_stroke,
-                egui::StrokeKind::Inside,
-            );
             ui.painter().text(
                 badge_rect.center(),
                 Align2::CENTER_CENTER,

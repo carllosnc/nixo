@@ -134,6 +134,12 @@ pub fn font_xs() -> FontId {
     FontId::proportional(12.5)
 }
 
+/// Metadados, badges e contadores compactos em peso negrito (bold).
+#[inline]
+pub fn font_xs_bold() -> FontId {
+    FontId::new(11.5, egui::FontFamily::Name("bold".into()))
+}
+
 /// Interpola linearmente entre duas cores (`Color32`) com base em um fator `t` de 0.0 a 1.0 para transições suaves de hover.
 #[inline]
 pub fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
