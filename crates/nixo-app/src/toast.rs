@@ -87,10 +87,17 @@ pub(crate) fn render_toast(ui: &mut Ui, toast: &mut Option<ToastNotification>, s
                 .arg(format!("/select,{}", path.display()))
                 .spawn();
         }
-        #[cfg(not(target_os = "windows"))]
+        #[cfg(target_os = "macos")]
+        {
+            let _ = std::process::Command::new("open")
+                .arg("-R")
+                .arg(path)
+                .spawn();
+        }
+        #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
         {
             if let Some(parent) = path.parent() {
-                let _ = open::that(parent);
+                let _ = std::process::Command::new("xdg-open").arg(parent).spawn();
             }
         }
     }
