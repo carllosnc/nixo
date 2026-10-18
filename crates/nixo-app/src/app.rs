@@ -211,8 +211,9 @@ impl NixoApp {
         let target_path = base_dir.join(&filename);
 
         self.dispatch(PlayerCommand::TakeScreenshot(target_path.clone()));
+        crate::toast::copy_screenshot_to_clipboard_async(target_path.clone());
         self.show_toast(
-            format!("Captura de tela salva: {filename}"),
+            format!("Captura copiada e salva: {filename}"),
             Some(target_path),
         );
     }

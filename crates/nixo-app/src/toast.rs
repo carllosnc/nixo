@@ -173,3 +173,35 @@ fn paint_mini_camera(ui: &Ui, c: Pos2, color: Color32) {
     ui.painter()
         .circle_stroke(p(12.0, 13.0), 3.0 * scale, stroke);
 }
+
+/// Copia a imagem salva no disco para a área de transferência (clipboard) em background.
+pub(crate) fn copy_screenshot_to_clipboard_async(path: PathBuf) {
+    std::thread::spawn(move || {
+        // Aguarda a gravação assíncrona do libmpv ser concluída no disco (até 2s)
+        for _ in 0..40 {
+            if let Ok(bytes) = std::fs::read(&path)
+                && !bytes.is_empty()
+                && let Ok(img) =
+                    image::load_from_memory_with_format(&bytes, image::ImageFormat::Png)
+            {
+                let rgba = img.to_rgba8();
+                let (w, h) = rgba.dimensions();
+                if let Ok(mut cb) = arboard::Clipboard::new() {
+                    let img_data = arboard::ImageData {
+                        width: w as usize,
+                        height: h as usize,
+                        bytes: std::borrow::Cow::Borrowed(rgba.as_raw()),
+                    };
+                    if let Err(err) = cb.set_image(img_data) {
+                        tracing::warn!("Falha ao copiar imagem para clipboard: {err}");
+                    } else {
+                        tracing::debug!("Captura copiada para a área de transferência com sucesso");
+                    }
+                }
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        tracing::warn!("Timeout aguardando gravação do arquivo de captura para o clipboard");
+    });
+}
