@@ -19,6 +19,7 @@ pub struct HomeState {
     pub breadcrumbs: Vec<PathBuf>,
     pub scanner: BackgroundScanner,
     pub is_design_system: bool,
+    pub logo_texture: Option<egui::TextureHandle>,
 }
 
 impl Default for HomeState {
@@ -34,6 +35,7 @@ impl HomeState {
             breadcrumbs: Vec::new(),
             scanner: BackgroundScanner::new(),
             is_design_system: false,
+            logo_texture: None,
         }
     }
 
@@ -105,9 +107,24 @@ impl HomeState {
                             }
                         });
                 } else {
-                    // 1. Cabeçalho com breadcrumbs e botões rápidos
-                    let header_action =
-                        header::render_header(ui, self.current_path.as_deref(), &self.breadcrumbs);
+                    // Garante que a textura da logo esteja carregada na GPU
+                    if self.logo_texture.is_none()
+                        && let Some(color_img) = header::load_logo_image()
+                    {
+                        self.logo_texture = Some(ui.ctx().load_texture(
+                            "nixo_logo",
+                            color_img,
+                            egui::TextureOptions::LINEAR,
+                        ));
+                    }
+
+                    // 1. Cabeçalho com breadcrumbs, logo e botões rápidos
+                    let header_action = header::render_header(
+                        ui,
+                        self.current_path.as_deref(),
+                        &self.breadcrumbs,
+                        self.logo_texture.as_ref(),
+                    );
                     if !matches!(header_action, HomeAction::None) {
                         action = header_action;
                     }

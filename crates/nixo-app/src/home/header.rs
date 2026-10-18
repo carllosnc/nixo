@@ -2,11 +2,24 @@
 
 use std::path::{Path, PathBuf};
 
-use egui::{Align, Color32, CursorIcon, Layout, RichText, Sense, Stroke, Ui, vec2};
+use egui::{
+    Align, Color32, CursorIcon, Layout, Pos2, Rect, RichText, Sense, Stroke, TextureHandle, Ui,
+    vec2,
+};
 
 use crate::components::tokens::*;
 use crate::components::{primary, secondary};
 use crate::lucide;
+
+const LOGO_PNG: &[u8] = include_bytes!("../../../../assets/logo.png");
+
+/// Carrega a imagem da logo pequena do Nixo a partir dos bytes embutidos.
+pub fn load_logo_image() -> Option<egui::ColorImage> {
+    let img = image::load_from_memory_with_format(LOGO_PNG, image::ImageFormat::Png).ok()?;
+    let rgba = img.into_rgba8();
+    let size = [rgba.width() as usize, rgba.height() as usize];
+    Some(egui::ColorImage::from_rgba_unmultiplied(size, &rgba))
+}
 
 /// Ação disparada por interações do usuário na tela inicial.
 #[derive(Debug, Clone)]
@@ -29,6 +42,7 @@ pub fn render_header(
     ui: &mut Ui,
     current_path: Option<&Path>,
     breadcrumbs: &[PathBuf],
+    logo_texture: Option<&TextureHandle>,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -80,12 +94,29 @@ pub fn render_header(
                 }
             }
         } else {
-            ui.label(
-                RichText::new("Nixo")
-                    .font(font_display())
-                    .color(Color32::WHITE),
-            );
-            ui.add_space(10.0);
+            if let Some(tex) = logo_texture {
+                let logo_h = 24.0_f32;
+                let logo_w = (logo_h * (1024.0_f32 / 270.0_f32)).round();
+                let (rect, resp) = ui.allocate_exact_size(vec2(logo_w, logo_h), Sense::click());
+                ui.painter().image(
+                    tex.id(),
+                    rect,
+                    Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                    Color32::WHITE,
+                );
+                if resp.clicked() {
+                    action = HomeAction::GoRoot;
+                }
+                resp.on_hover_cursor(CursorIcon::PointingHand)
+                    .on_hover_text("Nixo Media Player");
+            } else {
+                ui.label(
+                    RichText::new("Nixo")
+                        .font(font_display())
+                        .color(Color32::WHITE),
+                );
+            }
+            ui.add_space(12.0);
             ui.label(
                 RichText::new("Biblioteca de Mídia")
                     .font(font_body())
