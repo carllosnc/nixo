@@ -57,7 +57,7 @@ impl LeadingIcon {
             Self::Disabled => paint_disabled(ui, c),
             Self::AddExternalSubtitle => {
                 paint_action_badge(ui, c, st.badge_subtle);
-                paint_plus_glyph(ui, c, fg);
+                paint_folder_plus_glyph(ui, c, fg);
             }
             Self::SubtitleStyle => {
                 paint_action_badge(ui, c, st.badge_accent);
@@ -102,33 +102,34 @@ fn paint_action_badge(ui: &Ui, c: Pos2, colors: BadgeColors) {
 fn paint_subtitle_glyph(ui: &Ui, c: Pos2, fg: Color32) {
     let stroke = Stroke::new(menu_style().icon_glyph_stroke, fg);
     let painter = ui.painter();
-    // Linha superior: dois blocos de diálogo (estilo Closed Captions)
+    // Lucide 'captions' dialogue line pairs
+    // Linha superior (y = c.y - 2.5): curto + longo
     painter.line_segment(
         [
-            Pos2::new(c.x - 6.8, c.y - 2.6),
-            Pos2::new(c.x - 1.4, c.y - 2.6),
+            Pos2::new(c.x - 6.5, c.y - 2.5),
+            Pos2::new(c.x - 3.2, c.y - 2.5),
         ],
         stroke,
     );
     painter.line_segment(
         [
-            Pos2::new(c.x + 1.4, c.y - 2.6),
-            Pos2::new(c.x + 6.8, c.y - 2.6),
+            Pos2::new(c.x + 0.8, c.y - 2.5),
+            Pos2::new(c.x + 6.5, c.y - 2.5),
         ],
         stroke,
     );
-    // Linha inferior: bloco longo + bloco curto
+    // Linha inferior (y = c.y + 2.5): longo + curto
     painter.line_segment(
         [
-            Pos2::new(c.x - 6.8, c.y + 2.6),
-            Pos2::new(c.x + 2.2, c.y + 2.6),
+            Pos2::new(c.x - 6.5, c.y + 2.5),
+            Pos2::new(c.x + 0.5, c.y + 2.5),
         ],
         stroke,
     );
     painter.line_segment(
         [
-            Pos2::new(c.x + 4.6, c.y + 2.6),
-            Pos2::new(c.x + 6.8, c.y + 2.6),
+            Pos2::new(c.x + 4.2, c.y + 2.5),
+            Pos2::new(c.x + 6.5, c.y + 2.5),
         ],
         stroke,
     );
@@ -136,37 +137,54 @@ fn paint_subtitle_glyph(ui: &Ui, c: Pos2, fg: Color32) {
 
 fn paint_speaker_glyph(ui: &Ui, c: Pos2, fg: Color32) {
     let painter = ui.painter();
+    // Lucide speaker body
     let body = vec![
-        Pos2::new(c.x - 5.8, c.y - 2.3),
-        Pos2::new(c.x - 2.8, c.y - 2.3),
-        Pos2::new(c.x + 0.5, c.y - 5.2),
-        Pos2::new(c.x + 0.5, c.y + 5.2),
-        Pos2::new(c.x - 2.8, c.y + 2.3),
-        Pos2::new(c.x - 5.8, c.y + 2.3),
+        Pos2::new(c.x - 6.0, c.y - 2.2),
+        Pos2::new(c.x - 3.0, c.y - 2.2),
+        Pos2::new(c.x + 1.0, c.y - 5.5),
+        Pos2::new(c.x + 1.0, c.y + 5.5),
+        Pos2::new(c.x - 3.0, c.y + 2.2),
+        Pos2::new(c.x - 6.0, c.y + 2.2),
     ];
     painter.add(Shape::convex_polygon(body, fg, Stroke::NONE));
 
-    // Onda sonora suave em arco contínuo
+    // Lucide sound wave arc
     let wave_stroke = Stroke::new(1.5_f32, fg);
     let arc_pts: Vec<Pos2> = (-3..=3)
         .map(|i| {
-            let angle = (i as f32 / 3.0) * 0.72_f32;
-            Pos2::new(c.x + 1.4 + 3.6 * angle.cos(), c.y + 3.6 * angle.sin())
+            let angle = (i as f32 / 3.0) * 0.78_f32;
+            Pos2::new(c.x + 1.2 + 3.8 * angle.cos(), c.y + 3.8 * angle.sin())
         })
         .collect();
     painter.add(Shape::line(arc_pts, wave_stroke));
 }
 
-fn paint_plus_glyph(ui: &Ui, c: Pos2, fg: Color32) {
-    let stroke = Stroke::new(2.0_f32, fg);
-    let arm = 4.8_f32;
-    ui.painter().line_segment(
-        [Pos2::new(c.x, c.y - arm), Pos2::new(c.x, c.y + arm)],
-        stroke,
+fn paint_folder_plus_glyph(ui: &Ui, c: Pos2, fg: Color32) {
+    let stroke = Stroke::new(1.4_f32, fg);
+    let painter = ui.painter();
+    // Lucide 'folder-plus': silhueta de pasta com aba superior esquerda
+    let pts = vec![
+        Pos2::new(c.x - 7.0, c.y - 4.5),
+        Pos2::new(c.x - 3.2, c.y - 4.5),
+        Pos2::new(c.x - 1.2, c.y - 2.5),
+        Pos2::new(c.x + 7.0, c.y - 2.5),
+        Pos2::new(c.x + 7.0, c.y + 5.0),
+        Pos2::new(c.x - 7.0, c.y + 5.0),
+    ];
+    painter.add(Shape::closed_line(pts, stroke));
+
+    // '+' central
+    let plus_stroke = Stroke::new(1.6_f32, fg);
+    painter.line_segment(
+        [Pos2::new(c.x, c.y - 1.0), Pos2::new(c.x, c.y + 3.4)],
+        plus_stroke,
     );
-    ui.painter().line_segment(
-        [Pos2::new(c.x - arm, c.y), Pos2::new(c.x + arm, c.y)],
-        stroke,
+    painter.line_segment(
+        [
+            Pos2::new(c.x - 2.2, c.y + 1.2),
+            Pos2::new(c.x + 2.2, c.y + 1.2),
+        ],
+        plus_stroke,
     );
 }
 

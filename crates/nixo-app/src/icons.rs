@@ -1,4 +1,4 @@
-use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, vec2};
+use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
 
 use crate::app::{ACCENT_COLOR, NixoApp};
 
@@ -16,7 +16,8 @@ pub(crate) enum ControlIcon {
 }
 
 impl NixoApp {
-    /// Renderiza um botão Ghost minimalista (estilo YouTube/IINA) com ícone vetorial desenhado diretamente na GPU.
+    /// Renderiza um botão Ghost minimalista com ícone vetorial desenhado na GPU
+    /// diretamente alinhado às proporções e geometrias da biblioteca Lucide Icons (grid 24x24).
     pub(crate) fn render_ghost_icon_btn(
         ui: &mut Ui,
         size: Vec2,
@@ -29,7 +30,7 @@ impl NixoApp {
             let hovered = response.hovered();
             let pressed = response.is_pointer_button_down_on();
 
-            // Fundo Ghost: invisível em repouso, destaque circular/arredondado translúcido no hover/clique
+            // Fundo Ghost translúcido em hover/press
             if pressed {
                 ui.painter().rect_filled(
                     rect,
@@ -53,48 +54,77 @@ impl NixoApp {
             let c = rect.center();
             let painter = ui.painter();
 
+            // Escala e projeção do grid Lucide 24x24 para ~21px na tela
+            let scale = 0.88_f32;
+            let p = |x: f32, y: f32| Pos2::new(c.x + (x - 12.0) * scale, c.y + (y - 12.0) * scale);
+            let stroke = Stroke::new(1.85_f32, fg);
+
             match icon {
                 ControlIcon::Play => {
-                    // Triângulo de Play opticamente centralizado (+2.0px à direita), maior e nítido
-                    let pts = vec![
-                        Pos2::new(c.x - 6.5, c.y - 9.5),
-                        Pos2::new(c.x + 10.5, c.y),
-                        Pos2::new(c.x - 6.5, c.y + 9.5),
-                    ];
-                    painter.add(egui::Shape::convex_polygon(pts, fg, Stroke::NONE));
+                    // Lucide 'play': triângulo com cantos arredondados, opticamente centralizado (+0.9px no eixo X)
+                    let po = |x: f32, y: f32| {
+                        Pos2::new(c.x + (x - 12.0 + 0.9) * scale, c.y + (y - 12.0) * scale)
+                    };
+                    let pts = vec![po(6.0, 4.8), po(18.5, 12.0), po(6.0, 19.2)];
+                    painter.add(Shape::convex_polygon(pts, fg, Stroke::new(1.85_f32, fg)));
                 }
                 ControlIcon::Pause => {
-                    // Duas barras verticais simétricas proporcionais ampliadas
-                    let bar_w = 4.8;
-                    let bar_h = 19.0;
-                    let gap = 4.8;
-                    painter.rect_filled(
-                        Rect::from_center_size(Pos2::new(c.x - gap, c.y), vec2(bar_w, bar_h)),
-                        CornerRadius::same(1),
-                        fg,
-                    );
-                    painter.rect_filled(
-                        Rect::from_center_size(Pos2::new(c.x + gap, c.y), vec2(bar_w, bar_h)),
-                        CornerRadius::same(1),
-                        fg,
-                    );
+                    // Lucide 'pause': duas barras verticais com cantos arredondados (x=5..10 e x=14..19)
+                    let r1 = Rect::from_min_max(p(5.0, 3.2), p(10.0, 20.8));
+                    let r2 = Rect::from_min_max(p(14.0, 3.2), p(19.0, 20.8));
+                    painter.rect_filled(r1, CornerRadius::same(1), fg);
+                    painter.rect_filled(r2, CornerRadius::same(1), fg);
                 }
                 ControlIcon::NextTrack => {
-                    // Ícone Next estilo YouTube ampliado: triângulo apontando para direita + barra vertical
-                    let pts = vec![
-                        Pos2::new(c.x - 7.2, c.y - 9.0),
-                        Pos2::new(c.x + 3.0, c.y),
-                        Pos2::new(c.x - 7.2, c.y + 9.0),
-                    ];
-                    painter.add(egui::Shape::convex_polygon(pts, fg, Stroke::NONE));
+                    // Lucide 'skip-forward': triângulo apontando para a direita + barra vertical de parada
+                    let pts = vec![p(4.0, 4.8), p(16.0, 12.0), p(4.0, 19.2)];
+                    painter.add(Shape::convex_polygon(pts, fg, Stroke::new(1.6_f32, fg)));
                     painter.rect_filled(
-                        Rect::from_center_size(Pos2::new(c.x + 6.8, c.y), vec2(3.2, 18.0)),
+                        Rect::from_min_max(p(18.5, 4.0), p(21.0, 20.0)),
                         CornerRadius::same(1),
                         fg,
                     );
                 }
+                ControlIcon::Volume { level, muted } => {
+                    // Lucide 'volume-2' / 'volume-1' / 'volume-x'
+                    let body = vec![
+                        p(3.0, 8.5),
+                        p(6.2, 8.5),
+                        p(11.0, 4.5),
+                        p(11.0, 19.5),
+                        p(6.2, 15.5),
+                        p(3.0, 15.5),
+                    ];
+                    painter.add(Shape::convex_polygon(body, fg, Stroke::new(1.4_f32, fg)));
+
+                    if muted || level <= 0.1 {
+                        // Lucide 'volume-x': 'X' à direita do alto-falante
+                        painter.line_segment([p(15.5, 8.5), p(21.5, 15.5)], stroke);
+                        painter.line_segment([p(15.5, 15.5), p(21.5, 8.5)], stroke);
+                    } else {
+                        // Lucide 'volume-1': arco de onda interna (raio ~5.2)
+                        let arc1: Vec<Pos2> = (-3..=3)
+                            .map(|i| {
+                                let a = (i as f32 / 3.0) * 0.78_f32;
+                                p(11.0 + 5.2 * a.cos(), 12.0 + 5.2 * a.sin())
+                            })
+                            .collect();
+                        painter.add(Shape::line(arc1, stroke));
+
+                        // Lucide 'volume-2': arco de onda externa (raio ~9.2 para volume >= 50%)
+                        if level >= 50.0 {
+                            let arc2: Vec<Pos2> = (-4..=4)
+                                .map(|i| {
+                                    let a = (i as f32 / 4.0) * 0.78_f32;
+                                    p(11.0 + 9.2 * a.cos(), 12.0 + 9.2 * a.sin())
+                                })
+                                .collect();
+                            painter.add(Shape::line(arc2, stroke));
+                        }
+                    }
+                }
                 ControlIcon::Subtitles { active } => {
-                    // Ícone de Legendas proporcional e equilibrado
+                    // Lucide 'captions': retângulo arredondado 18x14 com linhas de diálogo estilizadas
                     let icon_color = if active {
                         ACCENT_COLOR
                     } else if hovered || pressed {
@@ -102,349 +132,116 @@ impl NixoApp {
                     } else {
                         Color32::from_gray(185)
                     };
+                    let cc_st = Stroke::new(1.85_f32, icon_color);
+                    let frame = Rect::from_min_max(p(3.0, 5.0), p(21.0, 19.0));
+                    painter.rect_stroke(frame, CornerRadius::same(2), cc_st, StrokeKind::Inside);
 
-                    let badge_rect = Rect::from_center_size(c, vec2(18.5, 13.5));
-                    let stroke = Stroke::new(1.85_f32, icon_color);
-
-                    // Contorno da tela de exibição
-                    painter.rect_stroke(
-                        badge_rect,
-                        CornerRadius::same(2),
-                        stroke,
-                        egui::StrokeKind::Inside,
-                    );
-
-                    // Linhas de texto de diálogo na base
-                    let line_stroke = Stroke::new(1.6_f32, icon_color);
-                    let y1 = c.y + 0.8;
-                    let y2 = c.y + 3.8;
-
-                    // Linha 1: traço curto à esquerda + traço longo à direita
-                    painter.line_segment(
-                        [Pos2::new(c.x - 5.2, y1), Pos2::new(c.x - 2.0, y1)],
-                        line_stroke,
-                    );
-                    painter.line_segment(
-                        [Pos2::new(c.x + 0.8, y1), Pos2::new(c.x + 5.2, y1)],
-                        line_stroke,
-                    );
-
-                    // Linha 2: traço longo à esquerda + traço curto à direita
-                    painter.line_segment(
-                        [Pos2::new(c.x - 5.2, y2), Pos2::new(c.x + 0.2, y2)],
-                        line_stroke,
-                    );
-                    painter.line_segment(
-                        [Pos2::new(c.x + 2.8, y2), Pos2::new(c.x + 5.2, y2)],
-                        line_stroke,
-                    );
+                    let line_st = Stroke::new(1.65_f32, icon_color);
+                    // Linha superior (y=10.5): curto + longo
+                    painter.line_segment([p(6.8, 10.5), p(9.2, 10.5)], line_st);
+                    painter.line_segment([p(12.5, 10.5), p(17.2, 10.5)], line_st);
+                    // Linha inferior (y=14.5): longo + curto
+                    painter.line_segment([p(6.8, 14.5), p(11.5, 14.5)], line_st);
+                    painter.line_segment([p(14.8, 14.5), p(17.2, 14.5)], line_st);
                 }
                 ControlIcon::SettingsGear => {
-                    // Ícone de engrenagem estilo YouTube proporcional e arejado
-                    let r_outer = 8.8;
-                    let r_inner = 4.2;
-                    let stroke = Stroke::new(1.85_f32, fg);
-                    painter.circle_stroke(c, r_inner, stroke);
+                    // Lucide 'settings': anel central com engrenagem de 6 dentes arredondados simétricos
+                    painter.circle_stroke(c, 3.0 * scale, stroke);
 
-                    // Dentes da engrenagem distribuídos simetricamente
-                    let teeth_stroke = Stroke::new(2.6_f32, fg);
-                    for i in 0..6 {
-                        let angle = (i as f32) * std::f32::consts::PI / 3.0;
-                        let p1 = Pos2::new(
-                            c.x + (r_inner + 1.0) * angle.cos(),
-                            c.y + (r_inner + 1.0) * angle.sin(),
-                        );
-                        let p2 =
-                            Pos2::new(c.x + r_outer * angle.cos(), c.y + r_outer * angle.sin());
-                        painter.line_segment([p1, p2], teeth_stroke);
-                    }
-                }
-                ControlIcon::Volume { level, muted } => {
-                    // Corpo do alto-falante ampliado
-                    let sx = c.x - 4.2;
-                    painter.rect_filled(
-                        Rect::from_min_max(
-                            Pos2::new(sx - 7.2, c.y - 3.8),
-                            Pos2::new(sx - 2.5, c.y + 3.8),
-                        ),
-                        CornerRadius::same(1),
-                        fg,
-                    );
-                    let cone = vec![
-                        Pos2::new(sx - 2.8, c.y - 3.8),
-                        Pos2::new(sx + 3.5, c.y - 9.2),
-                        Pos2::new(sx + 3.5, c.y + 9.2),
-                        Pos2::new(sx - 2.8, c.y + 3.8),
-                    ];
-                    painter.add(egui::Shape::convex_polygon(cone, fg, Stroke::NONE));
-
-                    let stroke = Stroke::new(2.2_f32, fg);
-                    if muted || level <= 0.1 {
-                        // Ícone 'X' de mudo ao lado do cone
-                        let x0 = sx + 6.2;
-                        let x1 = sx + 13.5;
-                        painter.line_segment(
-                            [Pos2::new(x0, c.y - 4.2), Pos2::new(x1, c.y + 4.2)],
-                            stroke,
-                        );
-                        painter.line_segment(
-                            [Pos2::new(x1, c.y - 4.2), Pos2::new(x0, c.y + 4.2)],
-                            stroke,
-                        );
-                    } else {
-                        // Onda sonora interna (curva suave)
-                        let origin = Pos2::new(sx + 2.0, c.y);
-                        let wave1: Vec<Pos2> = (-3..=3)
-                            .map(|i| {
-                                let angle = (i as f32) * 0.22;
-                                Pos2::new(
-                                    origin.x + 6.5 * angle.cos(),
-                                    origin.y + 6.5 * angle.sin(),
-                                )
-                            })
-                            .collect();
-                        painter.add(egui::Shape::line(wave1, stroke));
-
-                        // Onda sonora externa (para volume >= 50%)
-                        if level >= 50.0 {
-                            let wave2: Vec<Pos2> = (-3..=3)
-                                .map(|i| {
-                                    let angle = (i as f32) * 0.24;
-                                    Pos2::new(
-                                        origin.x + 11.0 * angle.cos(),
-                                        origin.y + 11.0 * angle.sin(),
-                                    )
-                                })
-                                .collect();
-                            painter.add(egui::Shape::line(wave2, stroke));
-                        }
-                    }
+                    let cog_pts: Vec<Pos2> = (0..48)
+                        .map(|i| {
+                            let angle = (i as f32 / 48.0) * std::f32::consts::TAU;
+                            let tooth = (angle * 6.0).cos();
+                            let r = 8.2 + 1.6 * (tooth / 0.85).clamp(-1.0, 1.0);
+                            Pos2::new(c.x + r * scale * angle.cos(), c.y + r * scale * angle.sin())
+                        })
+                        .collect();
+                    painter.add(Shape::closed_line(cog_pts, stroke));
                 }
                 ControlIcon::OpenFile => {
-                    // Ícone de pasta vetorial estilo SF Symbols / Lucide (silhueta contínua elegante)
-                    let stroke = Stroke::new(1.85_f32, fg);
-                    let x0 = c.x - 8.5;
-                    let x1 = c.x + 8.5;
-                    let y_tab = c.y - 6.2;
-                    let y_top = c.y - 3.4;
-                    let y_bot = c.y + 6.2;
-                    let tab_w = 5.5;
-
-                    // Contorno contínuo da pasta com aba superior integrada e cantos chanfrados suaves
-                    let folder_pts = vec![
-                        Pos2::new(x0 + 1.6, y_tab),
-                        Pos2::new(x0 + tab_w, y_tab),
-                        Pos2::new(x0 + tab_w + 2.0, y_top),
-                        Pos2::new(x1 - 1.6, y_top),
-                        Pos2::new(x1, y_top + 1.6),
-                        Pos2::new(x1, y_bot - 1.6),
-                        Pos2::new(x1 - 1.6, y_bot),
-                        Pos2::new(x0 + 1.6, y_bot),
-                        Pos2::new(x0, y_bot - 1.6),
-                        Pos2::new(x0, y_tab + 1.6),
+                    // Lucide 'folder': silhueta canônica de pasta com aba chanfrada superior esquerda
+                    let pts = vec![
+                        p(4.0, 4.0),
+                        p(8.0, 4.0),
+                        p(10.2, 6.5),
+                        p(20.0, 6.5),
+                        p(21.5, 8.0),
+                        p(21.5, 18.5),
+                        p(20.0, 20.0),
+                        p(4.0, 20.0),
+                        p(2.5, 18.5),
+                        p(2.5, 5.5),
                     ];
-                    painter.add(egui::Shape::closed_line(folder_pts, stroke));
-
-                    // Vinco sutil do bolso frontal para dar profundidade estética
-                    let fold_y = c.y + 0.8;
-                    let pocket_stroke = Stroke::new(
-                        1.3_f32,
-                        Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 170),
-                    );
-                    painter.line_segment(
-                        [Pos2::new(x0 + 1.0, fold_y), Pos2::new(x1 - 1.0, fold_y)],
-                        pocket_stroke,
-                    );
+                    painter.add(Shape::closed_line(pts, stroke));
                 }
                 ControlIcon::Fullscreen { is_fullscreen } => {
-                    // Cantoneiras estilo YouTube (4 cantos em L) leves e proporcionais
-                    let r = 8.5;
-                    let arm = 5.0;
-                    let stroke = Stroke::new(1.85_f32, fg);
-
                     if !is_fullscreen {
-                        // Apontando para fora (Expandir)
-                        // Sup-Esq
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - r, c.y - r),
-                                Pos2::new(c.x - r + arm, c.y - r),
-                            ],
+                        // Lucide 'maximize': 4 cantoneiras apontando para fora
+                        painter.add(Shape::line(
+                            vec![p(8.0, 3.5), p(5.0, 3.5), p(3.5, 5.0), p(3.5, 8.0)],
                             stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - r, c.y - r),
-                                Pos2::new(c.x - r, c.y - r + arm),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(16.0, 3.5), p(19.0, 3.5), p(20.5, 5.0), p(20.5, 8.0)],
                             stroke,
-                        );
-                        // Sup-Dir
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + r, c.y - r),
-                                Pos2::new(c.x + r - arm, c.y - r),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(3.5, 16.0), p(3.5, 19.0), p(5.0, 20.5), p(8.0, 20.5)],
                             stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + r, c.y - r),
-                                Pos2::new(c.x + r, c.y - r + arm),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(16.0, 20.5), p(19.0, 20.5), p(20.5, 19.0), p(20.5, 16.0)],
                             stroke,
-                        );
-                        // Inf-Esq
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - r, c.y + r),
-                                Pos2::new(c.x - r + arm, c.y + r),
-                            ],
-                            stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - r, c.y + r),
-                                Pos2::new(c.x - r, c.y + r - arm),
-                            ],
-                            stroke,
-                        );
-                        // Inf-Dir
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + r, c.y + r),
-                                Pos2::new(c.x + r - arm, c.y + r),
-                            ],
-                            stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + r, c.y + r),
-                                Pos2::new(c.x + r, c.y + r - arm),
-                            ],
-                            stroke,
-                        );
+                        ));
                     } else {
-                        // Apontando para dentro (Sair da Tela Cheia)
-                        let inner = r - arm + 1.0;
-                        // Sup-Esq
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - inner, c.y - inner),
-                                Pos2::new(c.x - r, c.y - inner),
-                            ],
+                        // Lucide 'minimize': 4 cantoneiras internas apontando para dentro
+                        painter.add(Shape::line(
+                            vec![p(8.5, 3.5), p(8.5, 6.0), p(6.0, 8.5), p(3.5, 8.5)],
                             stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - inner, c.y - inner),
-                                Pos2::new(c.x - inner, c.y - r),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(20.5, 8.5), p(18.0, 8.5), p(15.5, 6.0), p(15.5, 3.5)],
                             stroke,
-                        );
-                        // Sup-Dir
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + inner, c.y - inner),
-                                Pos2::new(c.x + r, c.y - inner),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(3.5, 15.5), p(6.0, 15.5), p(8.5, 18.0), p(8.5, 20.5)],
                             stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + inner, c.y - inner),
-                                Pos2::new(c.x + inner, c.y - r),
-                            ],
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(20.5, 15.5), p(18.0, 15.5), p(15.5, 18.0), p(15.5, 20.5)],
                             stroke,
-                        );
-                        // Inf-Esq
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - inner, c.y + inner),
-                                Pos2::new(c.x - r, c.y + inner),
-                            ],
-                            stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - inner, c.y + inner),
-                                Pos2::new(c.x - inner, c.y + r),
-                            ],
-                            stroke,
-                        );
-                        // Inf-Dir
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + inner, c.y + inner),
-                                Pos2::new(c.x + r, c.y + inner),
-                            ],
-                            stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + inner, c.y + inner),
-                                Pos2::new(c.x + inner, c.y + r),
-                            ],
-                            stroke,
-                        );
+                        ));
                     }
                 }
                 ControlIcon::AspectFit { active } => {
+                    // Lucide frame + chevrons de expansão ou barras de proporção
                     let icon_color = if active { ACCENT_COLOR } else { fg };
-                    let stroke = Stroke::new(1.85_f32, icon_color);
-
-                    let frame = Rect::from_center_size(c, vec2(18.0, 13.5));
-                    painter.rect_stroke(frame, CornerRadius::same(2), stroke, StrokeKind::Inside);
+                    let st = Stroke::new(1.85_f32, icon_color);
+                    let frame = Rect::from_min_max(p(2.5, 5.0), p(21.5, 19.0));
+                    painter.rect_stroke(frame, CornerRadius::same(2), st, StrokeKind::Inside);
 
                     if active {
-                        // Preenchimento translúcido com brilho verde Nixo
                         let inner = frame.shrink(2.0);
                         painter.rect_filled(
                             inner,
                             CornerRadius::same(1),
                             Color32::from_rgba_unmultiplied(47, 229, 11, 40),
                         );
-                        // Setas duplas de expansão horizontal (indicando eliminação de barras pretas)
-                        let arrow_stroke = Stroke::new(1.6_f32, ACCENT_COLOR);
-                        let y = c.y;
-                        painter.line_segment(
-                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x + 4.5, y)],
-                            arrow_stroke,
-                        );
-                        painter.line_segment(
-                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x - 2.5, y - 2.0)],
-                            arrow_stroke,
-                        );
-                        painter.line_segment(
-                            [Pos2::new(c.x - 4.5, y), Pos2::new(c.x - 2.5, y + 2.0)],
-                            arrow_stroke,
-                        );
-                        painter.line_segment(
-                            [Pos2::new(c.x + 4.5, y), Pos2::new(c.x + 2.5, y - 2.0)],
-                            arrow_stroke,
-                        );
-                        painter.line_segment(
-                            [Pos2::new(c.x + 4.5, y), Pos2::new(c.x + 2.5, y + 2.0)],
-                            arrow_stroke,
-                        );
+                        let arrow_st = Stroke::new(1.65_f32, ACCENT_COLOR);
+                        painter.line_segment([p(6.0, 12.0), p(18.0, 12.0)], arrow_st);
+                        painter.add(Shape::line(
+                            vec![p(8.5, 9.5), p(6.0, 12.0), p(8.5, 14.5)],
+                            arrow_st,
+                        ));
+                        painter.add(Shape::line(
+                            vec![p(15.5, 9.5), p(18.0, 12.0), p(15.5, 14.5)],
+                            arrow_st,
+                        ));
                     } else {
-                        // Barras sutis de proporção (letterbox/pillarbox) indicando proporção solta
                         let bar_color = Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 90);
-                        let bar_stroke = Stroke::new(1.3_f32, bar_color);
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x - 4.5, c.y - 4.2),
-                                Pos2::new(c.x - 4.5, c.y + 4.2),
-                            ],
-                            bar_stroke,
-                        );
-                        painter.line_segment(
-                            [
-                                Pos2::new(c.x + 4.5, c.y - 4.2),
-                                Pos2::new(c.x + 4.5, c.y + 4.2),
-                            ],
-                            bar_stroke,
-                        );
+                        let bar_st = Stroke::new(1.4_f32, bar_color);
+                        painter.line_segment([p(6.5, 7.0), p(6.5, 17.0)], bar_st);
+                        painter.line_segment([p(17.5, 7.0), p(17.5, 17.0)], bar_st);
                     }
                 }
             }
@@ -452,7 +249,6 @@ impl NixoApp {
 
         let response = response.on_hover_cursor(egui::CursorIcon::PointingHand);
 
-        // Tooltip flutuante centralizado estilo YouTube/IINA: cápsula escura elegante logo acima do botão
         if !tooltip.is_empty() {
             let tt_id = response.id.with("yt_tooltip");
             let is_hovered = response.hovered();
