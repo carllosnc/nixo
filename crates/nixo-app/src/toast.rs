@@ -181,8 +181,7 @@ pub(crate) fn copy_screenshot_to_clipboard_async(path: PathBuf) {
         for _ in 0..40 {
             if let Ok(bytes) = std::fs::read(&path)
                 && !bytes.is_empty()
-                && let Ok(img) =
-                    image::load_from_memory_with_format(&bytes, image::ImageFormat::Png)
+                && let Ok(img) = image::load_from_memory(&bytes)
             {
                 let rgba = img.to_rgba8();
                 let (w, h) = rgba.dimensions();

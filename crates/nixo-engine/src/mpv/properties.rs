@@ -464,6 +464,8 @@ impl MpvBackend {
         if let Some(parent) = path.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
+        self.set_property_string(c"screenshot-format", c"png");
+        self.set_property_string(c"screenshot-png-compression", c"4");
         let path_str = path.to_string_lossy().into_owned();
         if let Ok(c_path) = CString::new(path_str) {
             let args = [

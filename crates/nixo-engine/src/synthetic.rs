@@ -324,12 +324,13 @@ impl MediaBackend for SyntheticBackend {
                     let _ = std::fs::create_dir_all(parent);
                 }
                 let frame = self.generate_frame();
-                let _ = image::save_buffer(
+                let _ = image::save_buffer_with_format(
                     &path,
                     &frame.rgba,
                     frame.width,
                     frame.height,
                     image::ExtendedColorType::Rgba8,
+                    image::ImageFormat::Png,
                 );
             }
         }

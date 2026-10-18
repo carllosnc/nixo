@@ -81,6 +81,9 @@ impl MpvBackend {
             api.set_opt(handle, c"sub-use-margins", c"yes");
             api.set_opt(handle, c"sub-pos", c"92");
             api.set_opt(handle, c"sub-margin-y", c"52");
+            api.set_opt(handle, c"screenshot-format", c"png");
+            api.set_opt(handle, c"screenshot-png-compression", c"4");
+            api.set_opt(handle, c"screenshot-tag-colorspace", c"yes");
 
             let init_rc = (api.initialize)(handle);
             if init_rc < 0 {
@@ -237,8 +240,7 @@ impl MediaBackend for MpvBackend {
                 }
             }
             PlayerCommand::Stop => {
-                let c_cmd = c"stop";
-                let args = [c_cmd.as_ptr(), ptr::null()];
+                let args = [c"stop".as_ptr(), ptr::null()];
                 // SAFETY: `args` é um array terminado em nulo de strings C válidas.
                 unsafe {
                     let _ = (self.api.command)(self.handle, args.as_ptr());
@@ -250,14 +252,11 @@ impl MediaBackend for MpvBackend {
             }
             PlayerCommand::Seek(pos) => {
                 let target = pos.as_secs_f64().max(0.0);
-                let target_str = format!("{target:.3}");
-                if let Ok(c_target) = CString::new(target_str) {
-                    let c_cmd = c"seek";
-                    let c_mode = c"absolute";
+                if let Ok(c_target) = CString::new(format!("{target:.3}")) {
                     let args = [
-                        c_cmd.as_ptr(),
+                        c"seek".as_ptr(),
                         c_target.as_ptr(),
-                        c_mode.as_ptr(),
+                        c"absolute".as_ptr(),
                         ptr::null(),
                     ];
                     // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
@@ -270,14 +269,11 @@ impl MediaBackend for MpvBackend {
                 self.first_frame_pending = true;
             }
             PlayerCommand::SeekRelative(delta_secs) => {
-                let delta_str = format!("{delta_secs:.3}");
-                if let Ok(c_delta) = CString::new(delta_str) {
-                    let c_cmd = c"seek";
-                    let c_mode = c"relative";
+                if let Ok(c_delta) = CString::new(format!("{delta_secs:.3}")) {
                     let args = [
-                        c_cmd.as_ptr(),
+                        c"seek".as_ptr(),
                         c_delta.as_ptr(),
-                        c_mode.as_ptr(),
+                        c"relative".as_ptr(),
                         ptr::null(),
                     ];
                     // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
