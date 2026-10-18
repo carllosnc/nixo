@@ -52,8 +52,8 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hover_t =
                         ui.ctx()
                             .animate_bool_with_time(resp.id.with("chip_hover"), hovered, 0.15);
-                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
-                    let icon_color = lerp_color(TEXT_SECONDARY, Color32::WHITE, hover_t);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
+                    let icon_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
                     let text_color = lerp_color(TEXT_PRIMARY, Color32::WHITE, hover_t);
 
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
@@ -121,7 +121,7 @@ pub fn render_folder_browser(ui: &mut Ui, content: &FolderContent) -> HomeAction
                     let hover_t =
                         ui.ctx()
                             .animate_bool_with_time(resp.id.with("file_hover"), hovered, 0.15);
-                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
+                    let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
                     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Área de thumbnail com cantos arredondados no topo

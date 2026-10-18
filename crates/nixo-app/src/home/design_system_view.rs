@@ -272,7 +272,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         let ht = ui
             .ctx()
             .animate_bool_with_time(resp.id.with("demo_folder"), resp.hovered(), 0.15);
-        let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
+        let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, ht);
         ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
         let ic_col = lerp_color(TEXT_SECONDARY, Color32::WHITE, ht);
@@ -319,7 +319,7 @@ fn render_folder_cards_section(ui: &mut Ui) {
         let cht =
             ui.ctx()
                 .animate_bool_with_time(cresp.id.with("demo_chip"), cresp.hovered(), 0.15);
-        let cbg = lerp_color(SURFACE_LOW, SURFACE_HIGH, cht);
+        let cbg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, cht);
         ui.painter().rect_filled(cr, RADIUS_MD, cbg);
         let cic = lerp_color(TEXT_SECONDARY, Color32::WHITE, cht);
         ui.painter().text(
@@ -375,7 +375,7 @@ fn render_sample_media_card(ui: &mut Ui, title: &str, ext: &str, size: &str, ico
     let ht = ui
         .ctx()
         .animate_bool_with_time(resp.id.with("demo_media"), resp.hovered(), 0.15);
-    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, ht);
+    let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, ht);
     ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
     let thumb_h = 96.0;

@@ -52,8 +52,12 @@ pub const SURFACE_LOW: Color32 = NEUTRAL_900;
 /// Superfície 2: Botões secundários, chips de pasta e inputs (Tailwind neutral-800).
 pub const SURFACE_MED: Color32 = NEUTRAL_800;
 
-/// Superfície 3: Estado hover de botões, chips e cartões (Tailwind neutral-700).
+/// Superfície 3: Estado hover de botões e controles compactos (Tailwind neutral-700).
 pub const SURFACE_HIGH: Color32 = NEUTRAL_700;
+
+/// Superfície de hover suave para cards (pastas, mídias e subpastas).
+/// Elevação aveludada (Tailwind neutral-850 aprox. #202020 / rgb(32, 32, 32)).
+pub const SURFACE_CARD_HOVER: Color32 = Color32::from_rgb(32, 32, 32);
 
 /// Superfície Ativa: Estado pressionado / selecionado (Tailwind neutral-600).
 pub const SURFACE_ACTIVE: Color32 = NEUTRAL_600;
