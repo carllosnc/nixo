@@ -69,11 +69,10 @@ pub fn render_folders_view(
                         hovered,
                         0.15,
                     );
-                    let bg = lerp_color(SURFACE_LOW, SURFACE_HIGH, hover_t);
+                    paint_card_surface(ui.painter(), rect, RADIUS_MD, hover_t);
+
                     let icon_color = lerp_color(TEXT_SECONDARY, Color32::WHITE, hover_t);
                     let title_color = lerp_color(TEXT_PRIMARY, Color32::WHITE, hover_t);
-
-                    ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
                     // Ícone Lucide da pasta sem wrapper
                     let icon_pos = Pos2::new(rect.left() + 20.0, rect.top() + 32.0);
