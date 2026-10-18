@@ -80,11 +80,12 @@ impl NixoApp {
             let normalized = ((*value - min) / span).clamp(0.0, 1.0) as f32;
             let center_y = rect.center().y;
             let is_active = response.hovered() || is_pressing;
-            let current_rail_h = if is_active {
-                rail_height + 2.0
-            } else {
-                rail_height
-            };
+
+            let active_t =
+                ui.ctx()
+                    .animate_bool_with_time(response.id.with("slider_anim"), is_active, 0.12);
+
+            let current_rail_h = egui::lerp(rail_height..=(rail_height + 1.5), active_t);
 
             // 1. Trilho de fundo (rail não preenchido)
             let rail_rect = Rect::from_min_max(
@@ -93,7 +94,7 @@ impl NixoApp {
             );
             ui.painter().rect_filled(
                 rail_rect,
-                CornerRadius::same(2),
+                CornerRadius::same(1),
                 Color32::from_rgb(38, 41, 52),
             );
 
@@ -108,8 +109,8 @@ impl NixoApp {
                 );
                 ui.painter().rect_filled(
                     hover_rect,
-                    CornerRadius::same(2),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 55),
+                    CornerRadius::same(1),
+                    Color32::from_rgba_unmultiplied(255, 255, 255, 50),
                 );
             }
 
@@ -120,14 +121,10 @@ impl NixoApp {
                 Pos2::new(handle_x, center_y + current_rail_h * 0.5),
             );
             ui.painter()
-                .rect_filled(filled_rect, CornerRadius::same(2), ACCENT_COLOR);
+                .rect_filled(filled_rect, CornerRadius::same(1), ACCENT_COLOR);
 
-            // 3. Círculo do indicador: menor, exatamente na cor da barra (ACCENT_COLOR) e sem borda!
-            let radius = if is_active {
-                handle_radius + 1.5
-            } else {
-                handle_radius
-            };
+            // 3. Círculo do indicador: menor, exatamente na cor da barra (ACCENT_COLOR) e sem borda
+            let radius = egui::lerp(handle_radius..=(handle_radius + 1.8), active_t);
             ui.painter().circle(
                 Pos2::new(handle_x, center_y),
                 radius,

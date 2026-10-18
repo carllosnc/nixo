@@ -34,7 +34,7 @@ impl NixoApp {
         // 1. Linha Superior: Seekbar 100% de ponta a ponta (estilo YouTube)
         let total_w = ui.available_width();
         let slider_resp =
-            Self::render_compact_slider(ui, &mut current_secs, 0.0..=total_secs, total_w, 4.0, 6.0);
+            Self::render_compact_slider(ui, &mut current_secs, 0.0..=total_secs, total_w, 2.5, 3.5);
         let is_dragging = slider_resp.dragged();
         let drag_ended = slider_resp.drag_stopped();
 
@@ -155,7 +155,7 @@ impl NixoApp {
         };
         let mut vol_f64 = vol as f64;
         let vol_resp =
-            Self::render_compact_slider(&mut left_ui, &mut vol_f64, 0.0..=100.0, 85.0, 4.0, 5.0);
+            Self::render_compact_slider(&mut left_ui, &mut vol_f64, 0.0..=100.0, 85.0, 2.5, 3.0);
         if vol_resp.changed() {
             let next_vol = vol_f64 as f32;
             if self.status.muted && next_vol > 0.0 {
