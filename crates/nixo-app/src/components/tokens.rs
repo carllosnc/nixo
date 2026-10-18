@@ -43,8 +43,8 @@ pub const NEUTRAL_900: Color32 = Color32::from_rgb(23, 23, 23);
 pub const NEUTRAL_950: Color32 = Color32::from_rgb(10, 10, 10);
 
 // ── Camadas Semânticas de Elevação (Superfícies) ──
-/// Fundo principal OLED da aplicação (Tailwind neutral-950).
-pub const BG_BASE: Color32 = NEUTRAL_950;
+/// Fundo principal com leve transparência translúcida (Tailwind neutral-950 com ~85% de opacidade).
+pub const BG_BASE: Color32 = Color32::from_rgba_premultiplied(8, 8, 8, 218);
 
 /// Superfície 1: Cards inativos, agrupadores, barras e cabeçalhos (Tailwind neutral-900).
 pub const SURFACE_LOW: Color32 = NEUTRAL_900;

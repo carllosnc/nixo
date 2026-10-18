@@ -255,7 +255,7 @@ impl NixoApp {
 
     pub(crate) fn configure_theme(ctx: &Context) {
         let mut visuals = egui::Visuals::dark();
-        visuals.panel_fill = BG_OLED_BLACK;
+        visuals.panel_fill = Color32::TRANSPARENT;
         visuals.window_fill = Color32::from_rgba_premultiplied(24, 24, 28, 248);
         visuals.window_stroke =
             Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, 25));
@@ -366,7 +366,16 @@ impl NixoApp {
                     4,
                 );
 
-                // 5. Força o DWM e o Windows a redesenharem a moldura/barra de título imediatamente (SWP_FRAMECHANGED)
+                // 5. DWMWA_SYSTEMBACKDROP_TYPE (38) = 3 (Acrylic blur nativo no Windows 11)
+                let acrylic_backdrop: u32 = 3;
+                let _ = set_attrib(
+                    hwnd,
+                    38,
+                    (&raw const acrylic_backdrop).cast::<std::ffi::c_void>(),
+                    4,
+                );
+
+                // 6. Força o DWM e o Windows a redesenharem a moldura/barra de título imediatamente (SWP_FRAMECHANGED)
                 const SWP_FRAMECHANGED: u32 = 0x0020;
                 const SWP_NOMOVE: u32 = 0x0002;
                 const SWP_NOSIZE: u32 = 0x0001;

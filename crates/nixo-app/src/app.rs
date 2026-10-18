@@ -312,9 +312,13 @@ impl eframe::App for NixoApp {
             ctx.set_cursor_icon(egui::CursorIcon::None);
         }
 
-        // 1. Painel Central: Canvas de vídeo ou Tela Inicial (Home)
+        let panel_bg = if self.status.state != PlaybackState::Stopped {
+            BG_OLED_BLACK
+        } else {
+            crate::components::tokens::BG_BASE
+        };
         egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(BG_OLED_BLACK))
+            .frame(egui::Frame::NONE.fill(panel_bg))
             .show(ctx, |ui| {
                 if self.status.state != PlaybackState::Stopped {
                     let avail = ui.available_size();
