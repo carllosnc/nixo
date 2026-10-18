@@ -108,8 +108,7 @@ pub fn render_folder_browser(
                 action = HomeAction::OpenFolder(dir.path.clone());
             }
 
-            resp.on_hover_cursor(CursorIcon::PointingHand)
-                .on_hover_text(&dir.name);
+            resp.on_hover_cursor(CursorIcon::PointingHand);
 
             ui.add_space(spacing);
         }
@@ -304,8 +303,7 @@ pub fn render_folder_browser(
                 action = HomeAction::PlayFile(item.path.clone());
             }
 
-            resp.on_hover_cursor(CursorIcon::PointingHand)
-                .on_hover_text(format!("{}\n{}", item.name, item.size_formatted));
+            resp.on_hover_cursor(CursorIcon::PointingHand);
 
             ui.add_space(spacing);
         }

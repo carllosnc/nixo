@@ -184,8 +184,7 @@ pub fn render_folders_view(
                 action = HomeAction::OpenFolder(folder.clone());
             }
 
-            resp.on_hover_cursor(CursorIcon::PointingHand)
-                .on_hover_text(format!("{folder_name}\n{}", folder.display()));
+            resp.on_hover_cursor(CursorIcon::PointingHand);
 
             ui.add_space(spacing);
         }
