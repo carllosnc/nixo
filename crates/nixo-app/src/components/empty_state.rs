@@ -1,9 +1,11 @@
-use egui::{Align2, CursorIcon, RichText, Sense, Stroke, Ui, vec2};
+//! Componente de Empty State espaçoso e neutro, sem caixas com bordas duras.
+
+use egui::{Align2, RichText, Sense, Ui, vec2};
 
 use super::tokens::*;
 use crate::lucide;
 
-/// Renderiza um estado vazio elegante e minimalista.
+/// Renderiza um estado vazio elegante e minimalista com cantos full rounded.
 pub fn render_empty_state(
     ui: &mut Ui,
     icon: &str,
@@ -43,17 +45,7 @@ pub fn render_empty_state(
 
         if let Some(act) = action_text {
             ui.add_space(16.0);
-            let btn = egui::Button::new(RichText::new(act).font(font_body()).color(TEXT_PRIMARY))
-                .fill(SURFACE_MED)
-                .stroke(Stroke::NONE)
-                .corner_radius(RADIUS_MD);
-
-            let resp = ui
-                .add_sized([180.0, 34.0], btn)
-                .on_hover_cursor(CursorIcon::PointingHand);
-            if resp.hovered() {
-                ui.painter().rect_filled(resp.rect, RADIUS_MD, SURFACE_HIGH);
-            }
+            let resp = super::button::primary(ui, Some(lucide::PLUS), act);
             action_resp = Some(resp);
         }
     });
