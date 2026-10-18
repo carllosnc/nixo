@@ -4,16 +4,17 @@
 //! - [`delay_stepper`]: micro-stepper para ajuste fino de sincronia com botões e reset por clique.
 
 use egui::{
-    Align2, CornerRadius, CursorIcon, Pos2, Rect, Response, Sense, Stroke, StrokeKind, Ui, Widget,
-    vec2,
+    Align2, Color32, CornerRadius, CursorIcon, Pos2, Rect, Response, Sense, Stroke, StrokeKind, Ui,
+    Widget, vec2,
 };
 
 use super::primitives::{allocate_row, hover_color, paint_row_hover, paint_text};
+use crate::app::ACCENT_COLOR;
 use crate::popovers::style::menu_style;
 
 // ────────────────────────────── MenuToggle ───────────────────────────────
 
-/// Linha com interruptor ligado/desligado (toggle switch) no padrão OLED.
+/// Linha com interruptor ligado/desligado (toggle switch) no padrão OLED com animação fluida.
 pub(crate) struct MenuToggle<'a> {
     title: &'a str,
     active: bool,
@@ -23,6 +24,16 @@ impl<'a> MenuToggle<'a> {
     pub(crate) fn new(title: &'a str, active: bool) -> Self {
         Self { title, active }
     }
+}
+
+/// Interpola linearmente entre duas cores RGBA.
+fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
+    Color32::from_rgba_premultiplied(
+        (f32::from(a.r()) + (f32::from(b.r()) - f32::from(a.r())) * t + 0.5) as u8,
+        (f32::from(a.g()) + (f32::from(b.g()) - f32::from(a.g())) * t + 0.5) as u8,
+        (f32::from(a.b()) + (f32::from(b.b()) - f32::from(a.b())) * t + 0.5) as u8,
+        (f32::from(a.a()) + (f32::from(b.a()) - f32::from(a.a())) * t + 0.5) as u8,
+    )
 }
 
 impl Widget for MenuToggle<'_> {
@@ -43,48 +54,66 @@ impl Widget for MenuToggle<'_> {
             f32::INFINITY,
         );
 
-        let switch_w = 34.0;
-        let switch_h = 18.0;
+        let switch_w = 36.0;
+        let switch_h = 20.0;
         let switch_right = rect.right() - st.row_padding_x;
         let switch_rect = Rect::from_center_size(
             Pos2::new(switch_right - switch_w * 0.5, cy),
             vec2(switch_w, switch_h),
         );
 
-        let track_bg = if self.active {
-            st.button_fill_hover
+        // Animação de transição fluida do interruptor (0.0 = desligado, 1.0 = ligado)
+        let t = ui
+            .ctx()
+            .animate_bool_with_time(resp.id.with("switch_t"), self.active, 0.18);
+
+        let is_pressed = resp.is_pointer_button_down_on();
+        let stretch =
+            ui.ctx()
+                .animate_bool_with_time(resp.id.with("switch_stretch"), is_pressed, 0.10);
+
+        // Cores interpoladas para transição suave de fundo e borda
+        let track_fill_off = Color32::from_rgb(32, 32, 38);
+        let track_fill = lerp_color(track_fill_off, ACCENT_COLOR, t);
+
+        let stroke_off = if hovered {
+            Color32::from_rgb(90, 90, 102)
         } else {
-            st.row_selected_fill
+            Color32::from_rgb(58, 58, 66)
         };
-        let track_stroke = Stroke::new(
-            1.0_f32,
-            if self.active {
-                st.text_hover
-            } else {
-                st.popover_stroke.color
-            },
-        );
+        let track_stroke = Stroke::new(1.2_f32, lerp_color(stroke_off, ACCENT_COLOR, t));
+
         ui.painter().rect(
             switch_rect,
-            CornerRadius::same(9),
-            track_bg,
+            CornerRadius::same(10),
+            track_fill,
             track_stroke,
             StrokeKind::Inside,
         );
 
-        let thumb_r = 6.0;
-        let thumb_x = if self.active {
-            switch_rect.right() - 2.5 - thumb_r
-        } else {
-            switch_rect.left() + 2.5 + thumb_r
-        };
-        let thumb_color = if self.active {
-            st.text_hover
-        } else {
-            st.chevron_idle
-        };
+        let thumb_r = 6.8;
+        let x_off = switch_rect.left() + 3.2 + thumb_r;
+        let x_on = switch_rect.right() - 3.2 - thumb_r;
+        let thumb_x = egui::lerp(x_off..=x_on, t);
+
+        let thumb_color = lerp_color(Color32::from_rgb(175, 175, 185), Color32::WHITE, t);
+
+        // Sombra suave sob o botão quando ativo
+        if t > 0.05 {
+            let shadow_alpha = (50.0 * t) as u8;
+            ui.painter().circle_filled(
+                Pos2::new(thumb_x, cy + 1.0),
+                thumb_r,
+                Color32::from_black_alpha(shadow_alpha),
+            );
+        }
+
+        // Leve estiramento físico elástico ao pressionar
+        let thumb_w = thumb_r * 2.0 + stretch * 2.5;
+        let thumb_rect =
+            Rect::from_center_size(Pos2::new(thumb_x, cy), vec2(thumb_w, thumb_r * 2.0));
         ui.painter()
-            .circle_filled(Pos2::new(thumb_x, cy), thumb_r, thumb_color);
+            .rect_filled(thumb_rect, CornerRadius::same(thumb_r as u8), thumb_color);
 
         resp.on_hover_cursor(CursorIcon::PointingHand)
     }
