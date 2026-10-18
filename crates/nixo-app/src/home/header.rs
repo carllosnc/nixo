@@ -48,7 +48,10 @@ pub fn render_header(
 
     ui.horizontal(|ui| {
         if let Some(_path) = current_path {
-            if secondary(ui, Some(lucide::ARROW_LEFT), "Voltar").clicked() {
+            if secondary(ui, Some(lucide::ARROW_LEFT), "")
+                .on_hover_text("Voltar")
+                .clicked()
+            {
                 action = HomeAction::GoBack;
             }
 
@@ -61,7 +64,8 @@ pub fn render_header(
                         .font(font_body())
                         .color(TEXT_SECONDARY),
                 )
-                .on_hover_cursor(CursorIcon::PointingHand);
+                .on_hover_cursor(CursorIcon::PointingHand)
+                .on_hover_text("Ir para a tela inicial");
             if root_link.clicked() {
                 action = HomeAction::GoRoot;
             }
@@ -78,17 +82,21 @@ pub fn render_header(
                     .unwrap_or("Pasta");
 
                 let is_current = current_path.is_some_and(|p| p == crumb);
-                let crumb_text = RichText::new(crumb_name)
-                    .font(font_body())
-                    .color(if is_current {
-                        TEXT_PRIMARY
-                    } else {
-                        TEXT_SECONDARY
-                    });
+                let display_name = truncate_breadcrumb(crumb_name, 22);
+
+                let crumb_text =
+                    RichText::new(display_name)
+                        .font(font_body())
+                        .color(if is_current {
+                            TEXT_PRIMARY
+                        } else {
+                            TEXT_SECONDARY
+                        });
 
                 let link_resp = ui
                     .link(crumb_text)
-                    .on_hover_cursor(CursorIcon::PointingHand);
+                    .on_hover_cursor(CursorIcon::PointingHand)
+                    .on_hover_text(crumb_name);
                 if link_resp.clicked() && !is_current {
                     action = HomeAction::OpenFolder(crumb.clone());
                 }
@@ -162,4 +170,15 @@ pub fn render_header(
     );
 
     action
+}
+
+/// Trunca o texto do breadcrumb com reticências se exceder a contagem máxima de caracteres.
+fn truncate_breadcrumb(text: &str, max_chars: usize) -> String {
+    if text.chars().count() > max_chars {
+        let s: String = text.chars().take(max_chars.saturating_sub(1)).collect();
+        let trimmed = s.trim_end_matches([' ', '-', '_', '.']);
+        format!("{trimmed}…")
+    } else {
+        text.to_string()
+    }
 }
