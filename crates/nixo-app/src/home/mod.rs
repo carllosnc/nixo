@@ -1,6 +1,7 @@
 //! Tela inicial (Home) e biblioteca de pastas de mídia do Nixo.
 
 mod browser_view;
+mod design_system_view;
 mod folders_view;
 mod header;
 mod scanner;
@@ -17,6 +18,7 @@ pub struct HomeState {
     pub current_path: Option<PathBuf>,
     pub breadcrumbs: Vec<PathBuf>,
     pub scanner: BackgroundScanner,
+    pub is_design_system: bool,
 }
 
 impl Default for HomeState {
@@ -31,11 +33,13 @@ impl HomeState {
             current_path: None,
             breadcrumbs: Vec::new(),
             scanner: BackgroundScanner::new(),
+            is_design_system: false,
         }
     }
 
     /// Navega para dentro de uma pasta e atualiza a trilha de navegação (breadcrumbs).
     pub fn navigate_to(&mut self, target: PathBuf) {
+        self.is_design_system = false;
         if self.current_path.as_deref() == Some(&target) {
             return;
         }
@@ -56,6 +60,7 @@ impl HomeState {
 
     /// Retorna um nível na árvore de diretórios ou à raiz das pastas salvas.
     pub fn go_back(&mut self) {
+        self.is_design_system = false;
         if self.breadcrumbs.len() > 1 {
             self.breadcrumbs.pop();
             self.current_path = self.breadcrumbs.last().cloned();
@@ -68,6 +73,7 @@ impl HomeState {
     pub fn go_root(&mut self) {
         self.breadcrumbs.clear();
         self.current_path = None;
+        self.is_design_system = false;
     }
 
     /// Renderiza a tela Home completa dentro do espaço disponível.
@@ -89,38 +95,55 @@ impl HomeState {
                 bottom: 24,
             })
             .show(ui, |ui| {
-                // 1. Cabeçalho com breadcrumbs e botões rápidos
-                let header_action =
-                    header::render_header(ui, self.current_path.as_deref(), &self.breadcrumbs);
-                if !matches!(header_action, HomeAction::None) {
-                    action = header_action;
+                if self.is_design_system {
+                    ScrollArea::vertical()
+                        .auto_shrink([false, false])
+                        .show(ui, |ui| {
+                            let ds_act = design_system_view::render_design_system_view(ui);
+                            if !matches!(ds_act, HomeAction::None) {
+                                action = ds_act;
+                            }
+                        });
+                } else {
+                    // 1. Cabeçalho com breadcrumbs e botões rápidos
+                    let header_action =
+                        header::render_header(ui, self.current_path.as_deref(), &self.breadcrumbs);
+                    if !matches!(header_action, HomeAction::None) {
+                        action = header_action;
+                    }
+
+                    ui.add_space(16.0);
+
+                    // 2. Área de Conteúdo rolável
+                    ScrollArea::vertical()
+                        .auto_shrink([false, false])
+                        .show(ui, |ui| {
+                            if let Some(current) = &self.current_path {
+                                let content = self.scanner.get_or_request(current);
+                                let browser_act = browser_view::render_folder_browser(ui, &content);
+                                if !matches!(browser_act, HomeAction::None) {
+                                    action = browser_act;
+                                }
+                            } else {
+                                // Visão das pastas de mídia configuradas
+                                let folders_act = folders_view::render_folders_view(
+                                    ui,
+                                    folders,
+                                    &self.get_counts_map(folders),
+                                );
+                                if !matches!(folders_act, HomeAction::None) {
+                                    action = folders_act;
+                                }
+                            }
+                        });
                 }
-
-                ui.add_space(16.0);
-
-                // 2. Área de Conteúdo rolável
-                ScrollArea::vertical()
-                    .auto_shrink([false, false])
-                    .show(ui, |ui| {
-                        if let Some(current) = &self.current_path {
-                            let content = self.scanner.get_or_request(current);
-                            let browser_act = browser_view::render_folder_browser(ui, &content);
-                            if !matches!(browser_act, HomeAction::None) {
-                                action = browser_act;
-                            }
-                        } else {
-                            // Visão das pastas de mídia configuradas
-                            let folders_act = folders_view::render_folders_view(
-                                ui,
-                                folders,
-                                &self.get_counts_map(folders),
-                            );
-                            if !matches!(folders_act, HomeAction::None) {
-                                action = folders_act;
-                            }
-                        }
-                    });
             });
+
+        match &action {
+            HomeAction::OpenDesignSystem => self.is_design_system = true,
+            HomeAction::CloseDesignSystem => self.is_design_system = false,
+            _ => {}
+        }
 
         action
     }

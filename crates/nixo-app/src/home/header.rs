@@ -20,6 +20,8 @@ pub enum HomeAction {
     OpenFile,
     PlayFile(PathBuf),
     PlayTestSignal,
+    OpenDesignSystem,
+    CloseDesignSystem,
 }
 
 /// Renderiza o cabeçalho superior da Home no padrão Lucide e tons neutros sem bordas.
@@ -93,6 +95,12 @@ pub fn render_header(
         }
 
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            if secondary(ui, Some(lucide::SPARKLES), "Design System").clicked() {
+                action = HomeAction::OpenDesignSystem;
+            }
+
+            ui.add_space(6.0);
+
             if secondary(ui, Some(lucide::FLASK_CONICAL), "Testar").clicked() {
                 action = HomeAction::PlayTestSignal;
             }

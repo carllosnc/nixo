@@ -206,6 +206,8 @@ impl NixoApp {
             OpenFile => self.open_file_dialog(),
             PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
             PlayTestSignal => self.dispatch(PlayerCommand::Play),
+            OpenDesignSystem => self.home_state.is_design_system = true,
+            CloseDesignSystem => self.home_state.is_design_system = false,
         }
     }
 
