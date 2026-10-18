@@ -276,6 +276,7 @@ impl NixoApp {
         ctx.style_mut(|style| {
             style.spacing.slider_rail_height = 3.0;
             style.interaction.tooltip_delay = 0.12;
+            style.spacing.scroll.bar_outer_margin = 0.0;
         });
     }
 

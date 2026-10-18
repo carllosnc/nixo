@@ -94,36 +94,45 @@ impl HomeState {
 
         let mut action = HomeAction::None;
 
-        egui::Frame::NONE
-            .inner_margin(Margin {
-                left: 28,
-                right: 28,
-                top: 20,
-                bottom: 24,
-            })
-            .show(ui, |ui| {
-                if self.is_design_system {
-                    ScrollArea::vertical()
-                        .auto_shrink([false, false])
+        if self.is_design_system {
+            ScrollArea::vertical()
+                .auto_shrink([false, false])
+                .show(ui, |ui| {
+                    egui::Frame::NONE
+                        .inner_margin(Margin {
+                            left: 28,
+                            right: 28,
+                            top: 20,
+                            bottom: 24,
+                        })
                         .show(ui, |ui| {
                             let ds_act = design_system_view::render_design_system_view(ui);
                             if !matches!(ds_act, HomeAction::None) {
                                 action = ds_act;
                             }
                         });
-                } else {
-                    // Garante que a textura da logo esteja carregada na GPU
-                    if self.logo_texture.is_none()
-                        && let Some(color_img) = header::load_logo_image()
-                    {
-                        self.logo_texture = Some(ui.ctx().load_texture(
-                            "nixo_logo",
-                            color_img,
-                            egui::TextureOptions::LINEAR,
-                        ));
-                    }
+                });
+        } else {
+            // Garante que a textura da logo esteja carregada na GPU
+            if self.logo_texture.is_none()
+                && let Some(color_img) = header::load_logo_image()
+            {
+                self.logo_texture = Some(ui.ctx().load_texture(
+                    "nixo_logo",
+                    color_img,
+                    egui::TextureOptions::LINEAR,
+                ));
+            }
 
-                    // 1. Cabeçalho com breadcrumbs, logo e botões rápidos
+            // 1. Cabeçalho fixo no topo com padding interno
+            egui::Frame::NONE
+                .inner_margin(Margin {
+                    left: 28,
+                    right: 28,
+                    top: 20,
+                    bottom: 0,
+                })
+                .show(ui, |ui| {
                     let header_action = header::render_header(
                         ui,
                         self.current_path.as_deref(),
@@ -133,12 +142,19 @@ impl HomeState {
                     if !matches!(header_action, HomeAction::None) {
                         action = header_action;
                     }
+                });
 
-                    ui.add_space(16.0);
-
-                    // 2. Área de Conteúdo rolável
-                    ScrollArea::vertical()
-                        .auto_shrink([false, false])
+            // 2. Área de Conteúdo rolável com scrollbar colada na borda direita e paddings internos
+            ScrollArea::vertical()
+                .auto_shrink([false, false])
+                .show(ui, |ui| {
+                    egui::Frame::NONE
+                        .inner_margin(Margin {
+                            left: 28,
+                            right: 28,
+                            top: 14,
+                            bottom: 24,
+                        })
                         .show(ui, |ui| {
                             if let Some(current) = &self.current_path {
                                 let content = self.scanner.get_or_request(current);
@@ -162,8 +178,8 @@ impl HomeState {
                                 }
                             }
                         });
-                }
-            });
+                });
+        }
 
         match &action {
             HomeAction::OpenDesignSystem => self.is_design_system = true,
