@@ -1,5 +1,12 @@
+//! Gerador dinâmico sob demanda de miniaturas em baixa resolução para a timeline (seekbar).
+//!
+//! Decodifica instantaneamente o quadro exato da linha do tempo quando o usuário passa ou
+//! arrasta o cursor do mouse sobre a barra de reprodução, sem enfileirar ou pré-aquecer
+//! dezenas de cenas em segundo plano quando o vídeo é iniciado.
+
 use std::collections::BTreeMap;
-use std::ffi::{CString, c_double, c_int, c_void};
+use std::ffi::{CString, c_int, c_void};
+use std::path::Path;
 use std::ptr;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
@@ -8,11 +15,12 @@ use std::time::{Duration, Instant};
 use nixo_core::VideoFrame;
 
 use super::ffi::{
-    MPV_FORMAT_DOUBLE, MPV_FORMAT_FLAG, MPV_RENDER_PARAM_API_TYPE,
-    MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, MPV_RENDER_PARAM_INVALID, MPV_RENDER_PARAM_SW_FORMAT,
-    MPV_RENDER_PARAM_SW_POINTER, MPV_RENDER_PARAM_SW_SIZE, MPV_RENDER_PARAM_SW_STRIDE,
-    MPV_RENDER_UPDATE_FRAME, MpvApi, MpvRenderContext, MpvRenderParam, on_mpv_render_update,
+    MPV_FORMAT_FLAG, MPV_RENDER_PARAM_API_TYPE, MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
+    MPV_RENDER_PARAM_INVALID, MPV_RENDER_PARAM_SW_FORMAT, MPV_RENDER_PARAM_SW_POINTER,
+    MPV_RENDER_PARAM_SW_SIZE, MPV_RENDER_PARAM_SW_STRIDE, MPV_RENDER_UPDATE_FRAME, MpvApi,
+    MpvRenderContext, MpvRenderParam, on_mpv_render_update,
 };
+use super::thumbnail_cache::is_audio_file;
 
 struct PreviewShared {
     target_uri: Mutex<Option<String>>,
@@ -55,12 +63,12 @@ impl PreviewWorker {
         if let Ok(mut guard) = self.shared.target_uri.lock() {
             *guard = uri;
         }
-        if let Ok(mut guard) = self.shared.cache.lock() {
-            guard.clear();
-        }
         self.last_requested_sec = u32::MAX;
         self.last_returned_frame_id = 0;
         self.shared.target_sec.store(u32::MAX, Ordering::Release);
+        if let Ok(mut cache) = self.shared.cache.lock() {
+            cache.clear();
+        }
         if let Some(t) = &self.thread {
             t.thread().unpark();
         }
@@ -77,8 +85,8 @@ impl PreviewWorker {
             }
         }
 
-        // Busca instantânea (0ms) no cache de storyboard em RAM:
-        // Retorna o frame exato do segundo solicitado ou o keyframe pré-aquecido mais próximo.
+        // Busca instantânea (0ms) no cache em RAM:
+        // Retorna o frame exato do segundo solicitado ou o keyframe decodificado mais próximo
         if let Ok(cache) = self.shared.cache.try_lock() {
             let before = cache.range(..=sec).next_back();
             let after = cache.range(sec..).next();
@@ -96,11 +104,11 @@ impl PreviewWorker {
                 (None, None) => None,
             };
 
-            if let Some(frame) = best
-                && frame.frame_id != self.last_returned_frame_id
+            if let Some(f) = best
+                && f.frame_id != self.last_returned_frame_id
             {
-                self.last_returned_frame_id = frame.frame_id;
-                return Some(frame.clone());
+                self.last_returned_frame_id = f.frame_id;
+                return Some(f.clone());
             }
         }
 
@@ -109,35 +117,35 @@ impl PreviewWorker {
 
     #[allow(clippy::too_many_lines)]
     fn run_loop(api: Arc<MpvApi>, shared: Arc<PreviewShared>) {
-        // SAFETY: Cria uma instância secundária isolada e silenciosa do libmpv exclusiva para miniaturas.
+        // SAFETY: Cria uma instância secundária isolada e silenciosa do libmpv para renderização por software sob demanda.
         unsafe {
             let handle = (api.create)();
             if handle.is_null() {
                 return;
             }
 
-            // Otimizações extremas para extração de miniaturas (seek de keyframe em ~5-15ms):
-            // - demuxer-readahead-secs=0 e cache=no evitam leitura extra de disco após cada seek
-            // - vd-lavc-skipidct=all + vd-lavc-skiploopfilter=all aceleram a decodificação H.264/HEVC
-            // - vd-lavc-threads=4 paraleliza o decode do keyframe
-            api.set_opt(handle, c"vo", c"libmpv");
-            api.set_opt(handle, c"hwdec", c"no");
-            api.set_opt(handle, c"aid", c"no");
-            api.set_opt(handle, c"sid", c"no");
-            api.set_opt(handle, c"sub", c"no");
-            api.set_opt(handle, c"audio", c"no");
-            api.set_opt(handle, c"pause", c"yes");
-            api.set_opt(handle, c"keep-open", c"yes");
-            api.set_opt(handle, c"hr-seek", c"no");
-            api.set_opt(handle, c"demuxer-readahead-secs", c"0");
-            api.set_opt(handle, c"cache", c"no");
-            api.set_opt(handle, c"vd-lavc-fast", c"yes");
-            api.set_opt(handle, c"vd-lavc-skiploopfilter", c"all");
-            api.set_opt(handle, c"vd-lavc-skipidct", c"all");
-            api.set_opt(handle, c"vd-lavc-threads", c"4");
-            api.set_opt(handle, c"sws-scaler", c"fast-bilinear");
-            api.set_opt(handle, c"sws-fast", c"yes");
-            api.set_opt(handle, c"video-timing-offset", c"0");
+            for (k, v) in [
+                (c"vo", c"libmpv"),
+                (c"hwdec", c"no"),
+                (c"aid", c"no"),
+                (c"sid", c"no"),
+                (c"sub", c"no"),
+                (c"audio", c"no"),
+                (c"pause", c"yes"),
+                (c"keep-open", c"yes"),
+                (c"hr-seek", c"no"),
+                (c"demuxer-readahead-secs", c"0"),
+                (c"cache", c"no"),
+                (c"vd-lavc-fast", c"yes"),
+                (c"vd-lavc-skiploopfilter", c"all"),
+                (c"vd-lavc-skipidct", c"all"),
+                (c"vd-lavc-threads", c"4"),
+                (c"sws-scaler", c"fast-bilinear"),
+                (c"sws-fast", c"yes"),
+                (c"video-timing-offset", c"0"),
+            ] {
+                api.set_opt(handle, k, v);
+            }
 
             if (api.initialize)(handle) < 0 {
                 (api.terminate_destroy)(handle);
@@ -176,22 +184,22 @@ impl PreviewWorker {
             let height: u32 = 90;
             let stride: usize = (width as usize) * 4;
             let mut pixel_buf = vec![255u8; stride * (height as usize)];
+            let mut frame_seq: u64 = 0;
             let mut loaded_uri: Option<String> = None;
             let mut last_rendered_sec: u32 = u32::MAX;
-            let mut frame_seq: u64 = 0;
-            let mut storyboard_queue: Vec<u32> = Vec::new();
-            let mut storyboard_built = false;
 
             while !shared.shutdown.load(Ordering::Acquire) {
+                // 1. Detecta alteração do arquivo de mídia
                 let desired_uri = shared.target_uri.lock().ok().and_then(|g| g.clone());
                 if desired_uri != loaded_uri {
                     loaded_uri = desired_uri.clone();
                     last_rendered_sec = u32::MAX;
-                    storyboard_queue.clear();
-                    storyboard_built = false;
 
-                    if let Some(uri) = desired_uri {
-                        if let Ok(c_uri) = CString::new(uri) {
+                    if let Some(ref uri) = desired_uri {
+                        let path = Path::new(uri);
+                        if !is_audio_file(path)
+                            && let Ok(c_uri) = CString::new(uri.as_bytes())
+                        {
                             let c_cmd = c"loadfile";
                             let args = [c_cmd.as_ptr(), c_uri.as_ptr(), ptr::null()];
                             let _ = (api.command)(handle, args.as_ptr());
@@ -210,140 +218,113 @@ impl PreviewWorker {
                     }
                 }
 
-                // Constrói a fila de pré-aquecimento (Storyboard em 2 passes: 32 pontos grossos + 96 finos)
-                if loaded_uri.is_some() && !storyboard_built {
-                    let mut dur: c_double = 0.0;
-                    let rc = (api.get_property)(
-                        handle,
-                        c"duration".as_ptr(),
-                        MPV_FORMAT_DOUBLE,
-                        (&raw mut dur).cast::<c_void>(),
-                    );
-                    if rc >= 0 && dur > 1.0 {
-                        storyboard_built = true;
-                        let total_s = dur as u32;
-                        // Passada 1: 32 keyframes distribuídos pelo filme inteiro (pronto em ~0.3s)
-                        for i in (0..32).rev() {
-                            storyboard_queue.push((total_s * i) / 32);
-                        }
-                        // Passada 2: 96 keyframes intermediários
-                        for i in (0..96).rev() {
-                            storyboard_queue.push((total_s * i) / 96);
-                        }
-                    }
-                }
-
+                // 2. Verifica se há uma solicitação de hover ativa do usuário na timeline
                 let req_sec = shared.target_sec.load(Ordering::Acquire);
                 let already_cached = req_sec != u32::MAX
                     && shared.cache.lock().is_ok_and(|c| c.contains_key(&req_sec));
 
-                let next_sec_to_decode = if loaded_uri.is_none() {
+                let next_sec_to_decode = if loaded_uri.is_none()
+                    || req_sec == u32::MAX
+                    || already_cached
+                    || req_sec == last_rendered_sec
+                {
                     None
-                } else if req_sec != u32::MAX && !already_cached && req_sec != last_rendered_sec {
-                    // Prioridade máxima: posição exata onde o mouse do usuário está agora
-                    Some(req_sec)
                 } else {
-                    // Em segundo plano: pré-aquece o storyboard do vídeo para resposta 0ms
-                    let mut candidate = None;
-                    while let Some(s) = storyboard_queue.pop() {
-                        let cached = shared.cache.lock().is_ok_and(|c| c.contains_key(&s));
-                        if !cached {
-                            candidate = Some(s);
-                            break;
-                        }
-                    }
-                    candidate
+                    Some(req_sec)
                 };
 
-                if let Some(target_sec) = next_sec_to_decode {
-                    // Usa o comando `seek <sec> absolute+keyframes` para salto imediato no índice do container
-                    if let Ok(sec_cstr) = CString::new(target_sec.to_string()) {
-                        let c_seek = c"seek";
-                        let c_mode = c"absolute+keyframes";
-                        let args = [
-                            c_seek.as_ptr(),
-                            sec_cstr.as_ptr(),
-                            c_mode.as_ptr(),
-                            ptr::null(),
-                        ];
-                        let _ = (api.command)(handle, args.as_ptr());
-                    }
+                let Some(target_sec) = next_sec_to_decode else {
+                    // Sem novas solicitações ativas do usuário: dorme completamente em 0% de CPU
+                    std::thread::park_timeout(Duration::from_millis(40));
+                    continue;
+                };
 
-                    let start = Instant::now();
-                    let mut rendered = false;
-                    // Não interrompemos o decode no meio quando o mouse se move: deixamos o quadro atual
-                    // terminar (~10-20ms) para que as miniaturas fluam continuamente a ~50 FPS durante o movimento!
-                    while start.elapsed() < Duration::from_millis(90)
-                        && !shared.shutdown.load(Ordering::Acquire)
-                    {
-                        let notified = has_update.swap(false, Ordering::AcqRel);
-                        if notified {
-                            let flags = (api.render_context_update)(render_ctx);
-                            if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
-                                let mut size_param: [c_int; 2] = [width as c_int, height as c_int];
-                                let format_cstr = c"rgb0";
-                                let mut stride_param: usize = stride;
-                                let mut block_for_target_time: c_int = 0;
+                // 3. Salta imediatamente para o keyframe correspondente no índice (5-15ms)
+                let _ = (api.render_context_update)(render_ctx);
+                has_update.store(false, Ordering::Release);
 
-                                let mut r_params = [
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_SIZE,
-                                        data: size_param.as_mut_ptr().cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_FORMAT,
-                                        data: format_cstr.as_ptr() as *mut c_void,
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_STRIDE,
-                                        data: (&raw mut stride_param).cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_POINTER,
-                                        data: pixel_buf.as_mut_ptr().cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
-                                        data: (&raw mut block_for_target_time).cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_INVALID,
-                                        data: ptr::null_mut(),
-                                    },
-                                ];
+                if let Ok(sec_cstr) = CString::new(target_sec.to_string()) {
+                    let c_seek = c"seek";
+                    let c_mode = c"absolute+keyframes";
+                    let args = [
+                        c_seek.as_ptr(),
+                        sec_cstr.as_ptr(),
+                        c_mode.as_ptr(),
+                        ptr::null(),
+                    ];
+                    let _ = (api.command)(handle, args.as_ptr());
+                }
 
-                                if (api.render_context_render)(render_ctx, r_params.as_mut_ptr())
-                                    >= 0
-                                {
-                                    for px in pixel_buf.as_chunks_mut::<4>().0 {
-                                        px[3] = 255;
-                                    }
-                                    frame_seq += 1;
-                                    let frame = VideoFrame {
-                                        width,
-                                        height,
-                                        rgba: pixel_buf.clone(),
-                                        frame_id: frame_seq,
-                                    };
-                                    if let Ok(mut cache) = shared.cache.lock() {
-                                        // Limita o cache a ~360 miniaturas (~20 MB de RAM)
-                                        if cache.len() < 360 || target_sec == req_sec {
-                                            cache.insert(target_sec, frame);
-                                        }
-                                    }
-                                    rendered = true;
-                                    break;
+                let render_start = Instant::now();
+                let mut rendered = false;
+
+                while render_start.elapsed() < Duration::from_millis(90)
+                    && !shared.shutdown.load(Ordering::Acquire)
+                {
+                    let notified = has_update.swap(false, Ordering::AcqRel);
+                    if notified {
+                        let flags = (api.render_context_update)(render_ctx);
+                        if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
+                            let mut size_param: [c_int; 2] = [width as c_int, height as c_int];
+                            let format_cstr = c"rgb0";
+                            let mut stride_param: usize = stride;
+                            let mut block_for_target_time: c_int = 0;
+
+                            let mut r_params = [
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_SIZE,
+                                    data: size_param.as_mut_ptr().cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_FORMAT,
+                                    data: format_cstr.as_ptr() as *mut c_void,
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_STRIDE,
+                                    data: (&raw mut stride_param).cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_POINTER,
+                                    data: pixel_buf.as_mut_ptr().cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
+                                    data: (&raw mut block_for_target_time).cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_INVALID,
+                                    data: ptr::null_mut(),
+                                },
+                            ];
+
+                            if (api.render_context_render)(render_ctx, r_params.as_mut_ptr()) >= 0 {
+                                for px in pixel_buf.as_chunks_mut::<4>().0 {
+                                    px[3] = 255;
                                 }
+                                frame_seq += 1;
+                                let frame = VideoFrame {
+                                    width,
+                                    height,
+                                    rgba: pixel_buf.clone(),
+                                    frame_id: frame_seq,
+                                };
+                                if let Ok(mut cache) = shared.cache.lock() {
+                                    // Mantém até ~250 miniaturas em RAM para suavidade sem estourar memória
+                                    if cache.len() > 250 {
+                                        cache.pop_first();
+                                    }
+                                    cache.insert(target_sec, frame);
+                                }
+                                rendered = true;
+                                break;
                             }
                         }
-                        std::thread::sleep(Duration::from_millis(1));
                     }
+                    std::thread::sleep(Duration::from_millis(1));
+                }
 
-                    if rendered {
-                        last_rendered_sec = target_sec;
-                    }
-                } else {
-                    std::thread::park_timeout(Duration::from_millis(30));
+                if rendered {
+                    last_rendered_sec = target_sec;
                 }
             }
 

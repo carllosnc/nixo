@@ -43,6 +43,23 @@ pub fn is_frame_mostly_black(rgba: &[u8]) -> bool {
     dark_count * 100 / total_pixels >= 88
 }
 
+/// Calcula ponto temporal inicial para captura evitando aberturas e intros.
+pub fn compute_target_sec(dur: f64) -> f64 {
+    if dur >= 180.0 {
+        (dur * 0.25).clamp(130.0, (dur - 30.0).max(130.0))
+    } else if dur >= 135.0 {
+        125.0
+    } else if dur >= 60.0 {
+        (dur * 0.50).clamp(25.0, (dur - 10.0).max(25.0))
+    } else if dur >= 15.0 {
+        (dur * 0.40).clamp(5.0, (dur - 3.0).max(5.0))
+    } else if dur > 0.0 {
+        (dur * 0.5).max(1.5)
+    } else {
+        130.0
+    }
+}
+
 /// Retorna o diretório de cache persistente padrão para as miniaturas do Nixo.
 pub fn default_cache_dir() -> PathBuf {
     dirs::cache_dir()
@@ -61,6 +78,8 @@ pub fn get_cache_path(cache_dir: &Path, path: &Path) -> Option<PathBuf> {
         .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
         .map_or(0, |d| d.as_secs());
     let mut hasher = DefaultHasher::new();
+    // Sal de versão para isolar e invalidar caches de versões antigas com repetição de cenas
+    b"nixo_thumb_v2".hash(&mut hasher);
     path.hash(&mut hasher);
     len.hash(&mut hasher);
     mtime.hash(&mut hasher);
@@ -117,4 +136,44 @@ pub fn save_to_cache(cache_path: &Path, res: &ThumbnailResult) {
         data.extend_from_slice(&res.height.unwrap_or(0).to_le_bytes());
     }
     let _ = std::fs::write(cache_path, data);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_audio_detection_and_cache_roundtrip() {
+        assert!(is_audio_file(Path::new("music.flac")));
+        assert!(is_audio_file(Path::new("song.mp3")));
+        assert!(!is_audio_file(Path::new("movie.mkv")));
+        assert!(!is_audio_file(Path::new("video.mp4")));
+
+        let black = vec![0u8; 144 * 81 * 4];
+        assert!(is_frame_mostly_black(&black));
+
+        let bright = vec![255u8; 144 * 81 * 4];
+        assert!(!is_frame_mostly_black(&bright));
+
+        let tmp_file = std::env::temp_dir().join("nixo_test_thumb.thumb");
+        let fake_res = ThumbnailResult {
+            path: PathBuf::from("test.mp4"),
+            frames: vec![VideoFrame {
+                width: 144,
+                height: 81,
+                rgba: bright.clone(),
+                frame_id: 1,
+            }],
+            duration_secs: Some(120.5),
+            width: Some(1920),
+            height: Some(1080),
+        };
+        save_to_cache(&tmp_file, &fake_res);
+        let loaded = load_from_cache(&tmp_file, Path::new("test.mp4")).expect("cached");
+        assert_eq!(loaded.duration_secs, Some(120.5));
+        assert_eq!(loaded.width, Some(1920));
+        assert_eq!(loaded.height, Some(1080));
+        assert_eq!(loaded.frames.len(), 1);
+        let _ = std::fs::remove_file(tmp_file);
+    }
 }

@@ -28,6 +28,7 @@ pub struct SyntheticBackend {
     audio_delay: f64,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
+    last_preview_sec: Option<u64>,
 }
 
 impl Default for SyntheticBackend {
@@ -83,6 +84,7 @@ impl SyntheticBackend {
             audio_delay: 0.0,
             aspect_ratio: VideoAspect::default(),
             video_fit: VideoFit::default(),
+            last_preview_sec: None,
         }
     }
 
@@ -169,6 +171,7 @@ impl MediaBackend for SyntheticBackend {
                     video_width: 1280,
                     video_height: 720,
                 });
+                self.last_preview_sec = None;
                 self.dirty_frame = true;
             }
             PlayerCommand::Play => {
@@ -377,14 +380,18 @@ impl MediaBackend for SyntheticBackend {
             return None;
         }
 
+        let sec = position.as_secs();
+        if self.last_preview_sec == Some(sec) {
+            return None;
+        }
+        self.last_preview_sec = Some(sec);
+
         let width: u32 = 160;
         let height: u32 = 90;
         let mut rgba = vec![0u8; (width * height * 4) as usize];
-        let clamped_pos = position.min(self.duration);
-        let t = clamped_pos.as_secs_f32() * 2.2;
-        let progress =
-            (clamped_pos.as_secs_f32() / self.duration.as_secs_f32().max(1.0)).clamp(0.0, 1.0);
-        let scan_x = ((width as f32) * progress) as u32;
+        let t = sec as f32 * 0.2;
+        let dur_secs = self.duration.as_secs_f32().max(1.0);
+        let scan_x = (((sec as f32) / dur_secs) * (width as f32)) as u32;
 
         for y in 0..height {
             let vf = (y as f32) / (height as f32);
@@ -392,11 +399,11 @@ impl MediaBackend for SyntheticBackend {
                 let uf = (x as f32) / (width as f32);
                 let idx = ((y * width + x) * 4) as usize;
 
-                let wave1 = (uf * 6.0 + t).sin() * 0.5 + 0.5;
-                let wave2 = (vf * 5.0 - t * 0.7).cos() * 0.5 + 0.5;
-                let mut r = (24.0 + 70.0 * wave1 * (1.0 - vf * 0.4)) as u8;
-                let mut g = (30.0 + 110.0 * wave2 * uf) as u8;
-                let mut b = (65.0 + 155.0 * (0.5 * wave1 + 0.5 * wave2)) as u8;
+                let wave1 = (uf * 5.0 + t).sin() * 0.5 + 0.5;
+                let wave2 = (vf * 4.0 - t * 0.7).cos() * 0.5 + 0.5;
+                let mut r = (28.0 + 60.0 * wave1 * (1.0 - vf * 0.4)) as u8;
+                let mut g = (32.0 + 90.0 * wave2 * uf) as u8;
+                let mut b = (70.0 + 130.0 * (0.5 * wave1 + 0.5 * wave2)) as u8;
 
                 if x.abs_diff(scan_x) <= 1 {
                     r = 255;
@@ -411,12 +418,12 @@ impl MediaBackend for SyntheticBackend {
             }
         }
 
-        let bucket_id = (clamped_pos.as_millis() as u64 / 100).max(1);
+        self.frame_counter += 1;
         Some(VideoFrame {
             width,
             height,
             rgba,
-            frame_id: bucket_id,
+            frame_id: self.frame_counter,
         })
     }
 }

@@ -231,16 +231,13 @@ impl MediaBackend for MpvBackend {
             PlayerCommand::TogglePlayPause => {
                 if self.current_path.is_none() {
                     self.execute(PlayerCommand::Play)?;
+                } else if self.get_flag(c"eof-reached").unwrap_or(false) {
+                    self.set_double(c"time-pos", 0.0);
+                    self.pending_seek = Some((0.0, Instant::now()));
+                    self.set_flag(c"pause", false);
                 } else {
-                    let eof = self.get_flag(c"eof-reached").unwrap_or(false);
-                    if eof {
-                        self.set_double(c"time-pos", 0.0);
-                        self.pending_seek = Some((0.0, Instant::now()));
-                        self.set_flag(c"pause", false);
-                    } else {
-                        let paused = self.get_flag(c"pause").unwrap_or(false);
-                        self.set_flag(c"pause", !paused);
-                    }
+                    let paused = self.get_flag(c"pause").unwrap_or(false);
+                    self.set_flag(c"pause", !paused);
                 }
             }
             PlayerCommand::Stop => {
