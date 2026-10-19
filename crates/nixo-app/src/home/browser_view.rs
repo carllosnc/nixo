@@ -177,21 +177,21 @@ pub fn render_folder_browser(
 
                 let frame_count = thumbnails.frame_count(&item.path);
                 let mouse_pos = ui.input(|i| i.pointer.hover_pos());
-                let (scene_idx, scrub_ratio, is_thumb_hovered) = if let Some(mpos) = mouse_pos
+                let (scene_idx, scrub_ratio) = if let Some(mpos) = mouse_pos
                     && thumb_rect.contains(mpos)
                     && frame_count > 1
                 {
                     let rel_x = (mpos.x - thumb_rect.left()).clamp(0.0, thumb_w);
                     let ratio = rel_x / thumb_w;
                     let idx = ((ratio * frame_count as f32) as usize).min(frame_count - 1);
-                    (idx, Some(ratio), true)
+                    (idx, Some(ratio))
                 } else if hovered && frame_count > 1 {
                     let time_sec = ui.input(|i| i.time);
                     let cycle_idx = ((time_sec * 1.4) as usize) % frame_count;
                     ui.ctx().request_repaint();
-                    (cycle_idx, None, false)
+                    (cycle_idx, None)
                 } else {
-                    (0, None, false)
+                    (0, None)
                 };
 
                 if let Some(tex) = thumbnails.get_frame(&item.path, scene_idx) {
@@ -200,20 +200,6 @@ pub fn render_folder_browser(
                         thumb_rect,
                         Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                         Color32::WHITE,
-                    );
-
-                    let stroke_col = if is_thumb_hovered {
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 80)
-                    } else if hovered {
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 30)
-                    } else {
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 14)
-                    };
-                    ui.painter().rect_stroke(
-                        thumb_rect,
-                        RADIUS_SM,
-                        egui::Stroke::new(1.0_f32, stroke_col),
-                        egui::StrokeKind::Inside,
                     );
 
                     // Barra de progresso do scrubbing interativo
@@ -240,7 +226,8 @@ pub fn render_folder_browser(
                         );
                     }
                 } else {
-                    ui.painter().rect_filled(thumb_rect, RADIUS_SM, SURFACE_MED);
+                    ui.painter()
+                        .rect_filled(thumb_rect, egui::CornerRadius::ZERO, SURFACE_MED);
                     if let Some(tex) = video_clapper_texture {
                         let ic_size = vec2(36.0, 33.0);
                         let ic_rect = Rect::from_center_size(thumb_rect.center(), ic_size);
@@ -269,12 +256,6 @@ pub fn render_folder_browser(
                             ic_col,
                         );
                     }
-                    ui.painter().rect_stroke(
-                        thumb_rect,
-                        RADIUS_SM,
-                        egui::Stroke::new(1.0_f32, Color32::from_white_alpha(15)),
-                        egui::StrokeKind::Inside,
-                    );
                 }
 
                 thumb_rect.right() + 16.0
