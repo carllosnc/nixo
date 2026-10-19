@@ -252,27 +252,37 @@ impl ThumbnailService {
                 }
 
                 let dur = found_dur.unwrap_or(0.0);
-                let ratios: &[f64] = if dur >= 60.0 {
+                let ratios: &[f64] = if dur >= 120.0 {
                     &[0.15, 0.50, 0.85]
-                } else if dur >= 15.0 {
-                    &[0.25, 0.75]
+                } else if dur >= 30.0 {
+                    &[0.20, 0.50, 0.80]
+                } else if dur >= 10.0 {
+                    &[0.30, 0.70]
                 } else {
                     &[0.50]
                 };
 
                 let mut captured_frames = Vec::with_capacity(ratios.len());
 
-                // Extração dos quadros de cena do vídeo
+                // Extração dos quadros de cena do vídeo (evita os primeiros segundos para eliminar telas pretas)
                 for &ratio in ratios {
                     if shutdown.load(Ordering::Acquire) {
                         break;
                     }
 
-                    let target_sec = if dur > 0.0 {
-                        (dur * ratio).max(1.0)
+                    let target_sec = if dur >= 120.0 {
+                        (dur * ratio).clamp(10.0, (dur - 5.0).max(10.0))
+                    } else if dur >= 30.0 {
+                        (dur * ratio).clamp(5.0, (dur - 3.0).max(5.0))
+                    } else if dur >= 10.0 {
+                        (dur * ratio).clamp(3.0, (dur - 1.5).max(3.0))
+                    } else if dur > 0.0 {
+                        (dur * 0.5).max(1.5)
                     } else {
-                        1.0
+                        // Se a duração não foi obtida, busca aos 10s para evitar vinhetas pretas
+                        10.0
                     };
+
                     if let Ok(sec_cstr) = CString::new(format!("{target_sec:.1}")) {
                         let c_seek = c"seek";
                         let c_mode = c"absolute+keyframes";

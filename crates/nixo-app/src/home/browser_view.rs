@@ -137,7 +137,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 76.0;
+        let item_h = 82.0;
         let spacing = 8.0;
         let item_w = ui.available_width();
 
@@ -152,9 +152,10 @@ pub fn render_folder_browser(
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
             let is_visible = ui.is_rect_visible(rect);
+            let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
 
             // Dispara requisição de metadados em background para itens visíveis na tela
-            if matches!(item.kind, super::scanner::MediaKind::Video) {
+            if is_video {
                 if is_visible {
                     thumbnails.request(&item.path);
                 }
@@ -165,69 +166,12 @@ pub fn render_folder_browser(
                 thumbnails.request(&item.path);
             }
 
-            // Ícone do arquivo de mídia: usa o ícone clapperboard ampliado nos vídeos
-            let text_x = if matches!(item.kind, super::scanner::MediaKind::Video)
-                && let Some(tex) = video_clapper_texture
-            {
-                let icon_size = vec2(50.0, 46.0);
-                let icon_rect = Rect::from_center_size(
-                    Pos2::new(rect.left() + 43.0, rect.center().y),
-                    icon_size,
-                );
-                let tint = lerp_color(Color32::from_white_alpha(225), Color32::WHITE, hover_t);
-                ui.painter().image(
-                    tex.id(),
-                    icon_rect,
-                    Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-                    tint,
-                );
-                icon_rect.right() + 16.0
-            } else {
-                let default_ic = match item.kind {
-                    super::scanner::MediaKind::Video => lucide::FILM,
-                    super::scanner::MediaKind::Audio => lucide::MUSIC,
-                    super::scanner::MediaKind::Directory => lucide::FOLDER,
-                };
-                let icon_pos = Pos2::new(rect.left() + 24.0, rect.center().y);
-                ui.painter().text(
-                    icon_pos,
-                    Align2::LEFT_CENTER,
-                    default_ic,
-                    lucide::font_id(30.0),
-                    lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t),
-                );
-                rect.left() + 68.0
-            };
-
-            // Nome do arquivo (Linha 1 do item)
-            let clean_name = item
-                .path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or(&item.name);
-
-            let thumb_w = 88.0_f32;
-            let thumb_h = 50.0_f32;
-            let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
-            let right_reserve = if is_video { thumb_w + 130.0 } else { 100.0 };
-            let max_w = (rect.right() - right_reserve - text_x).max(40.0);
-
-            let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
-            paint_truncated_text(
-                ui,
-                Pos2::new(text_x, rect.top() + 25.0),
-                Align2::LEFT_CENTER,
-                clean_name,
-                font_body(),
-                title_color,
-                max_w,
-            );
-
-            // Preview interativo 16:9 posicionado entre os dados do vídeo e o tamanho
-            if is_video {
-                let thumb_right = rect.right() - 110.0;
+            // Preview interativo 16:9 ampliado à esquerda no lugar do ícone
+            let text_x = if is_video {
+                let thumb_w = 112.0_f32;
+                let thumb_h = 63.0_f32;
                 let thumb_rect = Rect::from_min_size(
-                    Pos2::new(thumb_right - thumb_w, rect.top() + (item_h - thumb_h) * 0.5),
+                    Pos2::new(rect.left() + 14.0, rect.top() + (item_h - thumb_h) * 0.5),
                     vec2(thumb_w, thumb_h),
                 );
 
@@ -263,7 +207,7 @@ pub fn render_folder_browser(
                     } else if hovered {
                         Color32::from_rgba_unmultiplied(255, 255, 255, 30)
                     } else {
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 12)
+                        Color32::from_rgba_unmultiplied(255, 255, 255, 14)
                     };
                     ui.painter().rect_stroke(
                         thumb_rect,
@@ -297,23 +241,81 @@ pub fn render_folder_browser(
                     }
                 } else {
                     ui.painter().rect_filled(thumb_rect, RADIUS_SM, SURFACE_MED);
-                    let ic_col = if hovered {
-                        Color32::from_white_alpha(50)
+                    if let Some(tex) = video_clapper_texture {
+                        let ic_size = vec2(36.0, 33.0);
+                        let ic_rect = Rect::from_center_size(thumb_rect.center(), ic_size);
+                        let tint = lerp_color(
+                            Color32::from_white_alpha(90),
+                            Color32::from_white_alpha(170),
+                            hover_t,
+                        );
+                        ui.painter().image(
+                            tex.id(),
+                            ic_rect,
+                            Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                            tint,
+                        );
                     } else {
-                        Color32::from_white_alpha(25)
-                    };
-                    ui.painter().text(
-                        thumb_rect.center(),
-                        Align2::CENTER_CENTER,
-                        lucide::FILM,
-                        font_xs(),
-                        ic_col,
+                        let ic_col = if hovered {
+                            Color32::from_white_alpha(60)
+                        } else {
+                            Color32::from_white_alpha(30)
+                        };
+                        ui.painter().text(
+                            thumb_rect.center(),
+                            Align2::CENTER_CENTER,
+                            lucide::FILM,
+                            lucide::font_id(24.0),
+                            ic_col,
+                        );
+                    }
+                    ui.painter().rect_stroke(
+                        thumb_rect,
+                        RADIUS_SM,
+                        egui::Stroke::new(1.0_f32, Color32::from_white_alpha(15)),
+                        egui::StrokeKind::Inside,
                     );
                 }
-            }
+
+                thumb_rect.right() + 16.0
+            } else {
+                let default_ic = match item.kind {
+                    super::scanner::MediaKind::Video => lucide::FILM,
+                    super::scanner::MediaKind::Audio => lucide::MUSIC,
+                    super::scanner::MediaKind::Directory => lucide::FOLDER,
+                };
+                let icon_pos = Pos2::new(rect.left() + 24.0, rect.center().y);
+                ui.painter().text(
+                    icon_pos,
+                    Align2::LEFT_CENTER,
+                    default_ic,
+                    lucide::font_id(30.0),
+                    lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t),
+                );
+                rect.left() + 68.0
+            };
+
+            // Nome do arquivo (Linha 1 do item)
+            let clean_name = item
+                .path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(&item.name);
+
+            let max_w = (rect.right() - 100.0 - text_x).max(40.0);
+            let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
+            paint_truncated_text(
+                ui,
+                Pos2::new(text_x, rect.top() + 28.0),
+                Align2::LEFT_CENTER,
+                clean_name,
+                font_body(),
+                title_color,
+                max_w,
+            );
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
-            let desc_y = rect.top() + 51.0;
+            let desc_y = rect.top() + 54.0;
 
             // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
             let badge_text = if !item.extension.is_empty() {
