@@ -42,6 +42,41 @@ impl NixoApp {
         }
     }
 
+    pub(crate) fn go_home(&mut self) {
+        self.video_texture = None;
+        self.aspect_ratio_fit = false;
+        self.home_state.go_root();
+        self.dispatch(PlayerCommand::Stop);
+    }
+
+    pub(crate) fn handle_home_action(&mut self, action: crate::home::HomeAction) {
+        use crate::home::HomeAction::*;
+        match action {
+            None => {}
+            AddFolder => {
+                if let Some(folder) = rfd::FileDialog::new().pick_folder()
+                    && !self.media_folders.contains(&folder)
+                {
+                    self.media_folders.push(folder.clone());
+                    self.settings_store.observe(self.current_settings());
+                    self.home_state.scanner.invalidate(&folder);
+                }
+            }
+            RemoveFolder(folder) => {
+                self.media_folders.retain(|f| f != &folder);
+                self.settings_store.observe(self.current_settings());
+            }
+            OpenFolder(path) => self.home_state.navigate_to(path),
+            GoBack => self.home_state.go_back(),
+            GoRoot => self.home_state.go_root(),
+            OpenFile => self.open_file_dialog(),
+            PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
+            PlayTestSignal => self.dispatch(PlayerCommand::Play),
+            OpenDesignSystem => self.home_state.is_design_system = true,
+            CloseDesignSystem => self.home_state.is_design_system = false,
+        }
+    }
+
     pub(crate) fn handle_shortcuts_and_drops(&mut self, ctx: &Context) {
         // Amplifica a velocidade de rolagem (scroll vertical mais ágil e veloz na biblioteca e listas)
         ctx.input_mut(|i| {

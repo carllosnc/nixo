@@ -15,7 +15,26 @@ use nixo_core::PlayerCommand;
 
 use self::components::PopoverFrame;
 use self::style::menu_style;
-use crate::app::{NixoApp, SettingsTab};
+use crate::app::NixoApp;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SettingsTab {
+    #[default]
+    Main,
+    Video,
+    Speed,
+    Audio,
+    Subtitles,
+    SubtitleStyle,
+    SubtitleFont,
+    SubtitleWeight,
+    SubtitleSize,
+    SubtitleColor,
+    SubtitleBorder,
+    SubtitleBackground,
+    SubtitleShadow,
+    SubtitlePosition,
+}
 
 /// Ações produzidas por uma tela durante o frame, aplicadas após a renderização.
 struct MenuActions {

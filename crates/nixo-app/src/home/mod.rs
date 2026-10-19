@@ -229,7 +229,13 @@ impl HomeState {
     }
 
     /// Renderiza a tela Home completa dentro do espaço disponível.
-    pub fn render(&mut self, ui: &mut Ui, folders: &[PathBuf], _rect: Rect) -> HomeAction {
+    pub fn render(
+        &mut self,
+        ui: &mut Ui,
+        folders: &[PathBuf],
+        watch_history: &std::collections::HashMap<PathBuf, crate::settings::WatchHistoryEntry>,
+        _rect: Rect,
+    ) -> HomeAction {
         self.scanner.poll();
         self.thumbnails.poll(ui.ctx());
 
@@ -362,14 +368,18 @@ impl HomeState {
                                     }
                                 }
 
+                                let textures = browser_view::BrowserTextures {
+                                    folder: self.folder_texture.as_ref(),
+                                    video_clapper: self.video_clapper_texture.as_ref(),
+                                };
                                 let browser_act = browser_view::render_folder_browser(
                                     ui,
                                     &content,
                                     &mut self.thumbnails,
-                                    self.folder_texture.as_ref(),
-                                    self.video_clapper_texture.as_ref(),
+                                    textures,
                                     &mut self.selected_index,
                                     &mut self.keyboard_nav_active,
+                                    watch_history,
                                 );
                                 if !matches!(browser_act, HomeAction::None) {
                                     action = browser_act;

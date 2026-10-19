@@ -9,6 +9,7 @@
 //! para evitar gravações a cada frame enquanto o usuário arrasta o slider de volume,
 //! e é atômica (arquivo temporário + `rename`) para não corromper o arquivo em caso de crash.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Sender};
 use std::thread::JoinHandle;
@@ -32,6 +33,30 @@ pub struct AppSettings {
     pub subtitles: SubtitleSettings,
     pub window: WindowSettings,
     pub library: LibrarySettings,
+    pub watch_history: HashMap<PathBuf, WatchHistoryEntry>,
+}
+
+/// Registro histórico de reprodução para retomada (resume) automática.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct WatchHistoryEntry {
+    pub position_secs: f64,
+    pub duration_secs: f64,
+    pub last_watched_unix: u64,
+}
+
+impl WatchHistoryEntry {
+    pub fn progress(&self) -> f32 {
+        if self.duration_secs > 0.0 {
+            (self.position_secs / self.duration_secs).clamp(0.0, 1.0) as f32
+        } else {
+            0.0
+        }
+    }
+
+    pub fn is_completed(&self) -> bool {
+        self.progress() >= 0.92
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -90,6 +115,12 @@ impl AppSettings {
             PlaybackSettings::default().volume
         };
         self.subtitles.style = self.subtitles.style.sanitized();
+        if self.watch_history.len() > 300 {
+            let mut entries: Vec<_> = self.watch_history.into_iter().collect();
+            entries.sort_by_key(|(_, v)| std::cmp::Reverse(v.last_watched_unix));
+            entries.truncate(300);
+            self.watch_history = entries.into_iter().collect();
+        }
         self
     }
 
@@ -289,6 +320,14 @@ mod tests {
             library: LibrarySettings {
                 folders: vec![PathBuf::from("/test/media")],
             },
+            watch_history: HashMap::from([(
+                PathBuf::from("/test/media/video.mp4"),
+                WatchHistoryEntry {
+                    position_secs: 120.0,
+                    duration_secs: 300.0,
+                    last_watched_unix: 1700000000,
+                },
+            )]),
         };
         settings.save_to(&path).expect("save");
         assert_eq!(AppSettings::load_from(&path), settings);

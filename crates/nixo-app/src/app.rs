@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -8,6 +9,7 @@ use egui::{
 use nixo_core::{MediaBackend, PlaybackState, PlayerCommand, PlayerStatus};
 use tracing::{error, warn};
 
+pub use crate::popovers::SettingsTab;
 use crate::settings::{
     AppSettings, PlaybackSettings, SettingsStore, SubtitleSettings, WindowSettings,
 };
@@ -19,25 +21,6 @@ pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
 const OSD_VIDEO_IDLE_TIMEOUT: Duration = Duration::from_millis(2000);
 /// Tempo para ocultar o OSD rapidamente quando o mouse sai da janela do player.
 const OSD_MOUSE_LEAVE_TIMEOUT: Duration = Duration::from_millis(300);
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum SettingsTab {
-    #[default]
-    Main,
-    Video,
-    Speed,
-    Audio,
-    Subtitles,
-    SubtitleStyle,
-    SubtitleFont,
-    SubtitleWeight,
-    SubtitleSize,
-    SubtitleColor,
-    SubtitleBorder,
-    SubtitleBackground,
-    SubtitleShadow,
-    SubtitlePosition,
-}
 
 pub struct NixoApp {
     pub(crate) backend: Box<dyn MediaBackend>,
@@ -62,6 +45,10 @@ pub struct NixoApp {
     pub(crate) toast: Option<crate::toast::ToastNotification>,
     pub(crate) home_state: crate::home::HomeState,
     pub(crate) media_folders: Vec<PathBuf>,
+    pub(crate) watch_history: HashMap<PathBuf, crate::settings::WatchHistoryEntry>,
+    pub(crate) current_file: Option<PathBuf>,
+    pub(crate) pending_resume: Option<Duration>,
+    pub(crate) last_history_record: Instant,
 }
 
 impl NixoApp {
@@ -75,10 +62,17 @@ impl NixoApp {
         Self::apply_settings(backend.as_mut(), &settings);
 
         let has_initial_file = initial_file.is_some();
-        if let Some(path) = initial_file
-            && let Err(err) = backend.execute(PlayerCommand::LoadFile(path))
-        {
-            error!("Erro ao abrir arquivo inicial: {err}");
+        let mut pending_resume = None;
+        if let Some(path) = initial_file.as_ref() {
+            if let Some(entry) = settings.watch_history.get(path)
+                && entry.position_secs > 5.0
+                && !entry.is_completed()
+            {
+                pending_resume = Some(Duration::from_secs_f64(entry.position_secs));
+            }
+            if let Err(err) = backend.execute(PlayerCommand::LoadFile(path.clone())) {
+                error!("Erro ao abrir arquivo inicial: {err}");
+            }
         }
 
         let status = backend.status();
@@ -116,6 +110,10 @@ impl NixoApp {
             toast: None,
             home_state: crate::home::HomeState::new(),
             media_folders: settings.library.folders.clone(),
+            watch_history: settings.watch_history.clone(),
+            current_file: initial_file,
+            pending_resume,
+            last_history_record: Instant::now(),
         }
     }
 
@@ -161,6 +159,28 @@ impl NixoApp {
             library: crate::settings::LibrarySettings {
                 folders: self.media_folders.clone(),
             },
+            watch_history: self.watch_history.clone(),
+        }
+    }
+
+    /// Registra o progresso atual do vídeo ativo no histórico de reprodução.
+    pub(crate) fn record_current_playback(&mut self) {
+        if let Some(file) = &self.current_file {
+            let pos = self.status.position.as_secs_f64();
+            let dur = self.status.duration.as_secs_f64();
+            if dur > 1.0 && pos > 0.0 {
+                let entry = crate::settings::WatchHistoryEntry {
+                    position_secs: pos,
+                    duration_secs: dur,
+                    last_watched_unix: std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0),
+                };
+                self.watch_history.insert(file.clone(), entry);
+                self.settings_store.observe(self.current_settings());
+                self.last_history_record = Instant::now();
+            }
         }
     }
 
@@ -171,9 +191,24 @@ impl NixoApp {
             self.seek_override = None;
             self.preview_texture = None;
             if matches!(cmd, PlayerCommand::Stop) {
+                self.record_current_playback();
+                self.current_file = None;
+                self.pending_resume = None;
                 self.video_texture = None;
                 self.aspect_ratio_fit = false;
             } else {
+                if let PlayerCommand::LoadFile(ref path) = cmd {
+                    self.record_current_playback();
+                    self.current_file = Some(path.clone());
+                    if let Some(entry) = self.watch_history.get(path)
+                        && entry.position_secs > 5.0
+                        && !entry.is_completed()
+                    {
+                        self.pending_resume = Some(Duration::from_secs_f64(entry.position_secs));
+                    } else {
+                        self.pending_resume = None;
+                    }
+                }
                 self.aspect_ratio_fit = self.saved_aspect_ratio_fit;
             }
         }
@@ -184,41 +219,6 @@ impl NixoApp {
             self.error_banner = None;
         }
         self.status = self.backend.status();
-    }
-
-    pub(crate) fn go_home(&mut self) {
-        self.video_texture = None;
-        self.aspect_ratio_fit = false;
-        self.home_state.go_root();
-        self.dispatch(PlayerCommand::Stop);
-    }
-
-    pub(crate) fn handle_home_action(&mut self, action: crate::home::HomeAction) {
-        use crate::home::HomeAction::*;
-        match action {
-            None => {}
-            AddFolder => {
-                if let Some(folder) = rfd::FileDialog::new().pick_folder()
-                    && !self.media_folders.contains(&folder)
-                {
-                    self.media_folders.push(folder.clone());
-                    self.settings_store.observe(self.current_settings());
-                    self.home_state.scanner.invalidate(&folder);
-                }
-            }
-            RemoveFolder(folder) => {
-                self.media_folders.retain(|f| f != &folder);
-                self.settings_store.observe(self.current_settings());
-            }
-            OpenFolder(path) => self.home_state.navigate_to(path),
-            GoBack => self.home_state.go_back(),
-            GoRoot => self.home_state.go_root(),
-            OpenFile => self.open_file_dialog(),
-            PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
-            PlayTestSignal => self.dispatch(PlayerCommand::Play),
-            OpenDesignSystem => self.home_state.is_design_system = true,
-            CloseDesignSystem => self.home_state.is_design_system = false,
-        }
     }
 
     pub(crate) fn update_video_texture(&mut self, ctx: &Context, viewport_size: Vec2) {
@@ -246,6 +246,7 @@ impl NixoApp {
 
 impl eframe::App for NixoApp {
     fn on_exit(&mut self) {
+        self.record_current_playback();
         self.settings_store.observe(self.current_settings());
         self.settings_store.flush();
     }
@@ -258,6 +259,25 @@ impl eframe::App for NixoApp {
         self.status = self.backend.status();
         if self.status.state == PlaybackState::Stopped {
             self.aspect_ratio_fit = false;
+        }
+
+        if let Some(target) = self.pending_resume
+            && self.status.state != PlaybackState::Stopped
+            && self.status.duration >= Duration::from_secs(3)
+        {
+            self.pending_resume = None;
+            self.dispatch(PlayerCommand::Seek(target));
+            let secs = target.as_secs();
+            self.show_toast(
+                format!("Retomando de {:02}:{:02}", secs / 60, secs % 60),
+                None,
+            );
+        }
+
+        if self.status.state == PlaybackState::Playing
+            && self.last_history_record.elapsed() >= Duration::from_secs(5)
+        {
+            self.record_current_playback();
         }
 
         // Persistência: detecta mudanças e grava em background após o debounce.
@@ -409,53 +429,15 @@ impl eframe::App for NixoApp {
                     }
                 } else {
                     let rect = ui.max_rect();
-                    let action = self.home_state.render(ui, &self.media_folders, rect);
+                    let action =
+                        self.home_state
+                            .render(ui, &self.media_folders, &self.watch_history, rect);
                     self.handle_home_action(action);
                 }
             });
 
         // 2. Elementos Flutuantes (OSD): Renderizados com animação de fade suave
-        if osd_alpha > 0.005 && self.status.state != PlaybackState::Stopped {
-            // A. Título e metadados no topo (integrado ao gradiente superior)
-            if self.status.state != PlaybackState::Stopped || self.status.metadata.is_some() {
-                egui::Area::new(Id::new("floating_top_pill"))
-                    .anchor(Align2::CENTER_TOP, vec2(0.0, 16.0))
-                    .interactable(false)
-                    .show(ctx, |ui| {
-                        ui.set_opacity(osd_alpha);
-                        egui::Frame::NONE
-                            .fill(Color32::TRANSPARENT)
-                            .stroke(Stroke::NONE)
-                            .inner_margin(Margin::symmetric(16, 8))
-                            .show(ui, |ui| {
-                                self.render_top_pill(ui);
-                            });
-                    });
-            }
-
-            // B. Barra Inferior Completa: estende-se de ponta a ponta integrada ao gradiente inferior do YouTube
-            egui::Area::new(Id::new("bottom_controls_bar"))
-                .anchor(Align2::LEFT_BOTTOM, vec2(0.0, 0.0))
-                .interactable(osd_alpha > 0.15)
-                .show(ctx, |ui| {
-                    ui.set_opacity(osd_alpha);
-                    let screen_w = ui.ctx().screen_rect().width();
-                    egui::Frame::NONE
-                        .fill(Color32::TRANSPARENT)
-                        .stroke(Stroke::NONE)
-                        .corner_radius(CornerRadius::ZERO)
-                        .inner_margin(Margin {
-                            left: 14,
-                            right: 14,
-                            top: 6,
-                            bottom: 10,
-                        })
-                        .show(ui, |ui| {
-                            ui.set_width(screen_w - 28.0);
-                            self.render_bottom_controls(ctx, ui);
-                        });
-                });
-        }
+        self.render_floating_osd(ctx, osd_alpha);
 
         // C. Banner de Erro Flutuante (se houver)
         if let Some(err) = &self.error_banner {

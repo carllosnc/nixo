@@ -1,4 +1,5 @@
-//! Visão detalhada de dentro de uma pasta: subpastas e grid de arquivos executáveis.
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
@@ -8,16 +9,24 @@ use crate::app::ACCENT_COLOR;
 use crate::components::empty_state::render_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
+use crate::settings::WatchHistoryEntry;
+
+/// Texturas decorativas compartilhadas para renderização do navegador de pastas.
+#[derive(Clone, Copy, Default)]
+pub struct BrowserTextures<'a> {
+    pub folder: Option<&'a egui::TextureHandle>,
+    pub video_clapper: Option<&'a egui::TextureHandle>,
+}
 
 /// Renderiza o conteúdo da pasta aberta (subpastas e arquivos de mídia executáveis).
 pub fn render_folder_browser(
     ui: &mut Ui,
     content: &FolderContent,
     thumbnails: &mut super::ThumbnailManager,
-    folder_texture: Option<&egui::TextureHandle>,
-    video_clapper_texture: Option<&egui::TextureHandle>,
+    textures: BrowserTextures<'_>,
     selected_index: &mut usize,
     keyboard_nav_active: &mut bool,
+    watch_history: &HashMap<PathBuf, WatchHistoryEntry>,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -85,7 +94,7 @@ pub fn render_folder_browser(
             }
 
             // Ícone da subpasta à esquerda: usa o ícone 3D nativo ampliado com padding confortável
-            let text_x = if let Some(tex) = folder_texture {
+            let text_x = if let Some(tex) = textures.folder {
                 let icon_size = vec2(46.0, 40.0);
                 let icon_rect = Rect::from_center_size(
                     Pos2::new(rect.left() + 41.0, rect.center().y),
@@ -238,7 +247,7 @@ pub fn render_folder_browser(
                 } else {
                     ui.painter()
                         .rect_filled(thumb_rect, egui::CornerRadius::ZERO, SURFACE_MED);
-                    if let Some(tex) = video_clapper_texture {
+                    if let Some(tex) = textures.video_clapper {
                         let ic_size = vec2(46.0, 42.0);
                         let ic_rect = Rect::from_center_size(thumb_rect.center(), ic_size);
                         let tint = lerp_color(
@@ -265,6 +274,29 @@ pub fn render_folder_browser(
                             lucide::font_id(28.0),
                             ic_col,
                         );
+                    }
+                }
+
+                if let Some(entry) = watch_history.get(&item.path) {
+                    let progress = entry.progress();
+                    if progress > 0.015 && !entry.is_completed() {
+                        let bar_h = 3.5_f32;
+                        let bar_bg = Rect::from_min_size(
+                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - bar_h),
+                            vec2(thumb_rect.width(), bar_h),
+                        );
+                        ui.painter().rect_filled(
+                            bar_bg,
+                            egui::CornerRadius::ZERO,
+                            Color32::from_black_alpha(170),
+                        );
+                        let fill_w = thumb_rect.width() * progress;
+                        let fill_rect = Rect::from_min_size(
+                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - bar_h),
+                            vec2(fill_w, bar_h),
+                        );
+                        ui.painter()
+                            .rect_filled(fill_rect, egui::CornerRadius::ZERO, ACCENT_COLOR);
                     }
                 }
 
@@ -373,6 +405,41 @@ pub fn render_folder_browser(
                     meta_color,
                 );
                 meta_x += dur_w + 8.0;
+            }
+
+            if let Some(entry) = watch_history.get(&item.path) {
+                let resume_badge = if entry.is_completed() {
+                    Some(("Assistido ✓".to_string(), Color32::from_rgb(52, 199, 89)))
+                } else if entry.position_secs > 5.0 {
+                    let pos_dur = std::time::Duration::from_secs_f64(entry.position_secs);
+                    let pos_str = nixo_core::format_duration(pos_dur);
+                    let pct = (entry.progress() * 100.0).round() as u32;
+                    Some((format!("Parou em {pos_str} ({pct}%)"), ACCENT_COLOR))
+                } else {
+                    None
+                };
+
+                if let Some((resume_text, resume_color)) = resume_badge {
+                    ui.painter().text(
+                        Pos2::new(meta_x, desc_y),
+                        Align2::LEFT_CENTER,
+                        "•",
+                        font_xs(),
+                        TEXT_MUTED,
+                    );
+                    meta_x += 10.0;
+
+                    let resume_galley =
+                        ui.painter()
+                            .layout_no_wrap(resume_text, font_xs(), resume_color);
+                    let resume_w = resume_galley.size().x;
+                    ui.painter().galley(
+                        Pos2::new(meta_x, desc_y - resume_galley.size().y * 0.5),
+                        resume_galley,
+                        resume_color,
+                    );
+                    meta_x += resume_w + 8.0;
+                }
             }
 
             if let Some(res) = res_str {
