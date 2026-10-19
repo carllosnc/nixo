@@ -200,7 +200,10 @@ pub fn render_folder_browser(
                 .and_then(|s| s.to_str())
                 .unwrap_or(&item.name);
 
-            let right_reserve = 100.0;
+            let thumb_w = 88.0_f32;
+            let thumb_h = 50.0_f32;
+            let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
+            let right_reserve = if is_video { thumb_w + 130.0 } else { 100.0 };
             let max_w = (rect.right() - right_reserve - text_x).max(40.0);
 
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
@@ -213,6 +216,83 @@ pub fn render_folder_browser(
                 title_color,
                 max_w,
             );
+
+            // Preview interativo 16:9 posicionado entre os dados do vídeo e o tamanho
+            if is_video {
+                let thumb_right = rect.right() - 110.0;
+                let thumb_rect = Rect::from_min_size(
+                    Pos2::new(thumb_right - thumb_w, rect.top() + (item_h - thumb_h) * 0.5),
+                    vec2(thumb_w, thumb_h),
+                );
+
+                let frame_count = thumbnails.frame_count(&item.path);
+                let mouse_pos = ui.input(|i| i.pointer.hover_pos());
+                let (scene_idx, scrub_ratio, is_thumb_hovered) = if let Some(mpos) = mouse_pos
+                    && thumb_rect.contains(mpos)
+                    && frame_count > 1
+                {
+                    let rel_x = (mpos.x - thumb_rect.left()).clamp(0.0, thumb_w);
+                    let ratio = rel_x / thumb_w;
+                    let idx = ((ratio * frame_count as f32) as usize).min(frame_count - 1);
+                    (idx, Some(ratio), true)
+                } else if hovered && frame_count > 1 {
+                    let time_sec = ui.input(|i| i.time);
+                    let cycle_idx = ((time_sec * 1.4) as usize) % frame_count;
+                    ui.ctx().request_repaint();
+                    (cycle_idx, None, false)
+                } else {
+                    (0, None, false)
+                };
+
+                if let Some(tex) = thumbnails.get_frame(&item.path, scene_idx) {
+                    ui.painter().image(
+                        tex.id(),
+                        thumb_rect,
+                        Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                        Color32::WHITE,
+                    );
+
+                    let stroke_col = if is_thumb_hovered {
+                        Color32::from_rgba_unmultiplied(255, 255, 255, 80)
+                    } else if hovered {
+                        Color32::from_rgba_unmultiplied(255, 255, 255, 30)
+                    } else {
+                        Color32::from_rgba_unmultiplied(255, 255, 255, 12)
+                    };
+                    ui.painter().rect_stroke(
+                        thumb_rect,
+                        RADIUS_SM,
+                        egui::Stroke::new(1.0_f32, stroke_col),
+                        egui::StrokeKind::Inside,
+                    );
+
+                    // Barra de progresso do scrubbing interativo
+                    if let Some(ratio) = scrub_ratio {
+                        let scrub_h = 2.5;
+                        let scrub_bg = Rect::from_min_size(
+                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - scrub_h),
+                            vec2(thumb_w, scrub_h),
+                        );
+                        ui.painter().rect_filled(
+                            scrub_bg,
+                            egui::CornerRadius::ZERO,
+                            Color32::from_black_alpha(150),
+                        );
+
+                        let scrub_fill = Rect::from_min_size(
+                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - scrub_h),
+                            vec2((thumb_w * ratio).max(2.0), scrub_h),
+                        );
+                        ui.painter().rect_filled(
+                            scrub_fill,
+                            egui::CornerRadius::ZERO,
+                            ACCENT_NEUTRAL_FILL,
+                        );
+                    }
+                } else {
+                    ui.painter().rect_filled(thumb_rect, RADIUS_SM, SURFACE_MED);
+                }
+            }
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
             let desc_y = rect.top() + 51.0;

@@ -67,7 +67,7 @@ pub fn parse_resolution_from_name(name: &str) -> Option<&'static str> {
 /// Gerenciador de texturas de miniaturas para os cards de mídia.
 pub struct ThumbnailManager {
     service: Option<ThumbnailService>,
-    textures: HashMap<PathBuf, TextureHandle>,
+    textures: HashMap<PathBuf, Vec<TextureHandle>>,
     details: HashMap<PathBuf, MediaDetails>,
     requested: HashSet<PathBuf>,
 }
@@ -88,10 +88,25 @@ impl ThumbnailManager {
         }
     }
 
-    /// Retorna a textura GPU da miniatura caso já tenha sido processada e carregada.
+    /// Retorna a textura GPU da miniatura estática padrão (primeiro frame).
     #[allow(dead_code)]
     pub fn get(&self, path: &Path) -> Option<&TextureHandle> {
-        self.textures.get(path)
+        self.get_frame(path, 0)
+    }
+
+    /// Retorna a textura GPU de uma cena específica no índice especificado.
+    pub fn get_frame(&self, path: &Path, index: usize) -> Option<&TextureHandle> {
+        let list = self.textures.get(path)?;
+        if list.is_empty() {
+            return None;
+        }
+        let idx = index.min(list.len() - 1);
+        Some(&list[idx])
+    }
+
+    /// Retorna a contagem de frames de cenas disponíveis para o arquivo.
+    pub fn frame_count(&self, path: &Path) -> usize {
+        self.textures.get(path).map_or(0, |l| l.len())
     }
 
     /// Retorna os metadados (duração e resolução) detectados para o arquivo.
@@ -116,12 +131,16 @@ impl ThumbnailManager {
 
         let mut loaded_any = false;
         while let Some(res) = service.try_recv() {
-            if let Some(frame) = res.frame {
-                let size = [frame.width as usize, frame.height as usize];
-                let color_image = ColorImage::from_rgba_unmultiplied(size, &frame.rgba);
-                let tex_name = format!("thumb_{}", self.textures.len());
-                let texture = ctx.load_texture(tex_name, color_image, TextureOptions::LINEAR);
-                self.textures.insert(res.path.clone(), texture);
+            if !res.frames.is_empty() {
+                let mut handles = Vec::with_capacity(res.frames.len());
+                for (i, frame) in res.frames.into_iter().enumerate() {
+                    let size = [frame.width as usize, frame.height as usize];
+                    let color_image = ColorImage::from_rgba_unmultiplied(size, &frame.rgba);
+                    let tex_name = format!("thumb_{}_{}", self.textures.len(), i);
+                    let texture = ctx.load_texture(tex_name, color_image, TextureOptions::LINEAR);
+                    handles.push(texture);
+                }
+                self.textures.insert(res.path.clone(), handles);
                 loaded_any = true;
             }
             if res.duration_secs.is_some() || res.width.is_some() || res.height.is_some() {

@@ -21,11 +21,11 @@ use super::ffi::{
     MPV_RENDER_UPDATE_FRAME, MpvApi, MpvRenderContext, MpvRenderParam, on_mpv_render_update,
 };
 
-/// Metadados e miniatura extraídos assincronamente pelo worker do libmpv.
+/// Metadados e miniaturas de cenas extraídas assincronamente pelo worker do libmpv.
 #[derive(Debug, Clone)]
 pub struct ThumbnailResult {
     pub path: PathBuf,
-    pub frame: Option<VideoFrame>,
+    pub frames: Vec<VideoFrame>,
     pub duration_secs: Option<f64>,
     pub width: Option<u32>,
     pub height: Option<u32>,
@@ -142,8 +142,8 @@ impl ThumbnailService {
                 cb_ctx,
             );
 
-            let thumb_w = 256u32;
-            let thumb_h = 144u32;
+            let thumb_w = 160u32;
+            let thumb_h = 90u32;
             let stride = (thumb_w as usize) * 4;
             let mut pixel_buf = vec![255u8; stride * (thumb_h as usize)];
             let mut frame_id = 0u64;
@@ -163,7 +163,6 @@ impl ThumbnailService {
 
                 // Aguarda metadados e duração inicial (até 80ms)
                 let start_wait = Instant::now();
-                let mut target_sec = 60.0_f64;
                 let mut found_dur: Option<f64> = None;
                 while start_wait.elapsed() < Duration::from_millis(80) {
                     let mut dur: c_double = 0.0;
@@ -175,94 +174,101 @@ impl ThumbnailService {
                     );
                     if rc >= 0 && dur > 0.0 {
                         found_dur = Some(dur);
-                        if dur > 2.0 {
-                            // Captura aos 10:00 (600s) para episódios/filmes para evitar telas pretas e introduções
-                            target_sec = if dur >= 900.0 {
-                                600.0
-                            } else if dur >= 600.0 {
-                                dur * 0.35
-                            } else if dur >= 120.0 {
-                                dur * 0.25
-                            } else {
-                                (dur * 0.15).clamp(3.0, 20.0)
-                            };
-                            break;
-                        }
+                        break;
                     }
                     thread::sleep(Duration::from_millis(4));
                 }
 
-                // Salto rápido diretamente para o keyframe mais próximo
-                if let Ok(sec_cstr) = CString::new(format!("{target_sec:.1}")) {
-                    let c_seek = c"seek";
-                    let c_mode = c"absolute+keyframes";
-                    let args = [
-                        c_seek.as_ptr(),
-                        sec_cstr.as_ptr(),
-                        c_mode.as_ptr(),
-                        ptr::null(),
-                    ];
-                    let _ = (api.command)(handle, args.as_ptr());
-                }
+                // Determina os pontos de tempo das cenas ao longo do vídeo
+                let ratios = match found_dur {
+                    Some(dur) if dur >= 300.0 => vec![0.15, 0.38, 0.62, 0.85],
+                    Some(dur) if dur >= 60.0 => vec![0.20, 0.50, 0.80],
+                    Some(dur) if dur >= 10.0 => vec![0.25, 0.70],
+                    _ => vec![0.50],
+                };
 
-                // Aguarda renderização do quadro pelo MPV (até 80ms)
-                let render_start = Instant::now();
-                let mut captured_frame: Option<VideoFrame> = None;
-                while render_start.elapsed() < Duration::from_millis(80)
-                    && !shutdown.load(Ordering::Acquire)
-                {
-                    let notified = has_update.swap(false, Ordering::AcqRel);
-                    if notified {
-                        let flags = (api.render_context_update)(render_ctx);
-                        if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
-                            let mut size_param: [c_int; 2] = [thumb_w as c_int, thumb_h as c_int];
-                            let format_cstr = c"rgb0";
-                            let mut stride_param: usize = stride;
-                            let mut block_for_target_time: c_int = 0;
+                let mut captured_frames = Vec::with_capacity(ratios.len());
 
-                            let mut r_params = [
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_SW_SIZE,
-                                    data: size_param.as_mut_ptr().cast::<c_void>(),
-                                },
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_SW_FORMAT,
-                                    data: format_cstr.as_ptr() as *mut c_void,
-                                },
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_SW_STRIDE,
-                                    data: (&raw mut stride_param).cast::<c_void>(),
-                                },
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_SW_POINTER,
-                                    data: pixel_buf.as_mut_ptr().cast::<c_void>(),
-                                },
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
-                                    data: (&raw mut block_for_target_time).cast::<c_void>(),
-                                },
-                                MpvRenderParam {
-                                    type_: MPV_RENDER_PARAM_INVALID,
-                                    data: ptr::null_mut(),
-                                },
-                            ];
+                for ratio in ratios {
+                    if shutdown.load(Ordering::Acquire) {
+                        break;
+                    }
 
-                            if (api.render_context_render)(render_ctx, r_params.as_mut_ptr()) >= 0 {
-                                for px in pixel_buf.as_chunks_mut::<4>().0 {
-                                    px[3] = 255;
+                    let target_sec = found_dur.map(|d| (d * ratio).max(1.0)).unwrap_or(10.0);
+
+                    if let Ok(sec_cstr) = CString::new(format!("{target_sec:.1}")) {
+                        let c_seek = c"seek";
+                        let c_mode = c"absolute+keyframes";
+                        let args = [
+                            c_seek.as_ptr(),
+                            sec_cstr.as_ptr(),
+                            c_mode.as_ptr(),
+                            ptr::null(),
+                        ];
+                        let _ = (api.command)(handle, args.as_ptr());
+                    }
+
+                    // Aguarda renderização rápida do quadro pelo MPV (até 45ms)
+                    let render_start = Instant::now();
+                    while render_start.elapsed() < Duration::from_millis(45)
+                        && !shutdown.load(Ordering::Acquire)
+                    {
+                        let notified = has_update.swap(false, Ordering::AcqRel);
+                        if notified {
+                            let flags = (api.render_context_update)(render_ctx);
+                            if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
+                                let mut size_param: [c_int; 2] =
+                                    [thumb_w as c_int, thumb_h as c_int];
+                                let format_cstr = c"rgb0";
+                                let mut stride_param: usize = stride;
+                                let mut block_for_target_time: c_int = 0;
+
+                                let mut r_params = [
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_SW_SIZE,
+                                        data: size_param.as_mut_ptr().cast::<c_void>(),
+                                    },
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_SW_FORMAT,
+                                        data: format_cstr.as_ptr() as *mut c_void,
+                                    },
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_SW_STRIDE,
+                                        data: (&raw mut stride_param).cast::<c_void>(),
+                                    },
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_SW_POINTER,
+                                        data: pixel_buf.as_mut_ptr().cast::<c_void>(),
+                                    },
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
+                                        data: (&raw mut block_for_target_time).cast::<c_void>(),
+                                    },
+                                    MpvRenderParam {
+                                        type_: MPV_RENDER_PARAM_INVALID,
+                                        data: ptr::null_mut(),
+                                    },
+                                ];
+
+                                if (api.render_context_render)(render_ctx, r_params.as_mut_ptr())
+                                    >= 0
+                                {
+                                    for px in pixel_buf.as_chunks_mut::<4>().0 {
+                                        px[3] = 255;
+                                    }
+                                    frame_id += 1;
+                                    captured_frames.push(VideoFrame {
+                                        width: thumb_w,
+                                        height: thumb_h,
+                                        rgba: pixel_buf.clone(),
+                                        frame_id,
+                                    });
+                                    break;
                                 }
-                                frame_id += 1;
-                                captured_frame = Some(VideoFrame {
-                                    width: thumb_w,
-                                    height: thumb_h,
-                                    rgba: pixel_buf.clone(),
-                                    frame_id,
-                                });
-                                break;
                             }
                         }
+                        thread::sleep(Duration::from_millis(2));
                     }
-                    thread::sleep(Duration::from_millis(3));
                 }
 
                 if found_dur.is_none() {
@@ -322,7 +328,7 @@ impl ThumbnailService {
 
                 let _ = res_tx.send(ThumbnailResult {
                     path: path.clone(),
-                    frame: captured_frame,
+                    frames: captured_frames,
                     duration_secs: found_dur,
                     width: found_w,
                     height: found_h,
