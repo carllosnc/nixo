@@ -151,11 +151,17 @@ pub fn render_folder_browser(
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            // Dispara requisição de metadados de vídeo/áudio em background se necessário
-            if matches!(
-                item.kind,
-                super::scanner::MediaKind::Video | super::scanner::MediaKind::Audio
-            ) {
+            let is_visible = ui.is_rect_visible(rect);
+
+            // Dispara requisição de metadados em background para itens visíveis na tela
+            if matches!(item.kind, super::scanner::MediaKind::Video) {
+                if is_visible {
+                    thumbnails.request(&item.path);
+                }
+                if hovered {
+                    thumbnails.prioritize(&item.path);
+                }
+            } else if matches!(item.kind, super::scanner::MediaKind::Audio) && is_visible {
                 thumbnails.request(&item.path);
             }
 
@@ -291,6 +297,18 @@ pub fn render_folder_browser(
                     }
                 } else {
                     ui.painter().rect_filled(thumb_rect, RADIUS_SM, SURFACE_MED);
+                    let ic_col = if hovered {
+                        Color32::from_white_alpha(50)
+                    } else {
+                        Color32::from_white_alpha(25)
+                    };
+                    ui.painter().text(
+                        thumb_rect.center(),
+                        Align2::CENTER_CENTER,
+                        lucide::FILM,
+                        font_xs(),
+                        ic_col,
+                    );
                 }
             }
 

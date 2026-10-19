@@ -70,6 +70,7 @@ pub struct ThumbnailManager {
     textures: HashMap<PathBuf, Vec<TextureHandle>>,
     details: HashMap<PathBuf, MediaDetails>,
     requested: HashSet<PathBuf>,
+    next_tex_id: usize,
 }
 
 impl Default for ThumbnailManager {
@@ -85,7 +86,13 @@ impl ThumbnailManager {
             textures: HashMap::new(),
             details: HashMap::new(),
             requested: HashSet::new(),
+            next_tex_id: 0,
         }
+    }
+
+    /// Retorna se os quadros de cena do arquivo já estão carregados na GPU.
+    pub fn has_frames(&self, path: &Path) -> bool {
+        self.textures.get(path).is_some_and(|l| !l.is_empty())
     }
 
     /// Retorna a textura GPU da miniatura estática padrão (primeiro frame).
@@ -114,12 +121,22 @@ impl ThumbnailManager {
         self.details.get(path)
     }
 
-    /// Enfileira um arquivo de mídia para extração assíncrona de miniatura e metadados.
+    /// Enfileira um arquivo de mídia para extração normal assíncrona.
     pub fn request(&mut self, path: &Path) {
         if self.requested.insert(path.to_path_buf())
             && let Some(service) = &self.service
         {
             service.request(path.to_path_buf());
+        }
+    }
+
+    /// Prioriza imediatamente a extração de miniaturas para o item em foco (hover).
+    pub fn prioritize(&mut self, path: &Path) {
+        if !self.has_frames(path)
+            && let Some(service) = &self.service
+        {
+            self.requested.insert(path.to_path_buf());
+            service.prioritize(path.to_path_buf());
         }
     }
 
@@ -136,7 +153,8 @@ impl ThumbnailManager {
                 for (i, frame) in res.frames.into_iter().enumerate() {
                     let size = [frame.width as usize, frame.height as usize];
                     let color_image = ColorImage::from_rgba_unmultiplied(size, &frame.rgba);
-                    let tex_name = format!("thumb_{}_{}", self.textures.len(), i);
+                    self.next_tex_id += 1;
+                    let tex_name = format!("thumb_{}_{}", self.next_tex_id, i);
                     let texture = ctx.load_texture(tex_name, color_image, TextureOptions::LINEAR);
                     handles.push(texture);
                 }
