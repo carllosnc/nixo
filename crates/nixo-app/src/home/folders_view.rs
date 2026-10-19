@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
 use super::header::HomeAction;
+use crate::app::ACCENT_COLOR;
 use crate::components::empty_state::render_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
@@ -40,6 +41,8 @@ pub fn render_folders_view(
     folders: &[PathBuf],
     folder_counts: &HashMap<PathBuf, usize>,
     folder_texture: Option<&egui::TextureHandle>,
+    selected_index: &mut usize,
+    keyboard_nav_active: &mut bool,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -69,7 +72,7 @@ pub fn render_folders_view(
         let spacing = 8.0;
         let item_w = ui.available_width();
 
-        for folder in folders {
+        for (idx, folder) in folders.iter().enumerate() {
             let folder_name = folder
                 .file_name()
                 .and_then(|n| n.to_str())
@@ -79,17 +82,39 @@ pub fn render_folders_view(
             let display_path = format_folder_display_path(folder);
 
             let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
-            let hovered = resp.hovered();
+            let is_selected = idx == *selected_index && *keyboard_nav_active;
+            let hovered = resp.hovered() && !*keyboard_nav_active;
 
-            // Transição suave de hover do card de pasta (150ms)
-            let hover_t =
-                ui.ctx()
-                    .animate_bool_with_time(resp.id.with("folder_hover"), hovered, 0.15);
+            if is_selected {
+                resp.scroll_to_me(Some(egui::Align::Center));
+            }
+
+            // Transição suave de hover ou seleção do card de pasta (150ms)
+            let hover_t = ui.ctx().animate_bool_with_time(
+                resp.id.with("folder_hover"),
+                hovered || is_selected,
+                0.15,
+            );
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             let icon_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
+
+            if is_selected {
+                ui.painter().rect_stroke(
+                    rect,
+                    RADIUS_MD,
+                    egui::Stroke::new(1.5_f32, ACCENT_COLOR),
+                    egui::StrokeKind::Inside,
+                );
+                let indicator_rect = Rect::from_min_size(
+                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 32.0) * 0.5),
+                    vec2(3.5, 32.0),
+                );
+                ui.painter()
+                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
+            }
 
             // Ícone da pasta à esquerda: usa o ícone 3D nativo ampliado com padding generoso
             let text_x = if let Some(tex) = folder_texture {
@@ -190,6 +215,8 @@ pub fn render_folders_view(
             if rem_resp.clicked() {
                 action = HomeAction::RemoveFolder(folder.clone());
             } else if resp.clicked() {
+                *selected_index = idx;
+                *keyboard_nav_active = false;
                 action = HomeAction::OpenFolder(folder.clone());
             }
 

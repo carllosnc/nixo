@@ -242,18 +242,6 @@ impl NixoApp {
             }
         }
     }
-
-    pub(crate) fn show_toast(&mut self, text: impl Into<String>, path: Option<PathBuf>) {
-        self.toast = Some(crate::toast::ToastNotification::new(text.into(), path));
-    }
-
-    pub(crate) fn take_screenshot(&mut self) {
-        let path = crate::toast::prepare_screenshot_path();
-        let filename = path.file_name().unwrap_or_default().to_string_lossy();
-        self.dispatch(PlayerCommand::TakeScreenshot(path.clone()));
-        crate::toast::copy_screenshot_to_clipboard_async(path.clone());
-        self.show_toast(format!("Captura copiada e salva: {filename}"), Some(path));
-    }
 }
 
 impl eframe::App for NixoApp {

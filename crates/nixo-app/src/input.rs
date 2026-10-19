@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::time::Instant;
 
 use egui::{Context, Key, ViewportCommand};
@@ -6,6 +7,18 @@ use nixo_core::PlayerCommand;
 use crate::app::NixoApp;
 
 impl NixoApp {
+    pub(crate) fn show_toast(&mut self, text: impl Into<String>, path: Option<PathBuf>) {
+        self.toast = Some(crate::toast::ToastNotification::new(text.into(), path));
+    }
+
+    pub(crate) fn take_screenshot(&mut self) {
+        let path = crate::toast::prepare_screenshot_path();
+        let filename = path.file_name().unwrap_or_default().to_string_lossy();
+        self.dispatch(PlayerCommand::TakeScreenshot(path.clone()));
+        crate::toast::copy_screenshot_to_clipboard_async(path.clone());
+        self.show_toast(format!("Captura copiada e salva: {filename}"), Some(path));
+    }
+
     pub(crate) fn open_file_dialog(&mut self) {
         let picked = rfd::FileDialog::new()
             .set_title("Abrir Vídeo no Nixo")
@@ -30,6 +43,19 @@ impl NixoApp {
     }
 
     pub(crate) fn handle_shortcuts_and_drops(&mut self, ctx: &Context) {
+        // Amplifica a velocidade de rolagem (scroll vertical mais ágil e veloz na biblioteca e listas)
+        ctx.input_mut(|i| {
+            i.smooth_scroll_delta *= 1.85;
+            i.raw_scroll_delta *= 1.85;
+        });
+
+        let scrolled = ctx.input(|i| {
+            i.smooth_scroll_delta.length_sq() > 0.0 || i.raw_scroll_delta.length_sq() > 0.0
+        });
+        if scrolled && self.home_state.keyboard_nav_active {
+            self.home_state.keyboard_nav_active = false;
+        }
+
         // Suporte a Drag & Drop de arquivos de vídeo direto na janela
         let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
         for file in dropped_files {
@@ -53,9 +79,15 @@ impl NixoApp {
             // Verifica se o mouse entrou na janela ou se moveu
             let moved = self
                 .last_pointer_pos
-                .is_none_or(|prev| (pos - prev).length_sq() > 0.25);
+                .is_none_or(|prev| (pos - prev).length_sq() > 2.0);
             if moved {
                 self.last_mouse_move = Instant::now();
+                if self.home_state.keyboard_nav_active {
+                    self.home_state.keyboard_nav_active = false;
+                }
+            }
+            if any_down && self.home_state.keyboard_nav_active {
+                self.home_state.keyboard_nav_active = false;
             }
             self.last_pointer_pos = Some(pos);
 
@@ -74,24 +106,72 @@ impl NixoApp {
             }
         }
 
-        // Atalhos de teclado padrão de players de vídeo
-        if ctx.input(|i| i.key_pressed(Key::Space)) {
-            self.dispatch(PlayerCommand::TogglePlayPause);
+        let is_home = self.status.state == nixo_core::PlaybackState::Stopped;
+
+        if is_home {
+            // Navegação de teclado na biblioteca de pastas e mídias
+            if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
+                self.home_state.select_prev();
+            }
+            if ctx.input(|i| i.key_pressed(Key::ArrowDown)) {
+                let total = self.home_state.total_items(&self.media_folders);
+                self.home_state.select_next(total);
+            }
+            // Seta Direita navega para dentro de pastas/subpastas (não inicia reprodução de vídeo)
+            if ctx.input(|i| i.key_pressed(Key::ArrowRight)) {
+                let action = self.home_state.activate_selected(&self.media_folders);
+                if matches!(action, crate::home::HomeAction::OpenFolder(_)) {
+                    self.handle_home_action(action);
+                }
+            }
+            // Enter ativa o item selecionado: entra na pasta ou inicia a reprodução da mídia
+            if ctx.input(|i| i.key_pressed(Key::Enter)) {
+                let action = self.home_state.activate_selected(&self.media_folders);
+                self.handle_home_action(action);
+            }
+            if (ctx.input(|i| i.key_pressed(Key::ArrowLeft) || i.key_pressed(Key::Backspace)))
+                && self.home_state.current_path.is_some()
+            {
+                self.home_state.go_back();
+            }
+            if ctx.input(|i| i.key_pressed(Key::Escape)) {
+                if self.is_fullscreen {
+                    self.toggle_fullscreen(ctx);
+                } else if self.home_state.is_design_system {
+                    self.home_state.is_design_system = false;
+                } else if self.home_state.current_path.is_some() {
+                    self.home_state.go_back();
+                }
+            }
+        } else {
+            // Controles de reprodução de vídeo quando há mídia em execução
+            if ctx.input(|i| i.key_pressed(Key::Space)) {
+                self.dispatch(PlayerCommand::TogglePlayPause);
+            }
+            if ctx.input(|i| i.key_pressed(Key::ArrowRight)) {
+                self.dispatch(PlayerCommand::SeekRelative(5.0));
+            }
+            if ctx.input(|i| i.key_pressed(Key::ArrowLeft)) {
+                self.dispatch(PlayerCommand::SeekRelative(-5.0));
+            }
+            if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
+                let next_vol = (self.status.volume + 5.0).min(100.0);
+                self.dispatch(PlayerCommand::SetVolume(next_vol));
+            }
+            if ctx.input(|i| i.key_pressed(Key::ArrowDown)) {
+                let next_vol = (self.status.volume - 5.0).max(0.0);
+                self.dispatch(PlayerCommand::SetVolume(next_vol));
+            }
+            if ctx.input(|i| i.key_pressed(Key::Escape)) && !any_popup_open {
+                if self.is_fullscreen {
+                    self.toggle_fullscreen(ctx);
+                } else {
+                    self.home_state.keyboard_nav_active = true;
+                    self.dispatch(PlayerCommand::Stop);
+                }
+            }
         }
-        if ctx.input(|i| i.key_pressed(Key::ArrowRight)) {
-            self.dispatch(PlayerCommand::SeekRelative(5.0));
-        }
-        if ctx.input(|i| i.key_pressed(Key::ArrowLeft)) {
-            self.dispatch(PlayerCommand::SeekRelative(-5.0));
-        }
-        if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
-            let next_vol = (self.status.volume + 5.0).min(100.0);
-            self.dispatch(PlayerCommand::SetVolume(next_vol));
-        }
-        if ctx.input(|i| i.key_pressed(Key::ArrowDown)) {
-            let next_vol = (self.status.volume - 5.0).max(0.0);
-            self.dispatch(PlayerCommand::SetVolume(next_vol));
-        }
+
         if ctx.input(|i| i.key_pressed(Key::M)) {
             self.dispatch(PlayerCommand::ToggleMute);
         }
@@ -110,9 +190,6 @@ impl NixoApp {
             self.dispatch(PlayerCommand::CycleAudioTrack);
         }
         if ctx.input(|i| i.key_pressed(Key::F) || i.key_pressed(Key::F11)) {
-            self.toggle_fullscreen(ctx);
-        }
-        if ctx.input(|i| i.key_pressed(Key::Escape)) && self.is_fullscreen {
             self.toggle_fullscreen(ctx);
         }
         if ctx.input(|i| i.key_pressed(Key::T)) {

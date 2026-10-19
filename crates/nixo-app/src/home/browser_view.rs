@@ -4,6 +4,7 @@ use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
 use super::header::HomeAction;
 use super::scanner::FolderContent;
+use crate::app::ACCENT_COLOR;
 use crate::components::empty_state::render_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
@@ -15,6 +16,8 @@ pub fn render_folder_browser(
     thumbnails: &mut super::ThumbnailManager,
     folder_texture: Option<&egui::TextureHandle>,
     video_clapper_texture: Option<&egui::TextureHandle>,
+    selected_index: &mut usize,
+    keyboard_nav_active: &mut bool,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -46,18 +49,40 @@ pub fn render_folder_browser(
         let spacing = 8.0;
         let item_w = ui.available_width();
 
-        for dir in &content.subdirs {
+        for (idx, dir) in content.subdirs.iter().enumerate() {
             let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
-            let hovered = resp.hovered();
+            let is_selected = idx == *selected_index && *keyboard_nav_active;
+            let hovered = resp.hovered() && !*keyboard_nav_active;
 
-            let hover_t =
-                ui.ctx()
-                    .animate_bool_with_time(resp.id.with("chip_hover"), hovered, 0.15);
+            if is_selected {
+                resp.scroll_to_me(Some(egui::Align::Center));
+            }
+
+            let hover_t = ui.ctx().animate_bool_with_time(
+                resp.id.with("chip_hover"),
+                hovered || is_selected,
+                0.15,
+            );
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             let icon_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             let text_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
 
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
+
+            if is_selected {
+                ui.painter().rect_stroke(
+                    rect,
+                    RADIUS_MD,
+                    egui::Stroke::new(1.5_f32, ACCENT_COLOR),
+                    egui::StrokeKind::Inside,
+                );
+                let indicator_rect = Rect::from_min_size(
+                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 28.0) * 0.5),
+                    vec2(3.5, 28.0),
+                );
+                ui.painter()
+                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
+            }
 
             // Ícone da subpasta à esquerda: usa o ícone 3D nativo ampliado com padding confortável
             let text_x = if let Some(tex) = folder_texture {
@@ -115,6 +140,8 @@ pub fn render_folder_browser(
             );
 
             if resp.clicked() {
+                *selected_index = idx;
+                *keyboard_nav_active = false;
                 action = HomeAction::OpenFolder(dir.path.clone());
             }
 
@@ -141,8 +168,16 @@ pub fn render_folder_browser(
         let spacing = 8.0;
         let item_w = ui.available_width();
 
-        for item in &content.files {
+        for (f_idx, item) in content.files.iter().enumerate() {
+            let global_idx = content.subdirs.len() + f_idx;
             let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
+            let is_selected = global_idx == *selected_index && *keyboard_nav_active;
+            let hovered = resp.hovered() && !*keyboard_nav_active;
+
+            if is_selected {
+                resp.scroll_to_me(Some(egui::Align::Center));
+            }
+
             let is_visible = ui.is_rect_visible(rect);
             let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
 
@@ -151,17 +186,33 @@ pub fn render_folder_browser(
                 continue;
             }
 
-            let hovered = resp.hovered();
-            let hover_t =
-                ui.ctx()
-                    .animate_bool_with_time(resp.id.with("file_hover"), hovered, 0.15);
+            let hover_t = ui.ctx().animate_bool_with_time(
+                resp.id.with("file_hover"),
+                hovered || is_selected,
+                0.15,
+            );
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
+
+            if is_selected {
+                ui.painter().rect_stroke(
+                    rect,
+                    RADIUS_MD,
+                    egui::Stroke::new(1.5_f32, ACCENT_COLOR),
+                    egui::StrokeKind::Inside,
+                );
+                let indicator_rect = Rect::from_min_size(
+                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 40.0) * 0.5),
+                    vec2(3.5, 40.0),
+                );
+                ui.painter()
+                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
+            }
 
             // Dispara requisição de metadados em background para itens visíveis na tela
             if is_video {
                 thumbnails.request(&item.path);
-                if hovered {
+                if hovered || is_selected {
                     thumbnails.prioritize(&item.path);
                 }
             } else if matches!(item.kind, super::scanner::MediaKind::Audio) {
@@ -353,6 +404,8 @@ pub fn render_folder_browser(
             );
 
             if resp.clicked() {
+                *selected_index = global_idx;
+                *keyboard_nav_active = false;
                 action = HomeAction::PlayFile(item.path.clone());
             }
 
