@@ -137,7 +137,7 @@ pub fn render_folder_browser(
             ui.add_space(12.0);
         }
 
-        let item_h = 82.0;
+        let item_h = 100.0;
         let spacing = 8.0;
         let item_w = ui.available_width();
 
@@ -168,8 +168,8 @@ pub fn render_folder_browser(
 
             // Preview interativo 16:9 ampliado à esquerda no lugar do ícone
             let text_x = if is_video {
-                let thumb_w = 112.0_f32;
-                let thumb_h = 63.0_f32;
+                let thumb_w = 144.0_f32;
+                let thumb_h = 81.0_f32;
                 let thumb_rect = Rect::from_min_size(
                     Pos2::new(rect.left() + 14.0, rect.top() + (item_h - thumb_h) * 0.5),
                     vec2(thumb_w, thumb_h),
@@ -229,7 +229,7 @@ pub fn render_folder_browser(
                     ui.painter()
                         .rect_filled(thumb_rect, egui::CornerRadius::ZERO, SURFACE_MED);
                     if let Some(tex) = video_clapper_texture {
-                        let ic_size = vec2(36.0, 33.0);
+                        let ic_size = vec2(46.0, 42.0);
                         let ic_rect = Rect::from_center_size(thumb_rect.center(), ic_size);
                         let tint = lerp_color(
                             Color32::from_white_alpha(90),
@@ -252,20 +252,20 @@ pub fn render_folder_browser(
                             thumb_rect.center(),
                             Align2::CENTER_CENTER,
                             lucide::FILM,
-                            lucide::font_id(24.0),
+                            lucide::font_id(28.0),
                             ic_col,
                         );
                     }
                 }
 
-                thumb_rect.right() + 16.0
+                thumb_rect.right() + 18.0
             } else {
                 let default_ic = match item.kind {
                     super::scanner::MediaKind::Video => lucide::FILM,
                     super::scanner::MediaKind::Audio => lucide::MUSIC,
                     super::scanner::MediaKind::Directory => lucide::FOLDER,
                 };
-                let icon_pos = Pos2::new(rect.left() + 24.0, rect.center().y);
+                let icon_pos = Pos2::new(rect.left() + 28.0, rect.center().y);
                 ui.painter().text(
                     icon_pos,
                     Align2::LEFT_CENTER,
@@ -273,7 +273,7 @@ pub fn render_folder_browser(
                     lucide::font_id(30.0),
                     lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t),
                 );
-                rect.left() + 68.0
+                rect.left() + 72.0
             };
 
             // Nome do arquivo (Linha 1 do item)
@@ -287,7 +287,7 @@ pub fn render_folder_browser(
             let title_color = lerp_color(TEXT_SECONDARY, TEXT_PRIMARY, hover_t);
             paint_truncated_text(
                 ui,
-                Pos2::new(text_x, rect.top() + 28.0),
+                Pos2::new(text_x, rect.top() + 34.0),
                 Align2::LEFT_CENTER,
                 clean_name,
                 font_body(),
@@ -296,7 +296,7 @@ pub fn render_folder_browser(
             );
 
             // Linha de descrição com badge do tipo de mídia, duração e resolução (Linha 2)
-            let desc_y = rect.top() + 54.0;
+            let desc_y = rect.top() + 66.0;
 
             // 1. Badge com tipo de mídia (extensão ex.: MKV, MP4)
             let badge_text = if !item.extension.is_empty() {

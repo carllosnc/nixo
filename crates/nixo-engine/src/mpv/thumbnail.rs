@@ -171,8 +171,8 @@ impl ThumbnailService {
                 cb_ctx,
             );
 
-            let thumb_w = 160u32;
-            let thumb_h = 90u32;
+            let thumb_w = 192u32;
+            let thumb_h = 108u32;
             let stride = (thumb_w as usize) * 4;
             let mut pixel_buf = vec![255u8; stride * (thumb_h as usize)];
             let mut frame_id = 0u64;
