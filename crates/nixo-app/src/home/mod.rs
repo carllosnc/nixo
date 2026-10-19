@@ -235,6 +235,7 @@ impl HomeState {
         folders: &[PathBuf],
         watch_history: &std::collections::HashMap<PathBuf, crate::settings::WatchHistoryEntry>,
         _rect: Rect,
+        t: &crate::i18n::Translations,
     ) -> HomeAction {
         self.scanner.poll();
         self.thumbnails.poll(ui.ctx());
@@ -310,6 +311,7 @@ impl HomeState {
                         self.current_path.as_deref(),
                         &self.breadcrumbs,
                         self.logo_texture.as_ref(),
+                        t,
                     );
                     if !matches!(header_action, HomeAction::None) {
                         action = header_action;
@@ -380,6 +382,7 @@ impl HomeState {
                                     &mut self.selected_index,
                                     &mut self.keyboard_nav_active,
                                     watch_history,
+                                    t,
                                 );
                                 if !matches!(browser_act, HomeAction::None) {
                                     action = browser_act;
@@ -399,6 +402,7 @@ impl HomeState {
                                     self.folder_texture.as_ref(),
                                     &mut self.selected_index,
                                     &mut self.keyboard_nav_active,
+                                    t,
                                 );
                                 if !matches!(folders_act, HomeAction::None) {
                                     action = folders_act;

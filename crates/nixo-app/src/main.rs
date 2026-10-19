@@ -4,6 +4,7 @@ mod app;
 mod components;
 mod flags;
 mod home;
+mod i18n;
 mod icons;
 mod input;
 mod lucide;

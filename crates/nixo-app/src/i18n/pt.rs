@@ -1,0 +1,120 @@
+use super::Translations;
+
+pub static PT: Translations = Translations {
+    // Menu raiz / Navegação
+    settings_title: "CONFIGURAÇÕES",
+    menu_video: "VÍDEO",
+    menu_speed: "VELOCIDADE",
+    menu_audio: "ÁUDIO",
+    menu_subtitles: "LEGENDAS",
+    menu_language: "IDIOMA",
+    menu_always_on_top: "SEMPRE NO TOPO",
+
+    // Aba de Vídeo
+    video_framing: "ENQUADRAMENTO",
+    video_fit_screen: "Ajustar à tela",
+    video_fill_screen: "Preencher tela",
+    video_aspect_ratio: "PROPORÇÃO",
+    video_aspect_auto: "Original (Auto)",
+    video_aspect_16_9: "16:9 Widescreen",
+    video_aspect_4_3: "4:3 Clássico",
+    video_aspect_235_1: "2.35:1 Cinema",
+    video_summary_fit_auto: "Ajustar (Auto)",
+
+    // Aba de Velocidade
+    speed_title: "VELOCIDADE",
+    speed_normal: "Normal",
+
+    // Aba de Áudio
+    audio_track_title: "FAIXA DE ÁUDIO",
+    audio_no_tracks: "Nenhuma faixa de áudio detectada",
+    audio_disable: "Desativar áudio",
+    audio_sync: "SINCRONIA",
+    audio_none: "Nenhuma",
+    audio_disabled: "Desativado",
+    audio_track_prefix: "Faixa",
+
+    // Aba de Legendas
+    subtitles_title: "LEGENDAS",
+    subtitles_disabled: "Desativadas",
+    subtitles_load_external: "Carregar legenda externa...",
+    subtitles_style: "Estilo da legenda",
+    subtitles_dialog_title: "Carregar Legenda Externa no Nixo",
+    filter_subtitles: "Legendas",
+    filter_all_files: "Todos os Arquivos",
+
+    // Estilo de Legenda
+    style_title: "ESTILO DA LEGENDA",
+    style_font: "FONTE",
+    style_font_weight: "PESO DA FONTE",
+    style_size: "TAMANHO",
+    style_text_color: "COR DO TEXTO",
+    style_border: "CONTORNO",
+    style_background: "FUNDO",
+    style_shadow: "SOMBRA",
+    style_position: "POSIÇÃO",
+    style_subtitle_height: "ALTURA DA LEGENDA",
+    style_reset_default: "Redefinir padrão (8%)",
+    style_weight_bold: "Bold",
+    style_weight_normal: "Normal",
+    style_border_none: "Nenhum",
+    style_border_thin: "Fino",
+    style_border_medium: "Médio",
+    style_border_thick: "Grosso",
+    style_shadow_none: "Nenhuma",
+    style_shadow_light: "Leve",
+    style_shadow_strong: "Forte",
+    style_bg_none: "Nenhum",
+    style_bg_box_50: "Caixa 50%",
+    style_bg_box_75: "Caixa 75%",
+    style_bg_box_solid: "Caixa sólida",
+    style_pos_bottom: "Inferior (8%)",
+    style_pos_raised: "Elevada (20%)",
+    style_pos_top: "Superior (82%)",
+
+    // Nomes de cores
+    color_white: "Branco",
+    color_yellow: "Amarelo",
+    color_green: "Verde",
+    color_cyan: "Ciano",
+    color_magenta: "Magenta",
+    color_red: "Vermelho",
+
+    // OSD / Controles inferiores
+    play_tooltip: "Reproduzir (Espaço)",
+    pause_tooltip: "Pausar (Espaço)",
+    forward_5s_tooltip: "Avançar 5s (Seta Direita)",
+    unmute_tooltip: "Ativar som (M)",
+    mute_tooltip: "Desativar som (M)",
+    volume_muted_tooltip: "Volume: Mudo",
+    fullscreen_enter_tooltip: "Tela cheia (F)",
+    fullscreen_exit_tooltip: "Sair da tela cheia (F)",
+    aspect_fit_disable_tooltip: "Desativar ajuste de proporção da janela (Shift+A)",
+    aspect_fit_enable_tooltip: "Ajustar janela na proporção do vídeo sem bordas pretas (Shift+A)",
+    screenshot_tooltip: "Capturar tela (Ctrl+S / P)",
+    home_tooltip: "Página inicial (Home)",
+    subtitles_disable_tooltip: "Desativar legendas (V)",
+    subtitles_enable_tooltip: "Ativar legendas (V)",
+
+    // Biblioteca / Home
+    header_back: "Voltar",
+    header_home: "Início",
+    header_home_tooltip: "Ir para a tela inicial",
+    header_folder_fallback: "Pasta",
+    folders_title: "Pastas de Mídia",
+    empty_folders_title: "Nenhuma pasta de mídia adicionada",
+    empty_folders_desc: "Adicione suas pastas de vídeos ou animes para navegar e assistir diretamente por aqui.",
+    empty_folders_action: "Selecionar Pasta de Mídia",
+    empty_folder_title: "Esta pasta está vazia",
+    empty_folder_desc: "Nenhum arquivo de mídia ou subpasta foi encontrado aqui.",
+    loading_folder: "Carregando itens da pasta...",
+    calculating: "calculando...",
+    watched_badge: "Assistido ✓",
+    dialog_open_video: "Abrir Vídeo no Nixo",
+    filter_video_files: "Arquivos de Vídeo",
+
+    // Notificações e Diagnósticos
+    health_image_based_badge: "LEGENDA FIXA",
+    health_inactive_badge: "LEGENDA INATIVA",
+    health_inactive_desc: "A faixa selecionada não emite texto (faixa vazia ou comentários)",
+};

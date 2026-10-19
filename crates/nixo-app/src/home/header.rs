@@ -62,12 +62,13 @@ pub fn render_header(
     current_path: Option<&Path>,
     breadcrumbs: &[PathBuf],
     logo_texture: Option<&TextureHandle>,
+    t: &crate::i18n::Translations,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
     ui.horizontal(|ui| {
         if let Some(_path) = current_path {
-            if icon_secondary(ui, lucide::ARROW_LEFT, "Voltar").clicked() {
+            if icon_secondary(ui, lucide::ARROW_LEFT, t.header_back).clicked() {
                 action = HomeAction::GoBack;
             }
 
@@ -76,12 +77,12 @@ pub fn render_header(
             // Breadcrumb limpo
             let root_link = ui
                 .link(
-                    RichText::new("Início")
+                    RichText::new(t.header_home)
                         .font(font_body())
                         .color(TEXT_SECONDARY),
                 )
                 .on_hover_cursor(CursorIcon::PointingHand)
-                .on_hover_text("Ir para a tela inicial");
+                .on_hover_text(t.header_home_tooltip);
             if root_link.clicked() {
                 action = HomeAction::GoRoot;
             }
@@ -95,7 +96,7 @@ pub fn render_header(
                 let crumb_name = crumb
                     .file_name()
                     .and_then(|n| n.to_str())
-                    .unwrap_or("Pasta");
+                    .unwrap_or(t.header_folder_fallback);
 
                 let is_current = current_path.is_some_and(|p| p == crumb);
                 let display_name = truncate_breadcrumb(crumb_name, 22);

@@ -16,17 +16,19 @@ impl NixoApp {
         let filename = path.file_name().unwrap_or_default().to_string_lossy();
         self.dispatch(PlayerCommand::TakeScreenshot(path.clone()));
         crate::toast::copy_screenshot_to_clipboard_async(path.clone());
-        self.show_toast(format!("Captura copiada e salva: {filename}"), Some(path));
+        let toast_msg = self.t().screenshot_saved(&filename);
+        self.show_toast(toast_msg, Some(path));
     }
 
     pub(crate) fn open_file_dialog(&mut self) {
+        let t = self.t();
         let picked = rfd::FileDialog::new()
-            .set_title("Abrir Vídeo no Nixo")
+            .set_title(t.dialog_open_video)
             .add_filter(
-                "Arquivos de Vídeo",
+                t.filter_video_files,
                 &["mp4", "mkv", "webm", "avi", "mov", "m4v", "ts", "flv"],
             )
-            .add_filter("Todos os Arquivos", &["*"])
+            .add_filter(t.filter_all_files, &["*"])
             .pick_file();
 
         if let Some(path) = picked {
@@ -54,12 +56,18 @@ impl NixoApp {
         match action {
             None => {}
             AddFolder => {
-                if let Some(folder) = rfd::FileDialog::new().pick_folder()
-                    && !self.media_folders.contains(&folder)
-                {
-                    self.media_folders.push(folder.clone());
-                    self.settings_store.observe(self.current_settings());
-                    self.home_state.scanner.invalidate(&folder);
+                if let Some(folders) = rfd::FileDialog::new().pick_folders() {
+                    let mut added = false;
+                    for folder in folders {
+                        if !self.media_folders.contains(&folder) {
+                            self.media_folders.push(folder.clone());
+                            self.home_state.scanner.invalidate(&folder);
+                            added = true;
+                        }
+                    }
+                    if added {
+                        self.settings_store.observe(self.current_settings());
+                    }
                 }
             }
             RemoveFolder(folder) => {
@@ -91,13 +99,25 @@ impl NixoApp {
             self.home_state.keyboard_nav_active = false;
         }
 
-        // Suporte a Drag & Drop de arquivos de vídeo direto na janela
+        // Suporte a Drag & Drop de arquivos de vídeo e pastas de mídia direto na janela
         let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
+        let mut added_folders = false;
         for file in dropped_files {
             if let Some(path) = file.path {
-                self.dispatch(PlayerCommand::LoadFile(path));
-                break;
+                if path.is_dir() {
+                    if !self.media_folders.contains(&path) {
+                        self.media_folders.push(path.clone());
+                        self.home_state.scanner.invalidate(&path);
+                        added_folders = true;
+                    }
+                } else {
+                    self.dispatch(PlayerCommand::LoadFile(path));
+                    break;
+                }
             }
+        }
+        if added_folders {
+            self.settings_store.observe(self.current_settings());
         }
 
         // Máquina de estados de hover inspirada no YouTube:

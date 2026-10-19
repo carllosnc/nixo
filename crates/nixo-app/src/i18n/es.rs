@@ -1,0 +1,120 @@
+use super::Translations;
+
+pub static ES: Translations = Translations {
+    // Menu principal / Navegación
+    settings_title: "CONFIGURACIÓN",
+    menu_video: "VÍDEO",
+    menu_speed: "VELOCIDAD",
+    menu_audio: "AUDIO",
+    menu_subtitles: "SUBTÍTULOS",
+    menu_language: "IDIOMA",
+    menu_always_on_top: "SIEMPRE VISIBLE",
+
+    // Pestaña de Vídeo
+    video_framing: "ENCUADRE",
+    video_fit_screen: "Ajustar a la ventana",
+    video_fill_screen: "Llenar pantalla",
+    video_aspect_ratio: "RELACIÓN DE ASPECTO",
+    video_aspect_auto: "Original (Auto)",
+    video_aspect_16_9: "16:9 Panorámico",
+    video_aspect_4_3: "4:3 Clásico",
+    video_aspect_235_1: "2.35:1 Cine",
+    video_summary_fit_auto: "Ajustar (Auto)",
+
+    // Pestaña de Velocidad
+    speed_title: "VELOCIDAD",
+    speed_normal: "Normal",
+
+    // Pestaña de Audio
+    audio_track_title: "PISTA DE AUDIO",
+    audio_no_tracks: "No se detectaron pistas de audio",
+    audio_disable: "Desactivar audio",
+    audio_sync: "SINCRONIZACIÓN",
+    audio_none: "Ninguna",
+    audio_disabled: "Desactivado",
+    audio_track_prefix: "Pista",
+
+    // Pestaña de Subtítulos
+    subtitles_title: "SUBTÍTULOS",
+    subtitles_disabled: "Desactivados",
+    subtitles_load_external: "Cargar subtítulo externo...",
+    subtitles_style: "Estilo de subtítulo",
+    subtitles_dialog_title: "Cargar Subtítulo Externo en Nixo",
+    filter_subtitles: "Subtítulos",
+    filter_all_files: "Todos los Archivos",
+
+    // Estilo de Subtítulo
+    style_title: "ESTILO DE SUBTÍTULO",
+    style_font: "FUENTE",
+    style_font_weight: "PESO DE FUENTE",
+    style_size: "TAMAÑO",
+    style_text_color: "COLOR DEL TEXTO",
+    style_border: "CONTORNO",
+    style_background: "FONDO",
+    style_shadow: "SOMBRA",
+    style_position: "POSICIÓN",
+    style_subtitle_height: "ALTURA DEL SUBTÍTULO",
+    style_reset_default: "Restablecer predeterminado (8%)",
+    style_weight_bold: "Negrita",
+    style_weight_normal: "Normal",
+    style_border_none: "Ninguno",
+    style_border_thin: "Fino",
+    style_border_medium: "Medio",
+    style_border_thick: "Grueso",
+    style_shadow_none: "Ninguna",
+    style_shadow_light: "Suave",
+    style_shadow_strong: "Fuerte",
+    style_bg_none: "Ninguno",
+    style_bg_box_50: "Caja 50%",
+    style_bg_box_75: "Caja 75%",
+    style_bg_box_solid: "Caja sólida",
+    style_pos_bottom: "Inferior (8%)",
+    style_pos_raised: "Elevada (20%)",
+    style_pos_top: "Superior (82%)",
+
+    // Nombres de colores
+    color_white: "Blanco",
+    color_yellow: "Amarillo",
+    color_green: "Verde",
+    color_cyan: "Cian",
+    color_magenta: "Magenta",
+    color_red: "Rojo",
+
+    // OSD / Controles inferiores
+    play_tooltip: "Reproducir (Espacio)",
+    pause_tooltip: "Pausar (Espacio)",
+    forward_5s_tooltip: "Avanzar 5s (Flecha Derecha)",
+    unmute_tooltip: "Activar sonido (M)",
+    mute_tooltip: "Silenciar (M)",
+    volume_muted_tooltip: "Volumen: Silenciado",
+    fullscreen_enter_tooltip: "Pantalla completa (F)",
+    fullscreen_exit_tooltip: "Salir de pantalla completa (F)",
+    aspect_fit_disable_tooltip: "Desactivar ajuste de proporción de ventana (Shift+A)",
+    aspect_fit_enable_tooltip: "Ajustar ventana a la proporción del video sin barras negras (Shift+A)",
+    screenshot_tooltip: "Capturar pantalla (Ctrl+S / P)",
+    home_tooltip: "Biblioteca inicial (Home)",
+    subtitles_disable_tooltip: "Desactivar subtítulos (V)",
+    subtitles_enable_tooltip: "Activar subtítulos (V)",
+
+    // Biblioteca / Home
+    header_back: "Volver",
+    header_home: "Inicio",
+    header_home_tooltip: "Ir a la biblioteca inicial",
+    header_folder_fallback: "Carpeta",
+    folders_title: "Carpetas de Medios",
+    empty_folders_title: "No se agregaron carpetas de medios",
+    empty_folders_desc: "Agregue sus carpetas de videos o anime para explorar y ver directamente aquí.",
+    empty_folders_action: "Seleccionar Carpeta de Medios",
+    empty_folder_title: "Esta carpeta está vacía",
+    empty_folder_desc: "No se encontraron archivos de medios ni subcarpetas aquí.",
+    loading_folder: "Cargando contenido de la carpeta...",
+    calculating: "calculando...",
+    watched_badge: "Visto ✓",
+    dialog_open_video: "Abrir Video en Nixo",
+    filter_video_files: "Archivos de Video",
+
+    // Notificaciones y Diagnósticos
+    health_image_based_badge: "SUBTÍTULO BITMAP",
+    health_inactive_badge: "SUBTÍTULO INACTIVO",
+    health_inactive_desc: "La pista seleccionada no emite texto (pista vacía o comentarios)",
+};

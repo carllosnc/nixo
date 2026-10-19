@@ -26,15 +26,6 @@ pub fn format_folder_display_path(folder: &Path) -> String {
     }
 }
 
-/// Formata a quantidade de itens encontrados dentro de uma pasta configurada.
-pub fn format_folder_count(count: Option<&usize>) -> String {
-    match count {
-        Some(1) => "1 item".to_string(),
-        Some(c) => format!("{c} itens"),
-        None => "calculando...".to_string(),
-    }
-}
-
 /// Renderiza a lista de pastas de mídia configuradas pelo usuário em formato de lista moderno.
 pub fn render_folders_view(
     ui: &mut Ui,
@@ -43,6 +34,7 @@ pub fn render_folders_view(
     folder_texture: Option<&egui::TextureHandle>,
     selected_index: &mut usize,
     keyboard_nav_active: &mut bool,
+    t: &crate::i18n::Translations,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -50,9 +42,9 @@ pub fn render_folders_view(
         let resp = render_empty_state(
             ui,
             lucide::FOLDER_OPEN,
-            "Nenhuma pasta de mídia adicionada",
-            "Adicione suas pastas de vídeos ou animes para navegar e assistir diretamente por aqui.",
-            Some("+ Selecionar Pasta de Mídia"),
+            t.empty_folders_title,
+            t.empty_folders_desc,
+            Some(t.empty_folders_action),
         );
         if let Some(r) = resp
             && r.clicked()
@@ -62,7 +54,7 @@ pub fn render_folders_view(
     } else {
         ui.add_space(8.0);
         ui.label(
-            RichText::new("Pastas de Mídia")
+            RichText::new(t.folders_title)
                 .font(font_section_title())
                 .color(Color32::WHITE),
         );
@@ -76,9 +68,9 @@ pub fn render_folders_view(
             let folder_name = folder
                 .file_name()
                 .and_then(|n| n.to_str())
-                .unwrap_or("Pasta");
+                .unwrap_or(t.header_folder_fallback);
 
-            let count_text = format_folder_count(folder_counts.get(folder));
+            let count_text = t.folder_items_count(folder_counts.get(folder));
             let display_path = format_folder_display_path(folder);
 
             let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
@@ -235,9 +227,10 @@ mod tests {
 
     #[test]
     fn test_format_folder_count() {
-        assert_eq!(format_folder_count(None), "calculando...");
-        assert_eq!(format_folder_count(Some(&1)), "1 item");
-        assert_eq!(format_folder_count(Some(&12)), "12 itens");
+        let t = crate::i18n::Language::Portuguese.t();
+        assert_eq!(t.folder_items_count(None), "calculando...");
+        assert_eq!(t.folder_items_count(Some(&1)), "1 item");
+        assert_eq!(t.folder_items_count(Some(&12)), "12 itens");
     }
 
     #[test]

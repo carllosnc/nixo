@@ -11,6 +11,7 @@ use egui::{
 use super::primitives::{allocate_row, hover_color, paint_row_hover, paint_text};
 use crate::app::ACCENT_COLOR;
 use crate::popovers::style::menu_style;
+use crate::theme::font_bold;
 
 // ────────────────────────────── MenuToggle ───────────────────────────────
 
@@ -243,4 +244,185 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
     }
 
     new_delay
+}
+
+// ───────────────────────────── menu_slider ─────────────────────────────
+
+/// Linha de controle com rótulo, valor atual e slider interativo com botões de passo [-] e [+].
+pub(crate) fn menu_slider(
+    ui: &mut Ui,
+    label: &str,
+    current_value: f64,
+    range: std::ops::RangeInclusive<f64>,
+    step: f64,
+    format_val: impl Fn(f64) -> String,
+) -> Option<f64> {
+    let st = menu_style();
+    let (rect, _) = allocate_row(ui, 54.0, Sense::hover());
+
+    let top_y = rect.top() + 11.0;
+    let bottom_y = rect.top() + 38.0;
+
+    // Rótulo na esquerda
+    paint_text(
+        ui,
+        label,
+        st.font_label.clone(),
+        st.text_nav_title,
+        Pos2::new(rect.left() + st.row_padding_x, top_y),
+        Align2::LEFT_CENTER,
+        f32::INFINITY,
+    );
+
+    // Valor formatado na direita
+    let val_str = format_val(current_value);
+    paint_text(
+        ui,
+        &val_str,
+        font_bold(13.0),
+        ACCENT_COLOR,
+        Pos2::new(rect.right() - st.row_padding_x, top_y),
+        Align2::RIGHT_CENTER,
+        f32::INFINITY,
+    );
+
+    let min = *range.start();
+    let max = *range.end();
+    let span = (max - min).max(0.0001);
+
+    let mut new_val = None;
+
+    let btn_size = vec2(28.0, 26.0);
+    let btn_radius = CornerRadius::same(6);
+    let btn_idle_bg = Color32::from_rgb(26, 28, 34);
+    let btn_hover_bg = Color32::from_rgb(42, 44, 54);
+    let btn_active_bg = Color32::from_rgb(56, 60, 72);
+
+    // Botão Menos [-]
+    let minus_center = Pos2::new(rect.left() + st.row_padding_x + btn_size.x * 0.5, bottom_y);
+    let minus_rect = Rect::from_center_size(minus_center, btn_size);
+    let minus_resp = ui
+        .allocate_rect(minus_rect, Sense::click())
+        .on_hover_cursor(CursorIcon::PointingHand);
+    let minus_hover = minus_resp.hovered();
+    let minus_bg = if minus_resp.is_pointer_button_down_on() {
+        btn_active_bg
+    } else if minus_hover {
+        btn_hover_bg
+    } else {
+        btn_idle_bg
+    };
+    ui.painter().rect_filled(minus_rect, btn_radius, minus_bg);
+    ui.painter().line_segment(
+        [
+            Pos2::new(minus_center.x - 5.0, bottom_y),
+            Pos2::new(minus_center.x + 5.0, bottom_y),
+        ],
+        Stroke::new(1.8_f32, hover_color(minus_hover, st.text_option)),
+    );
+    if minus_resp.clicked() {
+        let stepped = ((current_value - step - min) / step).round() * step + min;
+        new_val = Some(stepped.clamp(min, max));
+    }
+
+    // Botão Mais [+]
+    let plus_center = Pos2::new(rect.right() - st.row_padding_x - btn_size.x * 0.5, bottom_y);
+    let plus_rect = Rect::from_center_size(plus_center, btn_size);
+    let plus_resp = ui
+        .allocate_rect(plus_rect, Sense::click())
+        .on_hover_cursor(CursorIcon::PointingHand);
+    let plus_hover = plus_resp.hovered();
+    let plus_bg = if plus_resp.is_pointer_button_down_on() {
+        btn_active_bg
+    } else if plus_hover {
+        btn_hover_bg
+    } else {
+        btn_idle_bg
+    };
+    ui.painter().rect_filled(plus_rect, btn_radius, plus_bg);
+    let px = plus_center.x;
+    ui.painter().line_segment(
+        [Pos2::new(px - 5.0, bottom_y), Pos2::new(px + 5.0, bottom_y)],
+        Stroke::new(1.8_f32, hover_color(plus_hover, st.text_option)),
+    );
+    ui.painter().line_segment(
+        [Pos2::new(px, bottom_y - 5.0), Pos2::new(px, bottom_y + 5.0)],
+        Stroke::new(1.8_f32, hover_color(plus_hover, st.text_option)),
+    );
+    if plus_resp.clicked() {
+        let stepped = ((current_value + step - min) / step).round() * step + min;
+        new_val = Some(stepped.clamp(min, max));
+    }
+
+    // Trilho central do Slider
+    let track_left = minus_rect.right() + 10.0;
+    let track_right = plus_rect.left() - 10.0;
+    let track_w = (track_right - track_left).max(10.0);
+    let track_hit_rect = Rect::from_min_max(
+        Pos2::new(track_left, bottom_y - 12.0),
+        Pos2::new(track_right, bottom_y + 12.0),
+    );
+    let track_resp = ui
+        .allocate_rect(track_hit_rect, Sense::click_and_drag())
+        .on_hover_cursor(CursorIcon::PointingHand);
+
+    let is_interacting =
+        track_resp.is_pointer_button_down_on() || track_resp.clicked() || track_resp.dragged();
+
+    if is_interacting && let Some(mouse_pos) = track_resp.interact_pointer_pos() {
+        let normalized = ((mouse_pos.x - track_left) / track_w).clamp(0.0, 1.0);
+        let raw = min + (normalized as f64) * span;
+        let stepped = ((raw - min) / step).round() * step + min;
+        new_val = Some(stepped.clamp(min, max));
+    }
+
+    // Desenha o trilho
+    let norm = ((current_value - min) / span).clamp(0.0, 1.0) as f32;
+    let thumb_x = track_left + norm * track_w;
+
+    let is_active = track_resp.hovered() || is_interacting;
+    let anim_t = ui
+        .ctx()
+        .animate_bool_with_time(track_resp.id.with("slider_t"), is_active, 0.12);
+
+    let rail_h = egui::lerp(3.5..=4.5, anim_t);
+    let rail_bg = Rect::from_min_max(
+        Pos2::new(track_left, bottom_y - rail_h * 0.5),
+        Pos2::new(track_right, bottom_y + rail_h * 0.5),
+    );
+    ui.painter().rect_filled(
+        rail_bg,
+        CornerRadius::same(2),
+        Color32::from_rgb(42, 44, 54),
+    );
+
+    let rail_fill = Rect::from_min_max(
+        Pos2::new(track_left, bottom_y - rail_h * 0.5),
+        Pos2::new(thumb_x, bottom_y + rail_h * 0.5),
+    );
+    ui.painter()
+        .rect_filled(rail_fill, CornerRadius::same(2), ACCENT_COLOR);
+
+    // Indicador (thumb)
+    let thumb_r = egui::lerp(6.5..=8.0, anim_t);
+    ui.painter().circle_filled(
+        Pos2::new(thumb_x, bottom_y),
+        thumb_r + 1.5,
+        Color32::from_black_alpha(90),
+    );
+    ui.painter()
+        .circle_filled(Pos2::new(thumb_x, bottom_y), thumb_r, ACCENT_COLOR);
+    if anim_t > 0.05 {
+        ui.painter()
+            .circle_filled(Pos2::new(thumb_x, bottom_y), thumb_r * 0.45, Color32::WHITE);
+    }
+
+    if let Some(v) = new_val {
+        let clamped = v.clamp(min, max);
+        if (clamped - current_value).abs() > 0.0001 {
+            return Some(clamped);
+        }
+    }
+
+    None
 }

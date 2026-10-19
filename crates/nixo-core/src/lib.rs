@@ -73,6 +73,10 @@ pub struct TrackInfo {
 
 impl TrackInfo {
     pub fn display_name(&self) -> String {
+        self.localized_display_name("Faixa")
+    }
+
+    pub fn localized_display_name(&self, prefix: &str) -> String {
         let lang_upper = self
             .lang
             .as_deref()
@@ -90,9 +94,10 @@ impl TrackInfo {
                 let t_upper = t.to_ascii_uppercase();
                 if t_upper == format!("FAIXA {}", self.id)
                     || t_upper == format!("TRACK {}", self.id)
+                    || t_upper == format!("PISTA {}", self.id)
                     || t_upper == l
                 {
-                    format!("Faixa {} - {l}", self.id)
+                    format!("{prefix} {} - {l}", self.id)
                 } else if t_upper.ends_with(&format!(" - {l}")) {
                     t.to_string()
                 } else {
@@ -100,8 +105,8 @@ impl TrackInfo {
                 }
             }
             (Some(t), None) => t.to_string(),
-            (None, Some(l)) => format!("Faixa {} - {l}", self.id),
-            (None, None) => format!("Faixa {}", self.id),
+            (None, Some(l)) => format!("{prefix} {} - {l}", self.id),
+            (None, None) => format!("{prefix} {}", self.id),
         }
     }
 

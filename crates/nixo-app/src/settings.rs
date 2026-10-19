@@ -26,14 +26,28 @@ const SAVE_DEBOUNCE: Duration = Duration::from_millis(750);
 
 /// Raiz das preferências persistidas. Novas seções devem usar `#[serde(default)]`
 /// para que arquivos antigos continuem válidos (compatibilidade futura).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppSettings {
+    pub language: crate::i18n::Language,
     pub playback: PlaybackSettings,
     pub subtitles: SubtitleSettings,
     pub window: WindowSettings,
     pub library: LibrarySettings,
     pub watch_history: HashMap<PathBuf, WatchHistoryEntry>,
+}
+
+impl Default for AppSettings {
+    fn default() -> Self {
+        Self {
+            language: crate::i18n::Language::detect(),
+            playback: PlaybackSettings::default(),
+            subtitles: SubtitleSettings::default(),
+            window: WindowSettings::default(),
+            library: LibrarySettings::default(),
+            watch_history: HashMap::new(),
+        }
+    }
 }
 
 /// Registro histórico de reprodução para retomada (resume) automática.
@@ -305,6 +319,7 @@ mod tests {
     fn roundtrip_save_and_load() {
         let path = temp_path("roundtrip");
         let settings = AppSettings {
+            language: crate::i18n::Language::Spanish,
             playback: PlaybackSettings {
                 volume: 42.5,
                 muted: true,

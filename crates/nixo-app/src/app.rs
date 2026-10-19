@@ -38,6 +38,7 @@ pub struct NixoApp {
     pub(crate) settings_tab: SettingsTab,
     pub(crate) titlebar_configured: bool,
     pub(crate) settings_store: SettingsStore,
+    pub(crate) language: crate::i18n::Language,
     pub(crate) always_on_top: bool,
     pub(crate) aspect_ratio_fit: bool,
     pub(crate) saved_aspect_ratio_fit: bool,
@@ -103,6 +104,7 @@ impl NixoApp {
             settings_tab: SettingsTab::Main,
             titlebar_configured: false,
             settings_store,
+            language: settings.language,
             always_on_top,
             aspect_ratio_fit,
             saved_aspect_ratio_fit,
@@ -144,6 +146,7 @@ impl NixoApp {
     /// Extrai do estado atual do player as preferências que devem ser persistidas.
     pub(crate) fn current_settings(&self) -> AppSettings {
         AppSettings {
+            language: self.language,
             playback: PlaybackSettings {
                 volume: self.status.volume,
                 muted: self.status.muted,
@@ -161,6 +164,11 @@ impl NixoApp {
             },
             watch_history: self.watch_history.clone(),
         }
+    }
+
+    #[inline]
+    pub(crate) fn t(&self) -> &'static crate::i18n::Translations {
+        self.language.t()
     }
 
     /// Registra o progresso atual do vídeo ativo no histórico de reprodução.
@@ -429,9 +437,13 @@ impl eframe::App for NixoApp {
                     }
                 } else {
                     let rect = ui.max_rect();
-                    let action =
-                        self.home_state
-                            .render(ui, &self.media_folders, &self.watch_history, rect);
+                    let action = self.home_state.render(
+                        ui,
+                        &self.media_folders,
+                        &self.watch_history,
+                        rect,
+                        self.t(),
+                    );
                     self.handle_home_action(action);
                 }
             });

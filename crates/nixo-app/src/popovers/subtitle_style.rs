@@ -12,84 +12,88 @@ use nixo_core::{
 
 use super::MenuActions;
 use super::components::{
-    Choice, LeadingIcon, MenuButton, MenuDivider, NavRow, WarningBanner, choice_list,
-    submenu_header,
+    Choice, LeadingIcon, MenuButton, MenuDivider, MenuOption, NavRow, WarningBanner, choice_list,
+    menu_slider, submenu_header,
 };
 use crate::app::{NixoApp, SettingsTab};
+use crate::i18n::Translations;
 
 const SIZE_PRESETS: [u16; 6] = [50, 75, 100, 150, 200, 300];
-const BACKGROUND_PRESETS: [(&str, SubtitleBackgroundStyle, u8); 4] = [
-    ("Nenhum", SubtitleBackgroundStyle::None, 60),
-    ("Caixa 50%", SubtitleBackgroundStyle::Box, 50),
-    ("Caixa 75%", SubtitleBackgroundStyle::Box, 75),
-    ("Caixa sólida", SubtitleBackgroundStyle::Box, 100),
-];
-const POSITION_PRESETS: [(&str, u8); 3] = [("Inferior", 8), ("Elevada", 20), ("Superior", 82)];
 const PREVIEW_FONT_SIZE: f32 = 14.0;
 
 impl NixoApp {
     pub(super) fn render_subtitle_style_tabs(&self, ui: &mut Ui, actions: &mut MenuActions) {
         let style = &self.status.subtitle_style;
+        let t = self.t();
         match self.settings_tab {
             SettingsTab::SubtitleStyle => self.render_style_overview(ui, actions),
-            SettingsTab::SubtitleFont => font_picker(ui, actions, style),
-            SettingsTab::SubtitleWeight => weight_picker(ui, actions, style),
-            SettingsTab::SubtitleSize => size_picker(ui, actions, style),
-            SettingsTab::SubtitleColor => color_picker(ui, actions, style),
-            SettingsTab::SubtitleBorder => border_picker(ui, actions, style),
-            SettingsTab::SubtitleBackground => background_picker(ui, actions, style),
-            SettingsTab::SubtitleShadow => shadow_picker(ui, actions, style),
-            SettingsTab::SubtitlePosition => position_picker(ui, actions, style),
+            SettingsTab::SubtitleFont => font_picker(ui, actions, style, t),
+            SettingsTab::SubtitleWeight => weight_picker(ui, actions, style, t),
+            SettingsTab::SubtitleSize => size_picker(ui, actions, style, t),
+            SettingsTab::SubtitleColor => color_picker(ui, actions, style, t),
+            SettingsTab::SubtitleBorder => border_picker(ui, actions, style, t),
+            SettingsTab::SubtitleBackground => background_picker(ui, actions, style, t),
+            SettingsTab::SubtitleShadow => shadow_picker(ui, actions, style, t),
+            SettingsTab::SubtitlePosition => position_picker(ui, actions, style, t),
             _ => {}
         }
     }
 
     fn render_style_overview(&self, ui: &mut Ui, actions: &mut MenuActions) {
-        if submenu_header(ui, "ESTILO DA LEGENDA") {
+        let t = self.t();
+        if submenu_header(ui, t.style_title) {
             actions.navigate(SettingsTab::Subtitles);
         }
 
-        if let Some(warning) = self.status.subtitle_health.warning_message() {
+        if let Some(warning) = self.subtitle_health_warning() {
             ui.add(WarningBanner::new(&warning));
         }
 
         let style = &self.status.subtitle_style;
-        let weight = if style.bold { "Bold" } else { "Normal" };
+        let weight = if style.bold {
+            t.style_weight_bold
+        } else {
+            t.style_weight_normal
+        };
         let rows: [(&str, Cow<str>, SettingsTab); 8] = [
             (
-                "FONTE",
+                t.style_font,
                 Cow::Borrowed(&style.font_family),
                 SettingsTab::SubtitleFont,
             ),
-            ("PESO DA FONTE", weight.into(), SettingsTab::SubtitleWeight),
             (
-                "TAMANHO",
+                t.style_font_weight,
+                weight.into(),
+                SettingsTab::SubtitleWeight,
+            ),
+            (
+                t.style_size,
                 format!("{}%", style.scale_percent).into(),
                 SettingsTab::SubtitleSize,
             ),
             (
-                "COR DO TEXTO",
-                color_label(style).into(),
+                t.style_text_color,
+                color_label(style, t).into(),
                 SettingsTab::SubtitleColor,
             ),
             (
-                "CONTORNO",
-                style.border.label().into(),
+                t.style_border,
+                border_label(style.border, t).into(),
                 SettingsTab::SubtitleBorder,
             ),
             (
-                "FUNDO",
-                background_label(style).into(),
+                t.style_background,
+                background_label(style, t).into(),
                 SettingsTab::SubtitleBackground,
             ),
             (
-                "SOMBRA",
-                style.shadow.label().into(),
+                t.style_shadow,
+                shadow_label(style.shadow, t).into(),
                 SettingsTab::SubtitleShadow,
             ),
             (
-                "POSIÇÃO",
-                position_label(style).into(),
+                t.style_position,
+                position_label(style, t),
                 SettingsTab::SubtitlePosition,
             ),
         ];
@@ -100,7 +104,7 @@ impl NixoApp {
         }
 
         ui.add(MenuDivider);
-        if ui.add(MenuButton::new("Redefinir padrão")).clicked() {
+        if ui.add(MenuButton::new(t.style_reset_default)).clicked() {
             actions.send(PlayerCommand::SetSubtitleStyle(SubtitleStyle::default()));
         }
     }
@@ -125,7 +129,7 @@ fn style_picker<'a, T>(
     }
 }
 
-fn font_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
+fn font_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
     let ctx = ui.ctx().clone();
     let choices = SubtitleStyle::FONT_CHOICES.map(|name| {
         Choice::new(name, name)
@@ -137,63 +141,92 @@ fn font_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
                 PREVIEW_FONT_SIZE,
             ))
     });
-    style_picker(ui, actions, "FONTE", style, choices, |s, name| {
+    style_picker(ui, actions, t.style_font, style, choices, |s, name| {
         s.font_family = name.to_string();
     });
 }
 
-fn weight_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
+fn weight_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
     let ctx = ui.ctx().clone();
-    let choices = [("Normal", false), ("Bold", true)].map(|(label, bold)| {
-        Choice::new(label, bold)
-            .selected(style.bold == bold)
-            .font(NixoApp::subtitle_font_id(
-                &ctx,
-                &style.font_family,
-                bold,
-                PREVIEW_FONT_SIZE,
-            ))
-    });
-    style_picker(ui, actions, "PESO DA FONTE", style, choices, |s, bold| {
-        s.bold = bold;
-    });
+    let choices =
+        [(t.style_weight_normal, false), (t.style_weight_bold, true)].map(|(label, bold)| {
+            Choice::new(label, bold)
+                .selected(style.bold == bold)
+                .font(NixoApp::subtitle_font_id(
+                    &ctx,
+                    &style.font_family,
+                    bold,
+                    PREVIEW_FONT_SIZE,
+                ))
+        });
+    style_picker(
+        ui,
+        actions,
+        t.style_font_weight,
+        style,
+        choices,
+        |s, bold| {
+            s.bold = bold;
+        },
+    );
 }
 
-fn size_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
+fn size_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
     let choices = SIZE_PRESETS.map(|size| {
         let label = if size == 100 {
-            "100% (padrão)".to_string()
+            format!("100% ({})", t.speed_normal)
         } else {
             format!("{size}%")
         };
         Choice::new(label, size).selected(style.scale_percent == size)
     });
-    style_picker(ui, actions, "TAMANHO", style, choices, |s, size| {
+    style_picker(ui, actions, t.style_size, style, choices, |s, size| {
         s.scale_percent = size;
     });
 }
 
-fn color_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
+fn color_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
     let choices = SubtitleStyle::COLOR_SWATCHES.map(|(name, rgba)| {
-        Choice::new(name, rgba)
+        let label = t.color_name(name);
+        Choice::new(label, rgba)
             .selected(same_rgb(style.text_color, rgba))
             .icon(LeadingIcon::ColorSwatch(rgba))
     });
-    style_picker(ui, actions, "COR DO TEXTO", style, choices, |s, rgba| {
-        s.text_color = rgba;
-    });
+    style_picker(
+        ui,
+        actions,
+        t.style_text_color,
+        style,
+        choices,
+        |s, rgba| {
+            s.text_color = rgba;
+        },
+    );
 }
 
-fn border_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
-    let choices = SubtitleBorderStyle::ALL
-        .map(|border| Choice::new(border.label(), border).selected(style.border == border));
-    style_picker(ui, actions, "CONTORNO", style, choices, |s, border| {
+fn border_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
+    let choices = SubtitleBorderStyle::ALL.map(|border| {
+        let label = border_label(border, t);
+        Choice::new(label, border).selected(style.border == border)
+    });
+    style_picker(ui, actions, t.style_border, style, choices, |s, border| {
         s.border = border;
     });
 }
 
-fn background_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
-    let choices = BACKGROUND_PRESETS.map(|(label, kind, opacity)| {
+fn background_picker(
+    ui: &mut Ui,
+    actions: &mut MenuActions,
+    style: &SubtitleStyle,
+    t: &Translations,
+) {
+    let presets = [
+        (t.style_bg_none, SubtitleBackgroundStyle::None, 60),
+        (t.style_bg_box_50, SubtitleBackgroundStyle::Box, 50),
+        (t.style_bg_box_75, SubtitleBackgroundStyle::Box, 75),
+        (t.style_bg_box_solid, SubtitleBackgroundStyle::Box, 100),
+    ];
+    let choices = presets.map(|(label, kind, opacity)| {
         let selected = match kind {
             SubtitleBackgroundStyle::None => style.background == SubtitleBackgroundStyle::None,
             _ => {
@@ -206,7 +239,7 @@ fn background_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleSty
     style_picker(
         ui,
         actions,
-        "FUNDO",
+        t.style_background,
         style,
         choices,
         |s, (kind, opacity)| {
@@ -216,47 +249,110 @@ fn background_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleSty
     );
 }
 
-fn shadow_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
-    let choices = SubtitleShadowStyle::ALL
-        .map(|shadow| Choice::new(shadow.label(), shadow).selected(style.shadow == shadow));
-    style_picker(ui, actions, "SOMBRA", style, choices, |s, shadow| {
+fn shadow_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle, t: &Translations) {
+    let choices = SubtitleShadowStyle::ALL.map(|shadow| {
+        let label = shadow_label(shadow, t);
+        Choice::new(label, shadow).selected(style.shadow == shadow)
+    });
+    style_picker(ui, actions, t.style_shadow, style, choices, |s, shadow| {
         s.shadow = shadow;
     });
 }
 
-fn position_picker(ui: &mut Ui, actions: &mut MenuActions, style: &SubtitleStyle) {
-    let choices = POSITION_PRESETS.map(|(label, offset)| {
-        Choice::new(label, offset).selected(style.bottom_offset_percent == offset)
-    });
-    style_picker(ui, actions, "POSIÇÃO", style, choices, |s, offset| {
-        s.bottom_offset_percent = offset;
-    });
+fn position_picker(
+    ui: &mut Ui,
+    actions: &mut MenuActions,
+    style: &SubtitleStyle,
+    t: &Translations,
+) {
+    if submenu_header(ui, t.style_position) {
+        actions.navigate(SettingsTab::SubtitleStyle);
+    }
+
+    let cur_pos = f64::from(style.bottom_offset_percent);
+    if let Some(new_pos) = menu_slider(ui, t.style_subtitle_height, cur_pos, 0.0..=90.0, 1.0, |v| {
+        let val = v.round() as u8;
+        match val {
+            8 => t.style_pos_bottom.to_string(),
+            20 => t.style_pos_raised.to_string(),
+            82 => t.style_pos_top.to_string(),
+            _ => format!("{val}%"),
+        }
+    }) {
+        let mut next = style.clone();
+        next.bottom_offset_percent = new_pos.round() as u8;
+        actions.send(PlayerCommand::SetSubtitleStyle(next));
+    }
+
+    ui.add(MenuDivider);
+
+    let position_presets = [
+        (t.style_pos_bottom, 8),
+        (t.style_pos_raised, 20),
+        (t.style_pos_top, 82),
+    ];
+    for (label, offset) in position_presets {
+        let selected = style.bottom_offset_percent == offset;
+        if ui
+            .add(MenuOption::new(label).radio(true).selected(selected))
+            .clicked()
+        {
+            let mut next = style.clone();
+            next.bottom_offset_percent = offset;
+            actions.send(PlayerCommand::SetSubtitleStyle(next));
+        }
+    }
+
+    ui.add(MenuDivider);
+    if ui.add(MenuButton::new(t.style_reset_default)).clicked() {
+        let mut next = style.clone();
+        next.bottom_offset_percent = 8;
+        actions.send(PlayerCommand::SetSubtitleStyle(next));
+    }
 }
 
 fn same_rgb(a: [u8; 4], b: [u8; 4]) -> bool {
     a[..3] == b[..3]
 }
 
-fn color_label(style: &SubtitleStyle) -> &'static str {
+fn color_label<'a>(style: &SubtitleStyle, t: &'a Translations) -> &'a str {
     SubtitleStyle::COLOR_SWATCHES
         .iter()
         .find(|(_, rgba)| same_rgb(style.text_color, *rgba))
-        .map_or("Personalizada", |(name, _)| *name)
+        .map_or(t.color_white, |(name, _)| t.color_name(name))
 }
 
-fn background_label(style: &SubtitleStyle) -> &'static str {
-    match style.background {
-        SubtitleBackgroundStyle::None => "Nenhum",
-        _ if style.background_opacity <= 60 => "Caixa 50%",
-        _ if style.background_opacity <= 85 => "Caixa 75%",
-        _ => "Caixa sólida",
+fn border_label(border: SubtitleBorderStyle, t: &Translations) -> &'static str {
+    match border {
+        SubtitleBorderStyle::None => t.style_border_none,
+        SubtitleBorderStyle::Thin => t.style_border_thin,
+        SubtitleBorderStyle::Medium => t.style_border_medium,
+        SubtitleBorderStyle::Thick => t.style_border_thick,
     }
 }
 
-fn position_label(style: &SubtitleStyle) -> &'static str {
+fn background_label(style: &SubtitleStyle, t: &Translations) -> &'static str {
+    match style.background {
+        SubtitleBackgroundStyle::None => t.style_bg_none,
+        _ if style.background_opacity <= 60 => t.style_bg_box_50,
+        _ if style.background_opacity <= 85 => t.style_bg_box_75,
+        _ => t.style_bg_box_solid,
+    }
+}
+
+fn shadow_label(shadow: SubtitleShadowStyle, t: &Translations) -> &'static str {
+    match shadow {
+        SubtitleShadowStyle::None => t.style_shadow_none,
+        SubtitleShadowStyle::Light => t.style_shadow_light,
+        SubtitleShadowStyle::Strong => t.style_shadow_strong,
+    }
+}
+
+fn position_label(style: &SubtitleStyle, t: &Translations) -> Cow<'static, str> {
     match style.bottom_offset_percent {
-        0..=12 => "Inferior",
-        13..=35 => "Elevada",
-        _ => "Superior",
+        8 => t.style_pos_bottom.into(),
+        20 => t.style_pos_raised.into(),
+        82 => t.style_pos_top.into(),
+        other => format!("{other}%").into(),
     }
 }

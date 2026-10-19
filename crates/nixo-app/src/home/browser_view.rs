@@ -19,6 +19,7 @@ pub struct BrowserTextures<'a> {
 }
 
 /// Renderiza o conteúdo da pasta aberta (subpastas e arquivos de mídia executáveis).
+#[allow(clippy::too_many_arguments)]
 pub fn render_folder_browser(
     ui: &mut Ui,
     content: &FolderContent,
@@ -27,6 +28,7 @@ pub fn render_folder_browser(
     selected_index: &mut usize,
     keyboard_nav_active: &mut bool,
     watch_history: &HashMap<PathBuf, WatchHistoryEntry>,
+    t: &crate::i18n::Translations,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -36,7 +38,7 @@ pub fn render_folder_browser(
             ui.spinner();
             ui.add_space(10.0);
             ui.label(
-                RichText::new("Carregando itens da pasta...")
+                RichText::new(t.loading_folder)
                     .font(font_body())
                     .color(TEXT_SECONDARY),
             );
@@ -48,7 +50,7 @@ pub fn render_folder_browser(
     if !content.subdirs.is_empty() {
         ui.add_space(8.0);
         ui.label(
-            RichText::new(format!("Subpastas ({})", content.subdirs.len()))
+            RichText::new(t.subfolders_count(content.subdirs.len()))
                 .font(font_section_title())
                 .color(Color32::WHITE),
         );
@@ -409,12 +411,12 @@ pub fn render_folder_browser(
 
             if let Some(entry) = watch_history.get(&item.path) {
                 let resume_badge = if entry.is_completed() {
-                    Some(("Assistido ✓".to_string(), Color32::from_rgb(52, 199, 89)))
+                    Some((t.watched_badge.to_string(), Color32::from_rgb(52, 199, 89)))
                 } else if entry.position_secs > 5.0 {
                     let pos_dur = std::time::Duration::from_secs_f64(entry.position_secs);
                     let pos_str = nixo_core::format_duration(pos_dur);
                     let pct = (entry.progress() * 100.0).round() as u32;
-                    Some((format!("Parou em {pos_str} ({pct}%)"), ACCENT_COLOR))
+                    Some((t.resume_badge(&pos_str, pct), ACCENT_COLOR))
                 } else {
                     None
                 };
@@ -484,8 +486,8 @@ pub fn render_folder_browser(
         render_empty_state(
             ui,
             lucide::FOLDER_OPEN,
-            "Esta pasta está vazia",
-            "Nenhum arquivo de mídia ou subpasta foi encontrado aqui.",
+            t.empty_folder_title,
+            t.empty_folder_desc,
             None,
         );
     }

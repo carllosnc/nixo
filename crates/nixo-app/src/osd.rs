@@ -102,8 +102,8 @@ impl NixoApp {
             _ => ControlIcon::Play,
         };
         let play_tooltip = match self.status.state {
-            PlaybackState::Playing => "Pausar (Espaço)",
-            _ => "Reproduzir (Espaço)",
+            PlaybackState::Playing => self.t().pause_tooltip,
+            _ => self.t().play_tooltip,
         };
         if Self::render_ghost_icon_btn(
             &mut left_ui,
@@ -121,7 +121,7 @@ impl NixoApp {
             &mut left_ui,
             vec2(38.0, BTN_HEIGHT),
             ControlIcon::NextTrack,
-            "Avançar 5s (Seta Direita)",
+            self.t().forward_5s_tooltip,
         )
         .clicked()
         {
@@ -130,9 +130,9 @@ impl NixoApp {
 
         // 3. Ícone de Volume / Mute
         let vol_tooltip = if self.status.muted {
-            "Ativar som (M)"
+            self.t().unmute_tooltip
         } else {
-            "Desativar som (M)"
+            self.t().mute_tooltip
         };
         if Self::render_ghost_icon_btn(
             &mut left_ui,
@@ -171,9 +171,9 @@ impl NixoApp {
         let vol_tt_id = vol_resp.id.with("vol_slider_tooltip");
         let vol_alpha = ctx.animate_bool_with_time(vol_tt_id, is_vol_active, 0.12);
         let vol_text = if self.status.muted {
-            "Volume: Mudo".to_string()
+            self.t().volume_muted_tooltip.to_string()
         } else {
-            format!("Volume: {:.0}%", self.status.volume)
+            self.t().volume_level(self.status.volume)
         };
         Self::render_player_tooltip(ctx, vol_tt_id, vol_resp.rect, &vol_text, vol_alpha);
 
@@ -211,9 +211,9 @@ impl NixoApp {
 
         // 1. Tela Cheia (na extremidade direita)
         let fs_tooltip = if self.is_fullscreen {
-            "Sair da tela cheia (F)"
+            self.t().fullscreen_exit_tooltip
         } else {
-            "Tela cheia (F)"
+            self.t().fullscreen_enter_tooltip
         };
         if Self::render_ghost_icon_btn(
             &mut right_ui,
@@ -230,9 +230,9 @@ impl NixoApp {
 
         // 2. Trava de Proporção da Janela (ao lado de Tela Cheia)
         let fit_tooltip = if self.aspect_ratio_fit {
-            "Desativar ajuste de proporção da janela (Shift+A)"
+            self.t().aspect_fit_disable_tooltip
         } else {
-            "Ajustar janela na proporção do vídeo sem bordas pretas (Shift+A)"
+            self.t().aspect_fit_enable_tooltip
         };
         if Self::render_ghost_icon_btn(
             &mut right_ui,
@@ -252,7 +252,7 @@ impl NixoApp {
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),
             ControlIcon::Screenshot,
-            "Capturar tela (Ctrl+S / P)",
+            self.t().screenshot_tooltip,
         )
         .clicked()
         {
@@ -264,7 +264,7 @@ impl NixoApp {
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),
             ControlIcon::Home,
-            "Página inicial (Home)",
+            self.t().home_tooltip,
         )
         .clicked()
         {
@@ -272,8 +272,7 @@ impl NixoApp {
         }
 
         // 3. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
-        let speed = self.status.speed;
-        let speed_tooltip = format!("Configurações ({speed:.2}x)");
+        let speed_tooltip = self.t().settings_speed_tooltip(self.status.speed);
         let gear_resp = Self::render_ghost_icon_btn(
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),
@@ -284,12 +283,12 @@ impl NixoApp {
         // 4. Legendas CC (Atalho rápido estilo YouTube + Badge vermelho de alerta quando inativa/fixa)
         let subs_active =
             self.status.subtitles_visible && self.status.subtitle_tracks.iter().any(|t| t.selected);
-        let cc_tooltip = if let Some(warn_msg) = self.status.subtitle_health.warning_message() {
+        let cc_tooltip = if let Some(warn_msg) = self.subtitle_health_warning() {
             warn_msg
         } else if subs_active {
-            "Desativar legendas (V)".to_string()
+            self.t().subtitles_disable_tooltip.to_string()
         } else {
-            "Ativar legendas (V)".to_string()
+            self.t().subtitles_enable_tooltip.to_string()
         };
         let cc_resp = Self::render_ghost_icon_btn(
             &mut right_ui,

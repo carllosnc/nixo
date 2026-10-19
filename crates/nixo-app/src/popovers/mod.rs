@@ -34,6 +34,7 @@ pub enum SettingsTab {
     SubtitleBackground,
     SubtitleShadow,
     SubtitlePosition,
+    Language,
 }
 
 /// Ações produzidas por uma tela durante o frame, aplicadas após a renderização.
@@ -41,6 +42,7 @@ struct MenuActions {
     next_tab: SettingsTab,
     command: Option<PlayerCommand>,
     toggle_always_on_top: bool,
+    set_language: Option<crate::i18n::Language>,
     close: bool,
 }
 
@@ -50,6 +52,7 @@ impl MenuActions {
             next_tab: current,
             command: None,
             toggle_always_on_top: false,
+            set_language: None,
             close: false,
         }
     }
@@ -116,6 +119,10 @@ impl NixoApp {
         if let Some(cmd) = actions.command.take() {
             self.dispatch(cmd);
         }
+        if let Some(lang) = actions.set_language {
+            self.language = lang;
+            self.settings_store.observe(self.current_settings());
+        }
         if actions.toggle_always_on_top {
             self.always_on_top = !self.always_on_top;
             let level = if self.always_on_top {
@@ -150,6 +157,7 @@ impl NixoApp {
             SettingsTab::Speed => self.render_tab_speed(ui, actions),
             SettingsTab::Audio => self.render_tab_audio(ui, actions),
             SettingsTab::Subtitles => self.render_tab_subtitles(ui, actions),
+            SettingsTab::Language => self.render_tab_language(ui, actions),
             SettingsTab::SubtitleStyle
             | SettingsTab::SubtitleFont
             | SettingsTab::SubtitleWeight

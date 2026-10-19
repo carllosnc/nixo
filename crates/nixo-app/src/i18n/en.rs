@@ -1,0 +1,120 @@
+use super::Translations;
+
+pub static EN: Translations = Translations {
+    // Main Menu / Navigation
+    settings_title: "SETTINGS",
+    menu_video: "VIDEO",
+    menu_speed: "SPEED",
+    menu_audio: "AUDIO",
+    menu_subtitles: "SUBTITLES",
+    menu_language: "LANGUAGE",
+    menu_always_on_top: "ALWAYS ON TOP",
+
+    // Video Tab
+    video_framing: "FRAMING",
+    video_fit_screen: "Fit to window",
+    video_fill_screen: "Fill screen",
+    video_aspect_ratio: "ASPECT RATIO",
+    video_aspect_auto: "Original (Auto)",
+    video_aspect_16_9: "16:9 Widescreen",
+    video_aspect_4_3: "4:3 Classic",
+    video_aspect_235_1: "2.35:1 Cinema",
+    video_summary_fit_auto: "Fit (Auto)",
+
+    // Speed Tab
+    speed_title: "SPEED",
+    speed_normal: "Normal",
+
+    // Audio Tab
+    audio_track_title: "AUDIO TRACK",
+    audio_no_tracks: "No audio tracks detected",
+    audio_disable: "Disable audio",
+    audio_sync: "SYNC",
+    audio_none: "None",
+    audio_disabled: "Disabled",
+    audio_track_prefix: "Track",
+
+    // Subtitles Tab
+    subtitles_title: "SUBTITLES",
+    subtitles_disabled: "Disabled",
+    subtitles_load_external: "Load external subtitle...",
+    subtitles_style: "Subtitle style",
+    subtitles_dialog_title: "Load External Subtitle in Nixo",
+    filter_subtitles: "Subtitles",
+    filter_all_files: "All Files",
+
+    // Subtitle Style
+    style_title: "SUBTITLE STYLE",
+    style_font: "FONT",
+    style_font_weight: "FONT WEIGHT",
+    style_size: "SIZE",
+    style_text_color: "TEXT COLOR",
+    style_border: "OUTLINE",
+    style_background: "BACKGROUND",
+    style_shadow: "SHADOW",
+    style_position: "POSITION",
+    style_subtitle_height: "SUBTITLE HEIGHT",
+    style_reset_default: "Reset to default",
+    style_weight_bold: "Bold",
+    style_weight_normal: "Normal",
+    style_border_none: "None",
+    style_border_thin: "Thin",
+    style_border_medium: "Medium",
+    style_border_thick: "Thick",
+    style_shadow_none: "None",
+    style_shadow_light: "Light",
+    style_shadow_strong: "Strong",
+    style_bg_none: "None",
+    style_bg_box_50: "Box 50%",
+    style_bg_box_75: "Box 75%",
+    style_bg_box_solid: "Solid box",
+    style_pos_bottom: "Bottom",
+    style_pos_raised: "Raised",
+    style_pos_top: "Top",
+
+    // Colors
+    color_white: "White",
+    color_yellow: "Yellow",
+    color_green: "Green",
+    color_cyan: "Cyan",
+    color_magenta: "Magenta",
+    color_red: "Red",
+
+    // OSD / Bottom controls
+    play_tooltip: "Play (Space)",
+    pause_tooltip: "Pause (Space)",
+    forward_5s_tooltip: "Forward 5s (Right Arrow)",
+    unmute_tooltip: "Unmute (M)",
+    mute_tooltip: "Mute (M)",
+    volume_muted_tooltip: "Volume: Muted",
+    fullscreen_enter_tooltip: "Fullscreen (F)",
+    fullscreen_exit_tooltip: "Exit fullscreen (F)",
+    aspect_fit_disable_tooltip: "Disable window aspect ratio fit (Shift+A)",
+    aspect_fit_enable_tooltip: "Fit window to video aspect ratio without black bars (Shift+A)",
+    screenshot_tooltip: "Take screenshot (Ctrl+S / P)",
+    home_tooltip: "Home library (Home)",
+    subtitles_disable_tooltip: "Disable subtitles (V)",
+    subtitles_enable_tooltip: "Enable subtitles (V)",
+
+    // Library / Home
+    header_back: "Back",
+    header_home: "Home",
+    header_home_tooltip: "Go to home library",
+    header_folder_fallback: "Folder",
+    folders_title: "Media Folders",
+    empty_folders_title: "No media folders added",
+    empty_folders_desc: "Add your video or anime folders to browse and watch them right here.",
+    empty_folders_action: "Select Media Folder",
+    empty_folder_title: "This folder is empty",
+    empty_folder_desc: "No media files or subfolders were found here.",
+    loading_folder: "Loading folder contents...",
+    calculating: "calculating...",
+    watched_badge: "Watched ✓",
+    dialog_open_video: "Open Video in Nixo",
+    filter_video_files: "Video Files",
+
+    // Notifications & Diagnostics
+    health_image_based_badge: "BITMAP SUBTITLE",
+    health_inactive_badge: "INACTIVE SUBTITLE",
+    health_inactive_desc: "Selected track has no active text (empty or commentary track)",
+};
