@@ -7,8 +7,8 @@ use egui::{
     Ui, vec2,
 };
 
+use crate::components::icon_secondary;
 use crate::components::tokens::*;
-use crate::components::{icon_primary, icon_secondary};
 use crate::lucide;
 
 const LOGO_PNG: &[u8] = include_bytes!("../../../../assets/logo.png");
@@ -173,7 +173,7 @@ pub fn render_header(
 
                 ui.add_space(6.0);
 
-                if icon_primary(ui, lucide::FOLDER_PLUS, "Adicionar pasta de mídia").clicked() {
+                if icon_secondary(ui, lucide::FOLDER_PLUS, "Adicionar pasta de mídia").clicked() {
                     action = HomeAction::AddFolder;
                 }
             });
