@@ -171,8 +171,8 @@ impl ThumbnailService {
                 cb_ctx,
             );
 
-            let thumb_w = 192u32;
-            let thumb_h = 108u32;
+            let thumb_w = 144u32;
+            let thumb_h = 81u32;
             let stride = (thumb_w as usize) * 4;
             let mut pixel_buf = vec![255u8; stride * (thumb_h as usize)];
             let mut frame_id = 0u64;
@@ -273,17 +273,20 @@ impl ThumbnailService {
                 let dur = found_dur.unwrap_or(0.0);
                 let mut captured_frames = Vec::with_capacity(1);
 
-                // Determina ponto inicial seguro bem dentro do vídeo (25%-35% ou pelo menos 20s)
-                let mut target_sec = if dur >= 120.0 {
-                    (dur * 0.25).clamp(20.0, (dur - 30.0).max(20.0))
-                } else if dur >= 30.0 {
-                    (dur * 0.30).clamp(8.0, (dur - 6.0).max(8.0))
-                } else if dur >= 10.0 {
-                    (dur * 0.35).clamp(4.0, (dur - 2.0).max(4.0))
+                // Determina ponto inicial seguro: após 2 minutos (> 125s) para vídeos longos,
+                // evitando aberturas, intros e vinhetas de estúdio.
+                let mut target_sec = if dur >= 180.0 {
+                    (dur * 0.25).clamp(130.0, (dur - 30.0).max(130.0))
+                } else if dur >= 135.0 {
+                    125.0
+                } else if dur >= 60.0 {
+                    (dur * 0.50).clamp(25.0, (dur - 10.0).max(25.0))
+                } else if dur >= 15.0 {
+                    (dur * 0.40).clamp(5.0, (dur - 3.0).max(5.0))
                 } else if dur > 0.0 {
                     (dur * 0.5).max(1.5)
                 } else {
-                    20.0
+                    130.0
                 };
 
                 let mut best_frame: Option<VideoFrame> = None;
