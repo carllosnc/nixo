@@ -167,7 +167,7 @@ pub fn render_header(
 
                 ui.add_space(6.0);
 
-                if icon_secondary(ui, lucide::FOLDER_OPEN, "Abrir arquivo de mídia").clicked() {
+                if icon_secondary(ui, lucide::FILE, "Abrir arquivo de mídia").clicked() {
                     action = HomeAction::OpenFile;
                 }
 
