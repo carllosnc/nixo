@@ -32,24 +32,22 @@ pub struct ThumbnailResult {
     pub height: Option<u32>,
 }
 
-/// Avalia se um buffer RGBA é predominantemente escuro/preto (ex.: vinhetas, fade-ins).
-fn is_frame_mostly_black(rgba: &[u8]) -> bool {
-    let total_pixels = rgba.len() / 4;
-    if total_pixels == 0 {
-        return true;
-    }
-    let mut dark_count = 0usize;
-    for px in rgba.as_chunks::<4>().0 {
-        let r = px[0] as u32;
-        let g = px[1] as u32;
-        let b = px[2] as u32;
-        let lum = (r * 299 + g * 587 + b * 114) / 1000;
-        if lum < 22 {
-            dark_count += 1;
+impl ThumbnailResult {
+    pub fn empty(path: PathBuf, duration_secs: Option<f64>) -> Self {
+        Self {
+            path,
+            frames: Vec::new(),
+            duration_secs,
+            width: None,
+            height: None,
         }
     }
-    dark_count * 100 / total_pixels >= 88
 }
+
+use super::thumbnail_cache::{
+    default_cache_dir, get_cache_path, is_audio_file, is_frame_mostly_black, load_from_cache,
+    save_to_cache,
+};
 
 /// Serviço em background para extração não-bloqueante de miniaturas de vídeo.
 pub struct ThumbnailService {
@@ -108,6 +106,9 @@ impl ThumbnailService {
         res_tx: Sender<ThumbnailResult>,
         shutdown: Arc<AtomicBool>,
     ) {
+        let cache_dir = default_cache_dir();
+        let _ = std::fs::create_dir_all(&cache_dir);
+
         // SAFETY: Cria uma instância dedicada e silenciosa do libmpv exclusiva para miniaturas.
         unsafe {
             let handle = (api.create)();
@@ -129,7 +130,6 @@ impl ThumbnailService {
                 (c"cache", c"no"),
                 (c"vd-lavc-fast", c"yes"),
                 (c"vd-lavc-skiploopfilter", c"all"),
-                (c"vd-lavc-skipidct", c"all"),
                 (c"vd-lavc-threads", c"4"),
                 (c"sws-scaler", c"fast-bilinear"),
                 (c"sws-fast", c"yes"),
@@ -182,7 +182,7 @@ impl ThumbnailService {
                 // Prioridade 1: itens com hover ativo. Prioridade 2: fila padrão
                 let path = match priority_rx.try_recv() {
                     Ok(p) => p,
-                    Err(_) => match req_rx.recv_timeout(Duration::from_millis(80)) {
+                    Err(_) => match req_rx.recv_timeout(Duration::from_millis(50)) {
                         Ok(p) => p,
                         Err(_) => continue,
                     },
@@ -195,6 +195,15 @@ impl ThumbnailService {
                     processed.clear();
                 }
                 processed.insert(path.clone());
+
+                // 1. Tenta carregar do cache em disco primeiro (0ms)
+                let cache_path = get_cache_path(&cache_dir, &path);
+                if let Some(ref cp) = cache_path
+                    && let Some(cached_res) = load_from_cache(cp, &path)
+                {
+                    let _ = res_tx.send(cached_res);
+                    continue;
+                }
 
                 let Ok(c_path) = CString::new(path.to_string_lossy().as_bytes()) else {
                     continue;
@@ -212,17 +221,48 @@ impl ThumbnailService {
                     (&raw const pause_val).cast::<c_void>(),
                 );
 
-                // Drena atualizações residuais do arquivo anterior
                 let _ = (api.render_context_update)(render_ctx);
                 has_update.store(false, Ordering::Release);
 
-                // Aguarda leitura dos metadados essenciais (duração e resolução)
+                // Arquivos puramente de áudio: lê apenas metadados e encerra sem buscar vídeo
+                if is_audio_file(&path) {
+                    let start_wait = Instant::now();
+                    let mut found_dur: Option<f64> = None;
+                    while start_wait.elapsed() < Duration::from_millis(80)
+                        && !shutdown.load(Ordering::Acquire)
+                    {
+                        let mut dur: c_double = 0.0;
+                        if (api.get_property)(
+                            handle,
+                            c"duration".as_ptr(),
+                            MPV_FORMAT_DOUBLE,
+                            (&raw mut dur).cast::<c_void>(),
+                        ) >= 0
+                            && dur > 0.0
+                        {
+                            found_dur = Some(dur);
+                            break;
+                        }
+                        thread::sleep(Duration::from_millis(3));
+                    }
+                    let res = ThumbnailResult::empty(path.clone(), found_dur);
+                    if let Some(ref cp) = cache_path {
+                        save_to_cache(cp, &res);
+                    }
+                    let _ = res_tx.send(res);
+                    let c_stop = c"stop";
+                    let args = [c_stop.as_ptr(), ptr::null()];
+                    let _ = (api.command)(handle, args.as_ptr());
+                    continue;
+                }
+
+                // Aguarda metadados essenciais (duração e dimensões)
                 let start_wait = Instant::now();
                 let mut found_dur: Option<f64> = None;
                 let mut found_w: Option<u32> = None;
                 let mut found_h: Option<u32> = None;
 
-                while start_wait.elapsed() < Duration::from_millis(1200)
+                while start_wait.elapsed() < Duration::from_millis(600)
                     && !shutdown.load(Ordering::Acquire)
                 {
                     let mut dur: c_double = 0.0;
@@ -261,13 +301,26 @@ impl ThumbnailService {
                         found_h = Some(vid_h as u32);
                     }
 
-                    // Se obteve duração e dimensões, ou passou de 120ms com duração, prossegue
-                    if found_dur.is_some()
-                        && (found_w.is_some() || start_wait.elapsed() > Duration::from_millis(120))
-                    {
+                    if found_dur.is_some() && found_w.is_some() {
                         break;
                     }
-                    thread::sleep(Duration::from_millis(5));
+                    if found_dur.is_some() && start_wait.elapsed() > Duration::from_millis(60) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(2));
+                }
+
+                // Se não detectou vídeo, emite resultado sem frames
+                if found_w.is_none() {
+                    let res = ThumbnailResult::empty(path.clone(), found_dur);
+                    if let Some(ref cp) = cache_path {
+                        save_to_cache(cp, &res);
+                    }
+                    let _ = res_tx.send(res);
+                    let c_stop = c"stop";
+                    let args = [c_stop.as_ptr(), ptr::null()];
+                    let _ = (api.command)(handle, args.as_ptr());
+                    continue;
                 }
 
                 let dur = found_dur.unwrap_or(0.0);
@@ -297,7 +350,6 @@ impl ThumbnailService {
                         break;
                     }
 
-                    // Drena quadro pré-existente antes de iniciar a busca
                     let _ = (api.render_context_update)(render_ctx);
                     has_update.store(false, Ordering::Release);
 
@@ -313,12 +365,10 @@ impl ThumbnailService {
                         let _ = (api.command)(handle, args.as_ptr());
                     }
 
-                    thread::sleep(Duration::from_millis(8));
-
                     let render_start = Instant::now();
                     let mut rendered = false;
 
-                    while render_start.elapsed() < Duration::from_millis(350)
+                    while render_start.elapsed() < Duration::from_millis(140)
                         && !shutdown.load(Ordering::Acquire)
                     {
                         let flags = (api.render_context_update)(render_ctx);
@@ -380,10 +430,9 @@ impl ThumbnailService {
                                 break;
                             }
                         }
-                        thread::sleep(Duration::from_millis(3));
+                        thread::sleep(Duration::from_millis(1));
                     }
 
-                    // Se conseguiu um quadro com conteúdo visual nítido (não-preto), encerra a busca
                     if rendered
                         && best_frame
                             .as_ref()
@@ -392,7 +441,6 @@ impl ThumbnailService {
                         break;
                     }
 
-                    // Se foi tela preta, avança ~20 segundos (ou 10% da duração) para buscar conteúdo real
                     let advance = if dur > 0.0 {
                         (dur * 0.10).max(18.0)
                     } else {
@@ -408,13 +456,19 @@ impl ThumbnailService {
                     captured_frames.push(frame);
                 }
 
-                let _ = res_tx.send(ThumbnailResult {
+                let result = ThumbnailResult {
                     path: path.clone(),
                     frames: captured_frames,
                     duration_secs: found_dur,
                     width: found_w,
                     height: found_h,
-                });
+                };
+
+                if let Some(ref cp) = cache_path {
+                    save_to_cache(cp, &result);
+                }
+
+                let _ = res_tx.send(result);
 
                 // Libera o arquivo atual antes da próxima requisição
                 let c_stop = c"stop";

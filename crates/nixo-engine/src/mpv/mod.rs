@@ -4,6 +4,7 @@ mod properties;
 #[cfg(test)]
 mod tests;
 pub mod thumbnail;
+pub mod thumbnail_cache;
 
 use std::ffi::{CString, c_int, c_void};
 use std::path::PathBuf;

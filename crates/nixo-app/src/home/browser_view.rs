@@ -143,26 +143,28 @@ pub fn render_folder_browser(
 
         for item in &content.files {
             let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
-            let hovered = resp.hovered();
+            let is_visible = ui.is_rect_visible(rect);
+            let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
 
+            if !is_visible {
+                ui.add_space(spacing);
+                continue;
+            }
+
+            let hovered = resp.hovered();
             let hover_t =
                 ui.ctx()
                     .animate_bool_with_time(resp.id.with("file_hover"), hovered, 0.15);
             let bg = lerp_color(SURFACE_LOW, SURFACE_CARD_HOVER, hover_t);
             ui.painter().rect_filled(rect, RADIUS_MD, bg);
 
-            let is_visible = ui.is_rect_visible(rect);
-            let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
-
             // Dispara requisição de metadados em background para itens visíveis na tela
             if is_video {
-                if is_visible {
-                    thumbnails.request(&item.path);
-                }
+                thumbnails.request(&item.path);
                 if hovered {
                     thumbnails.prioritize(&item.path);
                 }
-            } else if matches!(item.kind, super::scanner::MediaKind::Audio) && is_visible {
+            } else if matches!(item.kind, super::scanner::MediaKind::Audio) {
                 thumbnails.request(&item.path);
             }
 

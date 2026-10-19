@@ -70,6 +70,8 @@ pub struct ThumbnailManager {
     textures: HashMap<PathBuf, Vec<TextureHandle>>,
     details: HashMap<PathBuf, MediaDetails>,
     requested: HashSet<PathBuf>,
+    pending_uploads: Vec<nixo_engine::ThumbnailResult>,
+    access_order: Vec<PathBuf>,
     next_tex_id: usize,
 }
 
@@ -86,6 +88,8 @@ impl ThumbnailManager {
             textures: HashMap::new(),
             details: HashMap::new(),
             requested: HashSet::new(),
+            pending_uploads: Vec::new(),
+            access_order: Vec::new(),
             next_tex_id: 0,
         }
     }
@@ -142,14 +146,32 @@ impl ThumbnailManager {
     }
 
     /// Efetua a leitura de novos quadros prontos vindos do worker e faz o upload para GPU.
+    /// Distribui o upload em lotes de no máximo 4 texturas por frame para manter 60/120 FPS cravados.
     pub fn poll(&mut self, ctx: &Context) {
         let Some(service) = &self.service else {
             return;
         };
 
-        let mut loaded_any = false;
         while let Some(res) = service.try_recv() {
+            if res.duration_secs.is_some() || res.width.is_some() || res.height.is_some() {
+                self.details.insert(
+                    res.path.clone(),
+                    MediaDetails {
+                        duration: res.duration_secs.map(Duration::from_secs_f64),
+                        width: res.width,
+                        height: res.height,
+                    },
+                );
+            }
             if !res.frames.is_empty() {
+                self.pending_uploads.push(res);
+            }
+        }
+
+        let mut uploaded = false;
+        let batch_size = 4.min(self.pending_uploads.len());
+        if batch_size > 0 {
+            for res in self.pending_uploads.drain(..batch_size) {
                 let mut handles = Vec::with_capacity(res.frames.len());
                 for (i, frame) in res.frames.into_iter().enumerate() {
                     let size = [frame.width as usize, frame.height as usize];
@@ -160,22 +182,24 @@ impl ThumbnailManager {
                     handles.push(texture);
                 }
                 self.textures.insert(res.path.clone(), handles);
-                loaded_any = true;
-            }
-            if res.duration_secs.is_some() || res.width.is_some() || res.height.is_some() {
-                self.details.insert(
-                    res.path,
-                    MediaDetails {
-                        duration: res.duration_secs.map(Duration::from_secs_f64),
-                        width: res.width,
-                        height: res.height,
-                    },
-                );
-                loaded_any = true;
+                self.access_order.push(res.path);
+                uploaded = true;
             }
         }
 
-        if loaded_any {
+        // Limita o cache a 200 itens em memória (LRU) para consumo previsível de VRAM
+        if self.textures.len() > 200 {
+            let excess = self.textures.len() - 180;
+            let to_remove: Vec<PathBuf> = self
+                .access_order
+                .drain(..excess.min(self.access_order.len()))
+                .collect();
+            for p in to_remove {
+                self.textures.remove(&p);
+            }
+        }
+
+        if uploaded || !self.pending_uploads.is_empty() {
             ctx.request_repaint();
         }
     }

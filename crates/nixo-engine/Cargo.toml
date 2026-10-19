@@ -9,6 +9,7 @@ nixo-core.workspace = true
 libloading.workspace = true
 tracing.workspace = true
 image.workspace = true
+dirs.workspace = true
 
 [lints]
 workspace = true
