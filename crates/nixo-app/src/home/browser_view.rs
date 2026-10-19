@@ -175,56 +175,13 @@ pub fn render_folder_browser(
                     vec2(thumb_w, thumb_h),
                 );
 
-                let frame_count = thumbnails.frame_count(&item.path);
-                let mouse_pos = ui.input(|i| i.pointer.hover_pos());
-                let (scene_idx, scrub_ratio) = if let Some(mpos) = mouse_pos
-                    && thumb_rect.contains(mpos)
-                    && frame_count > 1
-                {
-                    let rel_x = (mpos.x - thumb_rect.left()).clamp(0.0, thumb_w);
-                    let ratio = rel_x / thumb_w;
-                    let idx = ((ratio * frame_count as f32) as usize).min(frame_count - 1);
-                    (idx, Some(ratio))
-                } else if hovered && frame_count > 1 {
-                    let time_sec = ui.input(|i| i.time);
-                    let cycle_idx = ((time_sec * 1.4) as usize) % frame_count;
-                    ui.ctx().request_repaint();
-                    (cycle_idx, None)
-                } else {
-                    (0, None)
-                };
-
-                if let Some(tex) = thumbnails.get_frame(&item.path, scene_idx) {
+                if let Some(tex) = thumbnails.get(&item.path) {
                     ui.painter().image(
                         tex.id(),
                         thumb_rect,
                         Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                         Color32::WHITE,
                     );
-
-                    // Barra de progresso do scrubbing interativo
-                    if let Some(ratio) = scrub_ratio {
-                        let scrub_h = 2.5;
-                        let scrub_bg = Rect::from_min_size(
-                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - scrub_h),
-                            vec2(thumb_w, scrub_h),
-                        );
-                        ui.painter().rect_filled(
-                            scrub_bg,
-                            egui::CornerRadius::ZERO,
-                            Color32::from_black_alpha(150),
-                        );
-
-                        let scrub_fill = Rect::from_min_size(
-                            Pos2::new(thumb_rect.left(), thumb_rect.bottom() - scrub_h),
-                            vec2((thumb_w * ratio).max(2.0), scrub_h),
-                        );
-                        ui.painter().rect_filled(
-                            scrub_fill,
-                            egui::CornerRadius::ZERO,
-                            ACCENT_NEUTRAL_FILL,
-                        );
-                    }
                 } else {
                     ui.painter()
                         .rect_filled(thumb_rect, egui::CornerRadius::ZERO, SURFACE_MED);

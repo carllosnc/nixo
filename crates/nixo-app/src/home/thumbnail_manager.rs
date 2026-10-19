@@ -95,13 +95,13 @@ impl ThumbnailManager {
         self.textures.get(path).is_some_and(|l| !l.is_empty())
     }
 
-    /// Retorna a textura GPU da miniatura estática padrão (primeiro frame).
-    #[allow(dead_code)]
+    /// Retorna a textura GPU da miniatura estática padrão.
     pub fn get(&self, path: &Path) -> Option<&TextureHandle> {
         self.get_frame(path, 0)
     }
 
     /// Retorna a textura GPU de uma cena específica no índice especificado.
+    #[allow(dead_code)]
     pub fn get_frame(&self, path: &Path, index: usize) -> Option<&TextureHandle> {
         let list = self.textures.get(path)?;
         if list.is_empty() {
@@ -112,6 +112,7 @@ impl ThumbnailManager {
     }
 
     /// Retorna a contagem de frames de cenas disponíveis para o arquivo.
+    #[allow(dead_code)]
     pub fn frame_count(&self, path: &Path) -> usize {
         self.textures.get(path).map_or(0, |l| l.len())
     }

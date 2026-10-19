@@ -271,156 +271,138 @@ impl ThumbnailService {
                 }
 
                 let dur = found_dur.unwrap_or(0.0);
-                let ratios: &[f64] = if dur >= 120.0 {
-                    &[0.20, 0.45, 0.70]
+                let mut captured_frames = Vec::with_capacity(1);
+
+                // Determina ponto inicial seguro bem dentro do vídeo (25%-35% ou pelo menos 20s)
+                let mut target_sec = if dur >= 120.0 {
+                    (dur * 0.25).clamp(20.0, (dur - 30.0).max(20.0))
                 } else if dur >= 30.0 {
-                    &[0.25, 0.50, 0.75]
+                    (dur * 0.30).clamp(8.0, (dur - 6.0).max(8.0))
                 } else if dur >= 10.0 {
-                    &[0.35, 0.65]
+                    (dur * 0.35).clamp(4.0, (dur - 2.0).max(4.0))
+                } else if dur > 0.0 {
+                    (dur * 0.5).max(1.5)
                 } else {
-                    &[0.50]
+                    20.0
                 };
 
-                let mut captured_frames = Vec::with_capacity(ratios.len());
+                let mut best_frame: Option<VideoFrame> = None;
 
-                // Extração dos quadros de cena com rejeição ativa de telas pretas
-                for &ratio in ratios {
+                // Tenta até 3 pontos diferentes para garantir que não seja tela preta
+                for _attempt in 0..3 {
                     if shutdown.load(Ordering::Acquire) {
                         break;
                     }
 
-                    let mut target_sec = if dur >= 120.0 {
-                        (dur * ratio).clamp(15.0, (dur - 15.0).max(15.0))
-                    } else if dur >= 30.0 {
-                        (dur * ratio).clamp(6.0, (dur - 5.0).max(6.0))
-                    } else if dur >= 10.0 {
-                        (dur * ratio).clamp(3.0, (dur - 2.0).max(3.0))
-                    } else if dur > 0.0 {
-                        (dur * 0.5).max(1.5)
-                    } else {
-                        15.0
-                    };
+                    // Drena quadro pré-existente antes de iniciar a busca
+                    let _ = (api.render_context_update)(render_ctx);
+                    has_update.store(false, Ordering::Release);
 
-                    let mut best_frame: Option<VideoFrame> = None;
+                    if let Ok(sec_cstr) = CString::new(format!("{target_sec:.1}")) {
+                        let c_seek = c"seek";
+                        let c_mode = c"absolute+keyframes";
+                        let args = [
+                            c_seek.as_ptr(),
+                            sec_cstr.as_ptr(),
+                            c_mode.as_ptr(),
+                            ptr::null(),
+                        ];
+                        let _ = (api.command)(handle, args.as_ptr());
+                    }
 
-                    for _attempt in 0..2 {
-                        if shutdown.load(Ordering::Acquire) {
-                            break;
-                        }
+                    thread::sleep(Duration::from_millis(8));
 
-                        // Drena quadro pré-existente antes de iniciar a busca
-                        let _ = (api.render_context_update)(render_ctx);
-                        has_update.store(false, Ordering::Release);
+                    let render_start = Instant::now();
+                    let mut rendered = false;
 
-                        if let Ok(sec_cstr) = CString::new(format!("{target_sec:.1}")) {
-                            let c_seek = c"seek";
-                            let c_mode = c"absolute+keyframes";
-                            let args = [
-                                c_seek.as_ptr(),
-                                sec_cstr.as_ptr(),
-                                c_mode.as_ptr(),
-                                ptr::null(),
+                    while render_start.elapsed() < Duration::from_millis(350)
+                        && !shutdown.load(Ordering::Acquire)
+                    {
+                        let flags = (api.render_context_update)(render_ctx);
+                        if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
+                            let mut size_param: [c_int; 2] = [thumb_w as c_int, thumb_h as c_int];
+                            let format_cstr = c"rgb0";
+                            let mut stride_param: usize = stride;
+                            let mut block_for_target_time: c_int = 0;
+
+                            let mut r_params = [
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_SIZE,
+                                    data: size_param.as_mut_ptr().cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_FORMAT,
+                                    data: format_cstr.as_ptr() as *mut c_void,
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_STRIDE,
+                                    data: (&raw mut stride_param).cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_SW_POINTER,
+                                    data: pixel_buf.as_mut_ptr().cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
+                                    data: (&raw mut block_for_target_time).cast::<c_void>(),
+                                },
+                                MpvRenderParam {
+                                    type_: MPV_RENDER_PARAM_INVALID,
+                                    data: ptr::null_mut(),
+                                },
                             ];
-                            let _ = (api.command)(handle, args.as_ptr());
-                        }
 
-                        thread::sleep(Duration::from_millis(8));
+                            if (api.render_context_render)(render_ctx, r_params.as_mut_ptr()) >= 0 {
+                                for px in pixel_buf.as_chunks_mut::<4>().0 {
+                                    px[3] = 255;
+                                }
+                                frame_id += 1;
+                                let vf = VideoFrame {
+                                    width: thumb_w,
+                                    height: thumb_h,
+                                    rgba: pixel_buf.clone(),
+                                    frame_id,
+                                };
 
-                        let render_start = Instant::now();
-                        let mut rendered = false;
-
-                        while render_start.elapsed() < Duration::from_millis(350)
-                            && !shutdown.load(Ordering::Acquire)
-                        {
-                            let flags = (api.render_context_update)(render_ctx);
-                            if (flags & MPV_RENDER_UPDATE_FRAME) != 0 {
-                                let mut size_param: [c_int; 2] =
-                                    [thumb_w as c_int, thumb_h as c_int];
-                                let format_cstr = c"rgb0";
-                                let mut stride_param: usize = stride;
-                                let mut block_for_target_time: c_int = 0;
-
-                                let mut r_params = [
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_SIZE,
-                                        data: size_param.as_mut_ptr().cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_FORMAT,
-                                        data: format_cstr.as_ptr() as *mut c_void,
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_STRIDE,
-                                        data: (&raw mut stride_param).cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_SW_POINTER,
-                                        data: pixel_buf.as_mut_ptr().cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME,
-                                        data: (&raw mut block_for_target_time).cast::<c_void>(),
-                                    },
-                                    MpvRenderParam {
-                                        type_: MPV_RENDER_PARAM_INVALID,
-                                        data: ptr::null_mut(),
-                                    },
-                                ];
-
-                                if (api.render_context_render)(render_ctx, r_params.as_mut_ptr())
-                                    >= 0
-                                {
-                                    for px in pixel_buf.as_chunks_mut::<4>().0 {
-                                        px[3] = 255;
-                                    }
-                                    frame_id += 1;
-                                    let vf = VideoFrame {
-                                        width: thumb_w,
-                                        height: thumb_h,
-                                        rgba: pixel_buf.clone(),
-                                        frame_id,
-                                    };
-
-                                    let is_black = is_frame_mostly_black(&pixel_buf);
-                                    if !is_black {
-                                        best_frame = Some(vf);
-                                        rendered = true;
-                                        break;
-                                    }
-                                    if best_frame.is_none() {
-                                        best_frame = Some(vf);
-                                    }
+                                let is_black = is_frame_mostly_black(&pixel_buf);
+                                if !is_black {
+                                    best_frame = Some(vf);
                                     rendered = true;
                                     break;
                                 }
+                                if best_frame.is_none() {
+                                    best_frame = Some(vf);
+                                }
+                                rendered = true;
+                                break;
                             }
-                            thread::sleep(Duration::from_millis(3));
                         }
-
-                        // Se conseguiu um quadro com conteúdo visual, encerra a busca desta cena
-                        if rendered
-                            && best_frame
-                                .as_ref()
-                                .is_some_and(|f| !is_frame_mostly_black(&f.rgba))
-                        {
-                            break;
-                        }
-
-                        // Se foi tela preta, avança ~20 segundos (ou 10% da duração) para buscar conteúdo real
-                        let advance = if dur > 0.0 {
-                            (dur * 0.10).max(15.0)
-                        } else {
-                            20.0
-                        };
-                        target_sec += advance;
-                        if dur > 0.0 && target_sec >= dur - 5.0 {
-                            break;
-                        }
+                        thread::sleep(Duration::from_millis(3));
                     }
 
-                    if let Some(frame) = best_frame {
-                        captured_frames.push(frame);
+                    // Se conseguiu um quadro com conteúdo visual nítido (não-preto), encerra a busca
+                    if rendered
+                        && best_frame
+                            .as_ref()
+                            .is_some_and(|f| !is_frame_mostly_black(&f.rgba))
+                    {
+                        break;
                     }
+
+                    // Se foi tela preta, avança ~20 segundos (ou 10% da duração) para buscar conteúdo real
+                    let advance = if dur > 0.0 {
+                        (dur * 0.10).max(18.0)
+                    } else {
+                        25.0
+                    };
+                    target_sec += advance;
+                    if dur > 0.0 && target_sec >= dur - 5.0 {
+                        break;
+                    }
+                }
+
+                if let Some(frame) = best_frame {
+                    captured_frames.push(frame);
                 }
 
                 let _ = res_tx.send(ThumbnailResult {
