@@ -101,6 +101,7 @@ pub static EN: Translations = Translations {
     header_home: "Home",
     header_home_tooltip: "Go to home library",
     header_folder_fallback: "Folder",
+    header_language: "Change language",
     folders_title: "Media Folders",
     empty_folders_title: "No media folders added",
     empty_folders_desc: "Add your video or anime folders to browse and watch them right here.",
@@ -112,6 +113,12 @@ pub static EN: Translations = Translations {
     watched_badge: "Watched ✓",
     dialog_open_video: "Open Video in Nixo",
     filter_video_files: "Video Files",
+
+    // Hero Empty State (Home screen redesign)
+    empty_hero_title: "Ready to Play",
+    empty_hero_subtitle: "Drag and drop videos anywhere into this window, or add media folders to organize your library.",
+    toast_folder_removed: "Folder removed from library",
+    toast_history_removed: "Watch progress removed from history",
 
     // Notifications & Diagnostics
     health_image_based_badge: "BITMAP SUBTITLE",

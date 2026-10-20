@@ -52,8 +52,7 @@ pub enum HomeAction {
     OpenFile,
     PlayFile(PathBuf),
     PlayTestSignal,
-    OpenDesignSystem,
-    CloseDesignSystem,
+    SetLanguage(crate::i18n::Language),
 }
 
 /// Renderiza o cabeçalho superior da Home no padrão Lucide e tons neutros sem bordas.
@@ -63,6 +62,7 @@ pub fn render_header(
     breadcrumbs: &[PathBuf],
     logo_texture: Option<&TextureHandle>,
     t: &crate::i18n::Translations,
+    current_lang: crate::i18n::Language,
 ) -> HomeAction {
     let mut action = HomeAction::None;
 
@@ -147,15 +147,9 @@ pub fn render_header(
             );
         }
 
-        // Os botões de ação rápida em formato icon button na tela inicial (Home)
-        if current_path.is_none() {
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if icon_secondary(ui, lucide::SPARKLES, "Design System Showcase").clicked() {
-                    action = HomeAction::OpenDesignSystem;
-                }
-
-                ui.add_space(6.0);
-
+        // Botões de ação rápida no cabeçalho
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            if current_path.is_none() {
                 if icon_secondary(
                     ui,
                     lucide::FLASK_CONICAL,
@@ -177,8 +171,128 @@ pub fn render_header(
                 if icon_secondary(ui, lucide::FOLDER_PLUS, "Adicionar pasta de mídia").clicked() {
                     action = HomeAction::AddFolder;
                 }
-            });
-        }
+
+                ui.add_space(6.0);
+            }
+
+            // Botão de seleção de idioma com dropdown
+            let lang_popup_id = ui.id().with("home_language_dropdown");
+            let lang_btn_resp = icon_secondary(ui, lucide::LANGUAGES, t.header_language);
+            if lang_btn_resp.clicked() {
+                ui.ctx().memory_mut(|mem| mem.toggle_popup(lang_popup_id));
+            }
+
+            if ui.ctx().memory(|mem| mem.is_popup_open(lang_popup_id)) {
+                let dropdown_w = 164.0_f32;
+                let dropdown_pos = Pos2::new(
+                    lang_btn_resp.rect.right() - dropdown_w,
+                    lang_btn_resp.rect.bottom() + 6.0,
+                );
+                let mut dropdown_rect = Rect::NOTHING;
+
+                egui::Area::new(lang_popup_id)
+                    .fixed_pos(dropdown_pos)
+                    .order(egui::Order::Foreground)
+                    .show(ui.ctx(), |ui| {
+                        let frame = egui::Frame::NONE
+                            .fill(SURFACE_LOW)
+                            .stroke(Stroke::new(1.0_f32, BORDER_SUBTLE))
+                            .corner_radius(RADIUS_MD)
+                            .shadow(egui::Shadow {
+                                offset: [0, 8],
+                                blur: 24,
+                                spread: 0,
+                                color: Color32::from_black_alpha(200),
+                            })
+                            .inner_margin(egui::Margin::same(4));
+
+                        dropdown_rect = frame
+                            .show(ui, |ui| {
+                                ui.set_width(dropdown_w - 8.0);
+                                ui.spacing_mut().item_spacing.y = 2.0;
+
+                                for &lang in &crate::i18n::Language::ALL {
+                                    let is_selected = lang == current_lang;
+                                    let (row_rect, resp) = ui.allocate_exact_size(
+                                        vec2(ui.available_width(), 34.0),
+                                        Sense::click(),
+                                    );
+
+                                    let hover_t = ui
+                                        .ctx()
+                                        .animate_bool(resp.id.with("hover"), resp.hovered());
+                                    let bg = if resp.is_pointer_button_down_on() {
+                                        SURFACE_ACTIVE
+                                    } else if is_selected {
+                                        lerp_color(SURFACE_MED, SURFACE_HIGH, hover_t)
+                                    } else {
+                                        lerp_color(Color32::TRANSPARENT, SURFACE_MED, hover_t)
+                                    };
+
+                                    ui.painter().rect_filled(row_rect, RADIUS_SM, bg);
+
+                                    // Bandeira vetorial
+                                    let flag_rect = Rect::from_center_size(
+                                        Pos2::new(row_rect.left() + 18.0, row_rect.center().y),
+                                        vec2(20.0, 14.0),
+                                    );
+                                    crate::app::NixoApp::render_vector_flag(
+                                        ui.painter(),
+                                        flag_rect,
+                                        lang.flag(),
+                                    );
+
+                                    // Nome do idioma
+                                    let text_color = if is_selected || resp.hovered() {
+                                        TEXT_PRIMARY
+                                    } else {
+                                        TEXT_SECONDARY
+                                    };
+                                    ui.painter().text(
+                                        Pos2::new(row_rect.left() + 38.0, row_rect.center().y),
+                                        Align2::LEFT_CENTER,
+                                        lang.display_name(),
+                                        font_body(),
+                                        text_color,
+                                    );
+
+                                    // Marcador de seleção ativo
+                                    if is_selected {
+                                        let check_x = row_rect.right() - 14.0;
+                                        let check_y = row_rect.center().y;
+                                        ui.painter().add(egui::Shape::line(
+                                            vec![
+                                                Pos2::new(check_x - 4.5, check_y + 0.2),
+                                                Pos2::new(check_x - 1.2, check_y + 3.5),
+                                                Pos2::new(check_x + 5.0, check_y - 3.5),
+                                            ],
+                                            Stroke::new(1.8_f32, crate::app::ACCENT_COLOR),
+                                        ));
+                                    }
+
+                                    if resp.clicked() {
+                                        action = HomeAction::SetLanguage(lang);
+                                        ui.ctx().memory_mut(|mem| mem.close_popup());
+                                    }
+                                }
+                            })
+                            .response
+                            .rect;
+                    });
+
+                let mut should_close = ui.input(|i| i.key_pressed(egui::Key::Escape));
+                if ui.input(|i| i.pointer.any_pressed())
+                    && let Some(pos) = ui.input(|i| i.pointer.interact_pos())
+                    && !dropdown_rect.contains(pos)
+                    && !lang_btn_resp.rect.contains(pos)
+                {
+                    should_close = true;
+                }
+                if should_close {
+                    ui.ctx().memory_mut(|mem| mem.close_popup());
+                }
+            }
+        });
     });
 
     ui.add_space(14.0);

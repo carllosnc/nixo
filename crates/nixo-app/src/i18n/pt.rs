@@ -101,6 +101,7 @@ pub static PT: Translations = Translations {
     header_home: "Início",
     header_home_tooltip: "Ir para a tela inicial",
     header_folder_fallback: "Pasta",
+    header_language: "Alterar idioma",
     folders_title: "Pastas de Mídia",
     empty_folders_title: "Nenhuma pasta de mídia adicionada",
     empty_folders_desc: "Adicione suas pastas de vídeos ou animes para navegar e assistir diretamente por aqui.",
@@ -112,6 +113,12 @@ pub static PT: Translations = Translations {
     watched_badge: "Assistido ✓",
     dialog_open_video: "Abrir Vídeo no Nixo",
     filter_video_files: "Arquivos de Vídeo",
+
+    // Hero Empty State (Redesign da tela inicial)
+    empty_hero_title: "Pronto para Reproduzir",
+    empty_hero_subtitle: "Arraste e solte vídeos em qualquer lugar da janela ou adicione pastas para organizar sua biblioteca.",
+    toast_folder_removed: "Pasta removida da biblioteca",
+    toast_history_removed: "Progresso do vídeo removido do histórico",
 
     // Notificações e Diagnósticos
     health_image_based_badge: "LEGENDA FIXA",

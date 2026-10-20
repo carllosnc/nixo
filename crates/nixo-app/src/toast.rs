@@ -8,9 +8,28 @@ use egui::{
 };
 
 use crate::app::ACCENT_COLOR;
+use crate::components::tokens::{DANGER_TEXT, NEUTRAL_700, NEUTRAL_800, TEXT_PRIMARY, lerp_color};
+
+/// Ícone exibido à esquerda na notificação Toast.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToastIcon {
+    Camera,
+    Trash,
+    Play,
+    #[allow(dead_code)]
+    Folder,
+    Lucide(&'static str),
+}
+
+impl From<&'static str> for ToastIcon {
+    fn from(s: &'static str) -> Self {
+        ToastIcon::Lucide(s)
+    }
+}
 
 /// Estado de uma notificação temporária no topo da tela.
 pub struct ToastNotification {
+    pub icon: ToastIcon,
     pub message: String,
     pub path: Option<PathBuf>,
     pub created_at: Instant,
@@ -18,10 +37,25 @@ pub struct ToastNotification {
 }
 
 impl ToastNotification {
-    pub fn new(message: String, path: Option<PathBuf>) -> Self {
+    pub fn new(icon: impl Into<ToastIcon>, message: impl Into<String>) -> Self {
         Self {
-            message,
-            path,
+            icon: icon.into(),
+            message: message.into(),
+            path: None,
+            created_at: Instant::now(),
+            duration: Duration::from_millis(2800),
+        }
+    }
+
+    pub fn with_path(
+        icon: impl Into<ToastIcon>,
+        message: impl Into<String>,
+        path: PathBuf,
+    ) -> Self {
+        Self {
+            icon: icon.into(),
+            message: message.into(),
+            path: Some(path),
             created_at: Instant::now(),
             duration: Duration::from_millis(2800),
         }
@@ -50,20 +84,15 @@ pub(crate) fn render_toast(ui: &mut Ui, toast: &mut Option<ToastNotification>, s
     let center_x = screen_rect.center().x;
     let center_y = screen_rect.top() + 48.0 + slide_offset;
 
-    // Mede a largura necessária para o texto
-    let galley = ui.fonts(|f| {
-        f.layout_no_wrap(
-            t.message.clone(),
-            FontId::proportional(13.5),
-            Color32::WHITE,
-        )
-    });
+    // Mede a largura necessária para o texto com tamanho de fonte ampliado (14.5pt)
+    let font_id = FontId::proportional(14.5);
+    let galley = ui.fonts(|f| f.layout_no_wrap(t.message.clone(), font_id.clone(), Color32::WHITE));
 
-    let pad_x = 18.0;
-    let pad_y = 9.0;
-    let icon_space = 24.0;
+    let pad_x = 20.0;
+    let pad_y = 10.0;
+    let icon_space = 26.0;
     let total_w = galley.size().x + pad_x * 2.0 + icon_space;
-    let total_h = galley.size().y + pad_y * 2.0;
+    let total_h = (galley.size().y + pad_y * 2.0).max(40.0);
 
     let toast_rect = Rect::from_center_size(Pos2::new(center_x, center_y), vec2(total_w, total_h));
 
@@ -102,55 +131,108 @@ pub(crate) fn render_toast(ui: &mut Ui, toast: &mut Option<ToastNotification>, s
         }
     }
 
-    // Fundo da cápsula translúcida OLED com borda
-    let bg_alpha = (235.0 * alpha) as u8;
-    let stroke_alpha = (180.0 * alpha) as u8;
+    // Fundo da cápsula com tonalidade da paleta neutra oficial (NEUTRAL_800 -> NEUTRAL_700 no hover), sem borda
+    let hover_t = ui
+        .ctx()
+        .animate_bool_with_time(resp.id.with("toast_hover"), hovered, 0.15);
+    let base_color = lerp_color(NEUTRAL_800, NEUTRAL_700, hover_t);
+    let bg_alpha = (250.0 * alpha) as u8;
     ui.painter().rect_filled(
         toast_rect,
         CornerRadius::same(99),
-        Color32::from_rgba_unmultiplied(16, 18, 22, bg_alpha),
-    );
-    let border_color = if hovered {
-        ACCENT_COLOR
-    } else {
-        Color32::from_rgb(60, 64, 76)
-    };
-    ui.painter().rect_stroke(
-        toast_rect,
-        CornerRadius::same(99),
-        Stroke::new(
-            1.1_f32,
-            Color32::from_rgba_unmultiplied(
-                border_color.r(),
-                border_color.g(),
-                border_color.b(),
-                stroke_alpha,
-            ),
-        ),
-        egui::StrokeKind::Inside,
+        Color32::from_rgba_unmultiplied(base_color.r(), base_color.g(), base_color.b(), bg_alpha),
     );
 
-    // Ícone de câmera em verde Nixo à esquerda
+    // Ícone à esquerda configurável por componente
     let icon_c = Pos2::new(toast_rect.left() + pad_x + 6.0, toast_rect.center().y);
-    let icon_color = Color32::from_rgba_unmultiplied(
-        ACCENT_COLOR.r(),
-        ACCENT_COLOR.g(),
-        ACCENT_COLOR.b(),
-        (255.0 * alpha) as u8,
-    );
-    paint_mini_camera(ui, icon_c, icon_color);
+    match t.icon {
+        ToastIcon::Camera => {
+            let icon_color = Color32::from_rgba_unmultiplied(
+                ACCENT_COLOR.r(),
+                ACCENT_COLOR.g(),
+                ACCENT_COLOR.b(),
+                (255.0 * alpha) as u8,
+            );
+            paint_mini_camera(ui, icon_c, icon_color);
+        }
+        ToastIcon::Trash => {
+            let trash_color = Color32::from_rgba_unmultiplied(
+                DANGER_TEXT.r(),
+                DANGER_TEXT.g(),
+                DANGER_TEXT.b(),
+                (255.0 * alpha) as u8,
+            );
+            ui.painter().text(
+                icon_c,
+                Align2::CENTER_CENTER,
+                crate::lucide::TRASH_2,
+                crate::lucide::font_id(16.0),
+                trash_color,
+            );
+        }
+        ToastIcon::Play => {
+            let play_color = Color32::from_rgba_unmultiplied(
+                ACCENT_COLOR.r(),
+                ACCENT_COLOR.g(),
+                ACCENT_COLOR.b(),
+                (255.0 * alpha) as u8,
+            );
+            ui.painter().text(
+                icon_c,
+                Align2::CENTER_CENTER,
+                crate::lucide::PLAY,
+                crate::lucide::font_id(15.5),
+                play_color,
+            );
+        }
+        ToastIcon::Folder => {
+            let folder_color = Color32::from_rgba_unmultiplied(
+                ACCENT_COLOR.r(),
+                ACCENT_COLOR.g(),
+                ACCENT_COLOR.b(),
+                (255.0 * alpha) as u8,
+            );
+            ui.painter().text(
+                icon_c,
+                Align2::CENTER_CENTER,
+                crate::lucide::FOLDER,
+                crate::lucide::font_id(16.0),
+                folder_color,
+            );
+        }
+        ToastIcon::Lucide(icon_str) => {
+            let ic_color = Color32::from_rgba_unmultiplied(
+                ACCENT_COLOR.r(),
+                ACCENT_COLOR.g(),
+                ACCENT_COLOR.b(),
+                (255.0 * alpha) as u8,
+            );
+            ui.painter().text(
+                icon_c,
+                Align2::CENTER_CENTER,
+                icon_str,
+                crate::lucide::font_id(16.0),
+                ic_color,
+            );
+        }
+    }
 
     // Texto da notificação
     let text_pos = Pos2::new(
         toast_rect.left() + pad_x + icon_space,
         toast_rect.center().y,
     );
-    let text_color = Color32::from_rgba_unmultiplied(235, 235, 240, (255.0 * alpha) as u8);
+    let text_color = Color32::from_rgba_unmultiplied(
+        TEXT_PRIMARY.r(),
+        TEXT_PRIMARY.g(),
+        TEXT_PRIMARY.b(),
+        (255.0 * alpha) as u8,
+    );
     ui.painter().text(
         text_pos,
         Align2::LEFT_CENTER,
         &t.message,
-        FontId::proportional(13.5),
+        FontId::proportional(14.5),
         text_color,
     );
 
@@ -159,7 +241,7 @@ pub(crate) fn render_toast(ui: &mut Ui, toast: &mut Option<ToastNotification>, s
 }
 
 fn paint_mini_camera(ui: &Ui, c: Pos2, color: Color32) {
-    let scale = 0.58_f32;
+    let scale = 0.62_f32;
     let p = |x: f32, y: f32| Pos2::new(c.x + (x - 12.0) * scale, c.y + (y - 12.0) * scale);
     let stroke = Stroke::new(1.4_f32, color);
     let body_pts = vec![

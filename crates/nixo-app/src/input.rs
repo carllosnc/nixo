@@ -7,8 +7,21 @@ use nixo_core::PlayerCommand;
 use crate::app::NixoApp;
 
 impl NixoApp {
-    pub(crate) fn show_toast(&mut self, text: impl Into<String>, path: Option<PathBuf>) {
-        self.toast = Some(crate::toast::ToastNotification::new(text.into(), path));
+    pub(crate) fn show_toast(
+        &mut self,
+        icon: impl Into<crate::toast::ToastIcon>,
+        text: impl Into<String>,
+    ) {
+        self.toast = Some(crate::toast::ToastNotification::new(icon, text));
+    }
+
+    pub(crate) fn show_toast_with_path(
+        &mut self,
+        icon: impl Into<crate::toast::ToastIcon>,
+        text: impl Into<String>,
+        path: PathBuf,
+    ) {
+        self.toast = Some(crate::toast::ToastNotification::with_path(icon, text, path));
     }
 
     pub(crate) fn take_screenshot(&mut self) {
@@ -17,7 +30,7 @@ impl NixoApp {
         self.dispatch(PlayerCommand::TakeScreenshot(path.clone()));
         crate::toast::copy_screenshot_to_clipboard_async(path.clone());
         let toast_msg = self.t().screenshot_saved(&filename);
-        self.show_toast(toast_msg, Some(path));
+        self.show_toast_with_path(crate::toast::ToastIcon::Camera, toast_msg, path);
     }
 
     pub(crate) fn open_file_dialog(&mut self) {
@@ -47,8 +60,10 @@ impl NixoApp {
     pub(crate) fn go_home(&mut self) {
         self.video_texture = None;
         self.aspect_ratio_fit = false;
+        self.saved_aspect_ratio_fit = false;
         self.home_state.go_root();
         self.dispatch(PlayerCommand::Stop);
+        self.settings_store.observe(self.current_settings());
     }
 
     pub(crate) fn handle_home_action(&mut self, action: crate::home::HomeAction) {
@@ -71,8 +86,15 @@ impl NixoApp {
                 }
             }
             RemoveFolder(folder) => {
+                let folder_name = folder
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("Pasta")
+                    .to_string();
                 self.media_folders.retain(|f| f != &folder);
                 self.settings_store.observe(self.current_settings());
+                let msg = format!("{}: {}", self.t().toast_folder_removed, folder_name);
+                self.show_toast(crate::toast::ToastIcon::Trash, msg);
             }
             OpenFolder(path) => self.home_state.navigate_to(path),
             GoBack => self.home_state.go_back(),
@@ -80,8 +102,10 @@ impl NixoApp {
             OpenFile => self.open_file_dialog(),
             PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
             PlayTestSignal => self.dispatch(PlayerCommand::Play),
-            OpenDesignSystem => self.home_state.is_design_system = true,
-            CloseDesignSystem => self.home_state.is_design_system = false,
+            SetLanguage(lang) => {
+                self.language = lang;
+                self.settings_store.observe(self.current_settings());
+            }
         }
     }
 
@@ -184,6 +208,47 @@ impl NixoApp {
                 let action = self.home_state.activate_selected(&self.media_folders);
                 self.handle_home_action(action);
             }
+            // Tecla Delete remove a pasta selecionada (na raiz) ou limpa o histórico de reprodução (dentro de pastas)
+            if ctx.input(|i| i.key_pressed(Key::Delete)) {
+                if self.home_state.current_path.is_none() {
+                    if let Some(folder) = self
+                        .media_folders
+                        .get(self.home_state.selected_index)
+                        .cloned()
+                    {
+                        let folder_name = folder
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or("Pasta")
+                            .to_string();
+                        self.media_folders.retain(|f| f != &folder);
+                        if self.media_folders.is_empty() {
+                            self.home_state.selected_index = 0;
+                            self.home_state.keyboard_nav_active = false;
+                        } else if self.home_state.selected_index >= self.media_folders.len() {
+                            self.home_state.selected_index = self.media_folders.len() - 1;
+                        }
+                        self.settings_store.observe(self.current_settings());
+                        let msg = format!("{}: {}", self.t().toast_folder_removed, folder_name);
+                        self.show_toast(crate::toast::ToastIcon::Trash, msg);
+                    }
+                } else if let Some(current) = self.home_state.current_path.clone() {
+                    let content = self.home_state.scanner.get_or_request(&current);
+                    let subdirs_len = content.subdirs.len();
+                    if self.home_state.selected_index >= subdirs_len {
+                        let file_idx = self.home_state.selected_index - subdirs_len;
+                        if let Some(file) = content.files.get(file_idx)
+                            && self.watch_history.remove(&file.path).is_some()
+                        {
+                            self.settings_store.observe(self.current_settings());
+                            self.show_toast(
+                                crate::toast::ToastIcon::Trash,
+                                self.t().toast_history_removed,
+                            );
+                        }
+                    }
+                }
+            }
             if (ctx.input(|i| i.key_pressed(Key::ArrowLeft) || i.key_pressed(Key::Backspace)))
                 && self.home_state.current_path.is_some()
             {
@@ -192,8 +257,6 @@ impl NixoApp {
             if ctx.input(|i| i.key_pressed(Key::Escape)) {
                 if self.is_fullscreen {
                     self.toggle_fullscreen(ctx);
-                } else if self.home_state.is_design_system {
-                    self.home_state.is_design_system = false;
                 } else if self.home_state.current_path.is_some() {
                     self.home_state.go_back();
                 }

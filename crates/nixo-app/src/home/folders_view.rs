@@ -7,7 +7,7 @@ use egui::{Align2, Color32, CursorIcon, Pos2, Rect, RichText, Sense, Ui, vec2};
 
 use super::header::HomeAction;
 use crate::app::ACCENT_COLOR;
-use crate::components::empty_state::render_empty_state;
+use crate::components::empty_state::render_hero_empty_state;
 use crate::components::tokens::*;
 use crate::lucide;
 
@@ -39,18 +39,7 @@ pub fn render_folders_view(
     let mut action = HomeAction::None;
 
     if folders.is_empty() {
-        let resp = render_empty_state(
-            ui,
-            lucide::FOLDER_OPEN,
-            t.empty_folders_title,
-            t.empty_folders_desc,
-            Some(t.empty_folders_action),
-        );
-        if let Some(r) = resp
-            && r.clicked()
-        {
-            action = HomeAction::AddFolder;
-        }
+        action = render_hero_empty_state(ui, folder_texture, t);
     } else {
         ui.add_space(8.0);
         ui.label(

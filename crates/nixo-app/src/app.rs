@@ -62,7 +62,6 @@ impl NixoApp {
         let mut backend = nixo_engine::create_default_backend();
         Self::apply_settings(backend.as_mut(), &settings);
 
-        let has_initial_file = initial_file.is_some();
         let mut pending_resume = None;
         if let Some(path) = initial_file.as_ref() {
             if let Some(entry) = settings.watch_history.get(path)
@@ -85,8 +84,8 @@ impl NixoApp {
                     egui::WindowLevel::AlwaysOnTop,
                 ));
         }
-        let saved_aspect_ratio_fit = settings.window.aspect_ratio_fit;
-        let aspect_ratio_fit = has_initial_file && saved_aspect_ratio_fit;
+        let saved_aspect_ratio_fit = false;
+        let aspect_ratio_fit = false;
 
         Self {
             backend,
@@ -157,7 +156,7 @@ impl NixoApp {
             },
             window: WindowSettings {
                 always_on_top: self.always_on_top,
-                aspect_ratio_fit: self.saved_aspect_ratio_fit,
+                aspect_ratio_fit: false,
             },
             library: crate::settings::LibrarySettings {
                 folders: self.media_folders.clone(),
@@ -204,6 +203,7 @@ impl NixoApp {
                 self.pending_resume = None;
                 self.video_texture = None;
                 self.aspect_ratio_fit = false;
+                self.saved_aspect_ratio_fit = false;
             } else {
                 if let PlayerCommand::LoadFile(ref path) = cmd {
                     self.record_current_playback();
@@ -255,6 +255,8 @@ impl NixoApp {
 impl eframe::App for NixoApp {
     fn on_exit(&mut self) {
         self.record_current_playback();
+        self.aspect_ratio_fit = false;
+        self.saved_aspect_ratio_fit = false;
         self.settings_store.observe(self.current_settings());
         self.settings_store.flush();
     }
@@ -267,6 +269,7 @@ impl eframe::App for NixoApp {
         self.status = self.backend.status();
         if self.status.state == PlaybackState::Stopped {
             self.aspect_ratio_fit = false;
+            self.saved_aspect_ratio_fit = false;
         }
 
         if let Some(target) = self.pending_resume
@@ -277,8 +280,8 @@ impl eframe::App for NixoApp {
             self.dispatch(PlayerCommand::Seek(target));
             let secs = target.as_secs();
             self.show_toast(
+                crate::toast::ToastIcon::Play,
                 format!("Retomando de {:02}:{:02}", secs / 60, secs % 60),
-                None,
             );
         }
 
@@ -443,6 +446,7 @@ impl eframe::App for NixoApp {
                         &self.watch_history,
                         rect,
                         self.t(),
+                        self.language,
                     );
                     self.handle_home_action(action);
                 }

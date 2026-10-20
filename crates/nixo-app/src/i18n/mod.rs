@@ -203,8 +203,11 @@ pub struct Translations {
     pub header_home: &'static str,
     pub header_home_tooltip: &'static str,
     pub header_folder_fallback: &'static str,
+    pub header_language: &'static str,
     pub folders_title: &'static str,
+    #[allow(dead_code)]
     pub empty_folders_title: &'static str,
+    #[allow(dead_code)]
     pub empty_folders_desc: &'static str,
     pub empty_folders_action: &'static str,
     pub empty_folder_title: &'static str,
@@ -214,6 +217,12 @@ pub struct Translations {
     pub watched_badge: &'static str,
     pub dialog_open_video: &'static str,
     pub filter_video_files: &'static str,
+
+    // Hero Empty State (Redesign da tela inicial limpo e focado)
+    pub empty_hero_title: &'static str,
+    pub empty_hero_subtitle: &'static str,
+    pub toast_folder_removed: &'static str,
+    pub toast_history_removed: &'static str,
 
     // Notificações e Diagnósticos
     #[allow(dead_code)]

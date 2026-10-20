@@ -1,7 +1,6 @@
 //! Tela inicial (Home) e biblioteca de pastas de mídia do Nixo.
 
 mod browser_view;
-mod design_system_view;
 mod folders_view;
 mod header;
 mod scanner;
@@ -78,7 +77,6 @@ pub struct HomeState {
     pub current_path: Option<PathBuf>,
     pub breadcrumbs: Vec<PathBuf>,
     pub scanner: BackgroundScanner,
-    pub is_design_system: bool,
     pub logo_texture: Option<egui::TextureHandle>,
     pub folder_texture: Option<egui::TextureHandle>,
     pub video_clapper_texture: Option<egui::TextureHandle>,
@@ -101,7 +99,6 @@ impl HomeState {
             current_path: None,
             breadcrumbs: Vec::new(),
             scanner: BackgroundScanner::new(),
-            is_design_system: false,
             logo_texture: None,
             folder_texture: None,
             video_clapper_texture: None,
@@ -115,7 +112,6 @@ impl HomeState {
 
     /// Navega para dentro de uma pasta e atualiza a trilha de navegação (breadcrumbs).
     pub fn navigate_to(&mut self, target: PathBuf) {
-        self.is_design_system = false;
         if self.current_path.as_deref() == Some(&target) {
             return;
         }
@@ -149,7 +145,6 @@ impl HomeState {
     /// Retorna um nível na árvore de diretórios ou à raiz das pastas salvas,
     /// mantendo selecionada a pasta que acabou de ser fechada.
     pub fn go_back(&mut self) {
-        self.is_design_system = false;
         self.transition = Some(NavTransition::backward());
         self.keyboard_nav_active = true;
         self.selected_index = 0;
@@ -175,7 +170,6 @@ impl HomeState {
         }
         self.breadcrumbs.clear();
         self.current_path = None;
-        self.is_design_system = false;
         self.selected_index = 0;
         self.transition = Some(NavTransition::backward());
         self.keyboard_nav_active = true;
@@ -236,6 +230,7 @@ impl HomeState {
         watch_history: &std::collections::HashMap<PathBuf, crate::settings::WatchHistoryEntry>,
         _rect: Rect,
         t: &crate::i18n::Translations,
+        current_lang: crate::i18n::Language,
     ) -> HomeAction {
         self.scanner.poll();
         self.thumbnails.poll(ui.ctx());
@@ -247,176 +242,151 @@ impl HomeState {
 
         let mut action = HomeAction::None;
 
-        if self.is_design_system {
-            ScrollArea::vertical()
-                .auto_shrink([false, false])
-                .show(ui, |ui| {
-                    egui::Frame::NONE
-                        .inner_margin(Margin {
-                            left: 28,
-                            right: 28,
-                            top: 20,
-                            bottom: 24,
-                        })
-                        .show(ui, |ui| {
-                            let ds_act = design_system_view::render_design_system_view(ui);
-                            if !matches!(ds_act, HomeAction::None) {
-                                action = ds_act;
-                            }
-                        });
-                });
-        } else {
-            // Garante que a textura da logo e o ícone 3D de pasta estejam carregados na GPU
-            if self.logo_texture.is_none()
-                && let Some(color_img) = header::load_logo_image()
-            {
-                self.logo_texture = Some(ui.ctx().load_texture(
-                    "nixo_logo",
-                    color_img,
-                    egui::TextureOptions::LINEAR,
-                ));
-            }
+        // Garante que a textura da logo e o ícone 3D de pasta estejam carregados na GPU
+        if self.logo_texture.is_none()
+            && let Some(color_img) = header::load_logo_image()
+        {
+            self.logo_texture = Some(ui.ctx().load_texture(
+                "nixo_logo",
+                color_img,
+                egui::TextureOptions::LINEAR,
+            ));
+        }
 
-            if self.folder_texture.is_none()
-                && let Some(color_img) = header::load_folder_3d_image()
-            {
-                self.folder_texture = Some(ui.ctx().load_texture(
-                    "nixo_folder_3d",
-                    color_img,
-                    egui::TextureOptions::LINEAR,
-                ));
-            }
+        if self.folder_texture.is_none()
+            && let Some(color_img) = header::load_folder_3d_image()
+        {
+            self.folder_texture = Some(ui.ctx().load_texture(
+                "nixo_folder_3d",
+                color_img,
+                egui::TextureOptions::LINEAR,
+            ));
+        }
 
-            if self.video_clapper_texture.is_none()
-                && let Some(color_img) = header::load_video_clapper_image()
-            {
-                self.video_clapper_texture = Some(ui.ctx().load_texture(
-                    "nixo_video_clapper",
-                    color_img,
-                    egui::TextureOptions::LINEAR,
-                ));
-            }
+        if self.video_clapper_texture.is_none()
+            && let Some(color_img) = header::load_video_clapper_image()
+        {
+            self.video_clapper_texture = Some(ui.ctx().load_texture(
+                "nixo_video_clapper",
+                color_img,
+                egui::TextureOptions::LINEAR,
+            ));
+        }
 
-            // 1. Cabeçalho fixo no topo com padding interno
-            egui::Frame::NONE
-                .inner_margin(Margin {
-                    left: 28,
-                    right: 28,
-                    top: 20,
-                    bottom: 0,
-                })
-                .show(ui, |ui| {
-                    let header_action = header::render_header(
-                        ui,
-                        self.current_path.as_deref(),
-                        &self.breadcrumbs,
-                        self.logo_texture.as_ref(),
-                        t,
-                    );
-                    if !matches!(header_action, HomeAction::None) {
-                        action = header_action;
-                    }
-                });
+        // 1. Cabeçalho fixo no topo com padding interno
+        egui::Frame::NONE
+            .inner_margin(Margin {
+                left: 28,
+                right: 28,
+                top: 20,
+                bottom: 0,
+            })
+            .show(ui, |ui| {
+                let header_action = header::render_header(
+                    ui,
+                    self.current_path.as_deref(),
+                    &self.breadcrumbs,
+                    self.logo_texture.as_ref(),
+                    t,
+                    current_lang,
+                );
+                if !matches!(header_action, HomeAction::None) {
+                    action = header_action;
+                }
+            });
 
-            // 2. Área de Conteúdo rolável com scrollbar colada na borda direita e paddings internos
-            let (offset_x, opacity, is_finished) = self
-                .transition
-                .map(|t| t.calculate(ui.ctx()))
-                .unwrap_or((0.0, 1.0, true));
+        // 2. Área de Conteúdo rolável com scrollbar colada na borda direita e paddings internos
+        let (offset_x, opacity, is_finished) = self
+            .transition
+            .map(|t| t.calculate(ui.ctx()))
+            .unwrap_or((0.0, 1.0, true));
 
-            if is_finished && self.transition.is_some() {
-                self.transition = None;
-            }
+        if is_finished && self.transition.is_some() {
+            self.transition = None;
+        }
 
-            let left_margin = (28.0 + offset_x).round().clamp(-64.0, 120.0) as i8;
-            let right_margin = (28.0 - offset_x).round().clamp(-64.0, 120.0) as i8;
+        let left_margin = (28.0 + offset_x).round().clamp(-64.0, 120.0) as i8;
+        let right_margin = (28.0 - offset_x).round().clamp(-64.0, 120.0) as i8;
 
-            let scroll_id = self
-                .current_path
-                .as_deref()
-                .unwrap_or(std::path::Path::new("__nixo_home_root__"));
+        let scroll_id = self
+            .current_path
+            .as_deref()
+            .unwrap_or(std::path::Path::new("__nixo_home_root__"));
 
-            let is_navigating_or_restoring =
-                self.transition.is_some() || self.pending_selection_path.is_some();
+        let is_navigating_or_restoring =
+            self.transition.is_some() || self.pending_selection_path.is_some();
 
-            ScrollArea::vertical()
-                .id_salt(scroll_id)
-                .animated(!is_navigating_or_restoring)
-                .auto_shrink([false, false])
-                .show(ui, |ui| {
-                    ui.set_opacity(opacity);
-                    egui::Frame::NONE
-                        .inner_margin(Margin {
-                            left: left_margin,
-                            right: right_margin,
-                            top: 14,
-                            bottom: 24,
-                        })
-                        .show(ui, |ui| {
-                            if let Some(current) = &self.current_path {
-                                let content = self.scanner.get_or_request(current);
+        ScrollArea::vertical()
+            .id_salt(scroll_id)
+            .animated(!is_navigating_or_restoring)
+            .auto_shrink([false, false])
+            .show(ui, |ui| {
+                ui.set_opacity(opacity);
+                egui::Frame::NONE
+                    .inner_margin(Margin {
+                        left: left_margin,
+                        right: right_margin,
+                        top: 14,
+                        bottom: 24,
+                    })
+                    .show(ui, |ui| {
+                        if let Some(current) = &self.current_path {
+                            let content = self.scanner.get_or_request(current);
 
-                                if let Some(ref target) = self.pending_selection_path {
-                                    if let Some(idx) =
-                                        content.subdirs.iter().position(|d| &d.path == target)
-                                    {
-                                        self.selected_index = idx;
-                                        self.pending_selection_path = None;
-                                    } else if let Some(idx) =
-                                        content.files.iter().position(|f| &f.path == target)
-                                    {
-                                        self.selected_index = content.subdirs.len() + idx;
-                                        self.pending_selection_path = None;
-                                    }
-                                }
-
-                                let textures = browser_view::BrowserTextures {
-                                    folder: self.folder_texture.as_ref(),
-                                    video_clapper: self.video_clapper_texture.as_ref(),
-                                };
-                                let browser_act = browser_view::render_folder_browser(
-                                    ui,
-                                    &content,
-                                    &mut self.thumbnails,
-                                    textures,
-                                    &mut self.selected_index,
-                                    &mut self.keyboard_nav_active,
-                                    watch_history,
-                                    t,
-                                );
-                                if !matches!(browser_act, HomeAction::None) {
-                                    action = browser_act;
-                                }
-                            } else {
-                                if let Some(target) = self.pending_selection_path.take()
-                                    && let Some(idx) = folders.iter().position(|f| f == &target)
+                            if let Some(ref target) = self.pending_selection_path {
+                                if let Some(idx) =
+                                    content.subdirs.iter().position(|d| &d.path == target)
                                 {
                                     self.selected_index = idx;
-                                }
-
-                                // Visão das pastas de mídia configuradas
-                                let folders_act = folders_view::render_folders_view(
-                                    ui,
-                                    folders,
-                                    &self.get_counts_map(folders),
-                                    self.folder_texture.as_ref(),
-                                    &mut self.selected_index,
-                                    &mut self.keyboard_nav_active,
-                                    t,
-                                );
-                                if !matches!(folders_act, HomeAction::None) {
-                                    action = folders_act;
+                                    self.pending_selection_path = None;
+                                } else if let Some(idx) =
+                                    content.files.iter().position(|f| &f.path == target)
+                                {
+                                    self.selected_index = content.subdirs.len() + idx;
+                                    self.pending_selection_path = None;
                                 }
                             }
-                        });
-                });
-        }
 
-        match &action {
-            HomeAction::OpenDesignSystem => self.is_design_system = true,
-            HomeAction::CloseDesignSystem => self.is_design_system = false,
-            _ => {}
-        }
+                            let textures = browser_view::BrowserTextures {
+                                folder: self.folder_texture.as_ref(),
+                                video_clapper: self.video_clapper_texture.as_ref(),
+                            };
+                            let browser_act = browser_view::render_folder_browser(
+                                ui,
+                                &content,
+                                &mut self.thumbnails,
+                                textures,
+                                &mut self.selected_index,
+                                &mut self.keyboard_nav_active,
+                                watch_history,
+                                t,
+                            );
+                            if !matches!(browser_act, HomeAction::None) {
+                                action = browser_act;
+                            }
+                        } else {
+                            if let Some(target) = self.pending_selection_path.take()
+                                && let Some(idx) = folders.iter().position(|f| f == &target)
+                            {
+                                self.selected_index = idx;
+                            }
+
+                            // Visão das pastas de mídia configuradas
+                            let folders_act = folders_view::render_folders_view(
+                                ui,
+                                folders,
+                                &self.get_counts_map(folders),
+                                self.folder_texture.as_ref(),
+                                &mut self.selected_index,
+                                &mut self.keyboard_nav_active,
+                                t,
+                            );
+                            if !matches!(folders_act, HomeAction::None) {
+                                action = folders_act;
+                            }
+                        }
+                    });
+            });
 
         action
     }

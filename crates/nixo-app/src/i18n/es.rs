@@ -101,6 +101,7 @@ pub static ES: Translations = Translations {
     header_home: "Inicio",
     header_home_tooltip: "Ir a la biblioteca inicial",
     header_folder_fallback: "Carpeta",
+    header_language: "Cambiar idioma",
     folders_title: "Carpetas de Medios",
     empty_folders_title: "No se agregaron carpetas de medios",
     empty_folders_desc: "Agregue sus carpetas de videos o anime para explorar y ver directamente aquí.",
@@ -112,6 +113,12 @@ pub static ES: Translations = Translations {
     watched_badge: "Visto ✓",
     dialog_open_video: "Abrir Video en Nixo",
     filter_video_files: "Archivos de Video",
+
+    // Hero Empty State (Rediseño de la pantalla inicial)
+    empty_hero_title: "Listo para Reproducir",
+    empty_hero_subtitle: "Arrastra y suelta videos en cualquier parte de la ventana o añade carpetas para organizar tu biblioteca.",
+    toast_folder_removed: "Carpeta eliminada de la biblioteca",
+    toast_history_removed: "Progreso del video eliminado del historial",
 
     // Notificaciones y Diagnósticos
     health_image_based_badge: "SUBTÍTULO BITMAP",

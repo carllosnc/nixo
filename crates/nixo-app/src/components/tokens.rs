@@ -1,83 +1,99 @@
-//! Design tokens do Nixo Neutral Design System baseados na paleta Tailwind CSS Neutral.
+//! Design tokens do Nixo Neutral Design System baseados na paleta Tailwind CSS Zinc.
 //!
-//! Todas as cores são neutras puras (Tailwind Neutral 50 a 950), eliminando bordas duras e criando
-//! profundidade através de camadas de elevação sutis (estilo Linear, shadcn e macOS Dark).
+//! Todas as cores utilizam a escala Tailwind Zinc (50 a 950), trazendo um tom neutro elegante com
+//! leve subtom frio, eliminando bordas duras e criando profundidade através de camadas de elevação sutis (estilo Linear, shadcn e macOS Dark).
 
 use std::sync::Arc;
 
 use egui::text::{LayoutJob, TextFormat, TextWrapping};
 use egui::{Align2, Color32, CornerRadius, FontId, Galley, Pos2, Rect, Ui};
 
-// ── Paleta Tailwind CSS Neutral Oficial ──
-/// Tailwind neutral-50 (#fafafa) - Destaque máximo / hover primário.
+// ── Paleta Tailwind CSS Zinc Oficial ──
+/// Tailwind zinc-50 (#fafafa) - Destaque máximo / hover primário.
 pub const NEUTRAL_50: Color32 = Color32::from_rgb(250, 250, 250);
 
-/// Tailwind neutral-100 (#f5f5f5) - Ação primária e texto de alto contraste.
-pub const NEUTRAL_100: Color32 = Color32::from_rgb(245, 245, 245);
+/// Tailwind zinc-100 (#f4f4f5) - Ação primária e texto de alto contraste.
+pub const NEUTRAL_100: Color32 = Color32::from_rgb(244, 244, 245);
 
-/// Tailwind neutral-200 (#e5e5e5) - Ícones e realces claros.
-pub const NEUTRAL_200: Color32 = Color32::from_rgb(229, 229, 229);
+/// Tailwind zinc-200 (#e4e4e7) - Ícones e realces claros.
+pub const NEUTRAL_200: Color32 = Color32::from_rgb(228, 228, 231);
 
-/// Tailwind neutral-300 (#d4d4d4) - Texto secundário em botões ghost.
-pub const NEUTRAL_300: Color32 = Color32::from_rgb(212, 212, 212);
+/// Tailwind zinc-300 (#d4d4d8) - Texto secundário em botões ghost.
+pub const NEUTRAL_300: Color32 = Color32::from_rgb(212, 212, 216);
 
-/// Tailwind neutral-400 (#a3a3a3) - Texto secundário, subtítulos e breadcrumbs.
-pub const NEUTRAL_400: Color32 = Color32::from_rgb(163, 163, 163);
+/// Tailwind zinc-400 (#a1a1aa) - Texto secundário, subtítulos e breadcrumbs.
+pub const NEUTRAL_400: Color32 = Color32::from_rgb(161, 161, 170);
 
-/// Tailwind neutral-500 (#737373) - Texto muted, separadores e metadados.
-pub const NEUTRAL_500: Color32 = Color32::from_rgb(115, 115, 115);
+/// Tailwind zinc-500 (#71717a) - Texto muted, separadores e metadados.
+pub const NEUTRAL_500: Color32 = Color32::from_rgb(113, 113, 122);
 
-/// Tailwind neutral-600 (#525252) - Superfície ativa / pressionada.
-pub const NEUTRAL_600: Color32 = Color32::from_rgb(82, 82, 82);
+/// Tailwind zinc-600 (#52525b) - Superfície ativa / pressionada.
+pub const NEUTRAL_600: Color32 = Color32::from_rgb(82, 82, 91);
 
-/// Tailwind neutral-700 (#404040) - Superfície hover de botões e cards.
-pub const NEUTRAL_700: Color32 = Color32::from_rgb(64, 64, 64);
+/// Tailwind zinc-700 (#3f3f46) - Superfície hover de botões e cards.
+pub const NEUTRAL_700: Color32 = Color32::from_rgb(63, 63, 70);
 
-/// Tailwind neutral-800 (#262626) - Botões secundários, chips e caixas de mídia.
-pub const NEUTRAL_800: Color32 = Color32::from_rgb(38, 38, 38);
+/// Tailwind zinc-800 (#27272a) - Botões secundários, chips e caixas de mídia.
+pub const NEUTRAL_800: Color32 = Color32::from_rgb(39, 39, 42);
 
-/// Tailwind neutral-900 (#171717) - Cards inativos e agrupadores principais.
-pub const NEUTRAL_900: Color32 = Color32::from_rgb(23, 23, 23);
+/// Tailwind zinc-900 (#18181b) - Cards inativos e agrupadores principais.
+pub const NEUTRAL_900: Color32 = Color32::from_rgb(24, 24, 27);
 
-/// Tailwind neutral-950 (#0a0a0a) - Fundo base OLED da aplicação.
-pub const NEUTRAL_950: Color32 = Color32::from_rgb(10, 10, 10);
+/// Tailwind zinc-950 (#09090b) - Fundo base OLED da aplicação.
+pub const NEUTRAL_950: Color32 = Color32::from_rgb(9, 9, 11);
+
+// Aliases explícitos ZINC_*
+pub const ZINC_50: Color32 = NEUTRAL_50;
+pub const ZINC_100: Color32 = NEUTRAL_100;
+pub const ZINC_200: Color32 = NEUTRAL_200;
+pub const ZINC_300: Color32 = NEUTRAL_300;
+pub const ZINC_400: Color32 = NEUTRAL_400;
+pub const ZINC_500: Color32 = NEUTRAL_500;
+pub const ZINC_600: Color32 = NEUTRAL_600;
+pub const ZINC_700: Color32 = NEUTRAL_700;
+pub const ZINC_800: Color32 = NEUTRAL_800;
+pub const ZINC_900: Color32 = NEUTRAL_900;
+pub const ZINC_950: Color32 = NEUTRAL_950;
 
 // ── Camadas Semânticas de Elevação (Superfícies) ──
-/// Fundo principal com leve transparência translúcida (Tailwind neutral-950 com ~85% de opacidade).
-pub const BG_BASE: Color32 = Color32::from_rgba_premultiplied(8, 8, 8, 218);
+/// Fundo principal com leve transparência translúcida (Tailwind zinc-950 com ~85% de opacidade).
+pub const BG_BASE: Color32 = Color32::from_rgba_premultiplied(8, 8, 9, 218);
 
-/// Superfície 1: Cards inativos, agrupadores, barras e cabeçalhos (Tailwind neutral-900).
+/// Superfície 1: Cards inativos, agrupadores, barras e cabeçalhos (Tailwind zinc-900).
 pub const SURFACE_LOW: Color32 = NEUTRAL_900;
 
-/// Superfície 2: Botões secundários, chips de pasta e inputs (Tailwind neutral-800).
+/// Superfície 2: Botões secundários, chips de pasta e inputs (Tailwind zinc-800).
 pub const SURFACE_MED: Color32 = NEUTRAL_800;
 
-/// Superfície 3: Estado hover de botões e controles compactos (Tailwind neutral-700).
+/// Superfície 3: Estado hover de botões e controles compactos (Tailwind zinc-700).
 pub const SURFACE_HIGH: Color32 = NEUTRAL_700;
 
 /// Superfície de hover suave para cards (pastas, mídias e subpastas).
-/// Elevação aveludada (Tailwind neutral-850 aprox. #202020 / rgb(32, 32, 32)).
-pub const SURFACE_CARD_HOVER: Color32 = Color32::from_rgb(32, 32, 32);
+/// Elevação aveludada (Tailwind zinc-850 aprox. #202023 / rgb(32, 32, 35)).
+pub const SURFACE_CARD_HOVER: Color32 = Color32::from_rgb(32, 32, 35);
 
-/// Superfície Ativa: Estado pressionado / selecionado (Tailwind neutral-600).
+/// Superfície Ativa: Estado pressionado / selecionado (Tailwind zinc-600).
 pub const SURFACE_ACTIVE: Color32 = NEUTRAL_600;
 
 // ── Destaques Neutros para Ações Primárias ──
-/// Fundo do botão de ação primária (Tailwind neutral-100).
+/// Fundo do botão de ação primária (Tailwind zinc-100).
 pub const ACCENT_NEUTRAL_FILL: Color32 = NEUTRAL_100;
-/// Hover do botão de ação primária (Tailwind neutral-50).
+/// Hover do botão de ação primária (Tailwind zinc-50).
 pub const ACCENT_NEUTRAL_HOVER: Color32 = NEUTRAL_50;
-/// Texto escuro sobre o botão primário neutro (Tailwind neutral-950).
+/// Texto escuro sobre o botão primário neutro (Tailwind zinc-950).
 pub const ACCENT_NEUTRAL_TEXT: Color32 = NEUTRAL_950;
 
+/// Borda sutil translúcida (~10% branco) para divisores e contornos modernos.
+pub const BORDER_SUBTLE: Color32 = Color32::from_rgba_premultiplied(255, 255, 255, 24);
+
 // ── Tipografia & Cores de Texto ──
-/// Texto Primário: Títulos principais, itens ativos e texto de alto contraste (Tailwind neutral-100).
+/// Texto Primário: Títulos principais, itens ativos e texto de alto contraste (Tailwind zinc-100).
 pub const TEXT_PRIMARY: Color32 = NEUTRAL_100;
 
-/// Texto Secundário: Subtítulos, metadados legíveis e breadcrumbs pais (Tailwind neutral-400).
+/// Texto Secundário: Subtítulos, metadados legíveis e breadcrumbs pais (Tailwind zinc-400).
 pub const TEXT_SECONDARY: Color32 = NEUTRAL_400;
 
-/// Texto Muted: Contadores secundários, separadores e extensões (Tailwind neutral-500).
+/// Texto Muted: Contadores secundários, separadores e extensões (Tailwind zinc-500).
 pub const TEXT_MUTED: Color32 = NEUTRAL_500;
 
 // ── Cores para Ações Destrutivas Sutis ──
