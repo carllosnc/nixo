@@ -121,7 +121,7 @@ impl MenuStyle {
             popover_margin_right: 18.0,
             popover_anchor_gap: 10.0,
             popover_fill: SURFACE_LOW,
-            popover_stroke: Stroke::new(1.0_f32, BORDER_SUBTLE),
+            popover_stroke: Stroke::new(1.0_f32, BORDER_ACCENT_SUBTLE),
             popover_radius: RADIUS_LG,
             popover_shadow: Shadow {
                 offset: [0, 14],

@@ -87,15 +87,27 @@ impl NixoApp {
 
             let current_rail_h = egui::lerp(rail_height..=(rail_height + 1.5), active_t);
 
-            // 1. Trilho de fundo (rail não preenchido)
+            // 1. Trilho de fundo (rail não preenchido com alto contraste estilo YouTube)
+            // Sombra sutil subjacente para garantir contraste sobre cenas muito claras
+            let shadow_rect = Rect::from_min_max(
+                Pos2::new(rect.left(), center_y - current_rail_h * 0.5 - 0.5),
+                Pos2::new(rect.right(), center_y + current_rail_h * 0.5 + 0.5),
+            );
+            ui.painter().rect_filled(
+                shadow_rect,
+                CornerRadius::same(1),
+                Color32::from_black_alpha(70),
+            );
+
             let rail_rect = Rect::from_min_max(
                 Pos2::new(rect.left(), center_y - current_rail_h * 0.5),
                 Pos2::new(rect.right(), center_y + current_rail_h * 0.5),
             );
+            let rail_alpha = (75.0 + 30.0 * active_t).round() as u8;
             ui.painter().rect_filled(
                 rail_rect,
                 CornerRadius::same(1),
-                Color32::from_rgb(38, 41, 52),
+                Color32::from_rgba_unmultiplied(255, 255, 255, rail_alpha),
             );
 
             // 1b. Indicador de hover na trilha (estilo YouTube: faixa clara até a posição do mouse)
@@ -110,7 +122,7 @@ impl NixoApp {
                 ui.painter().rect_filled(
                     hover_rect,
                     CornerRadius::same(1),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 50),
+                    Color32::from_rgba_unmultiplied(255, 255, 255, 140),
                 );
             }
 
@@ -333,30 +345,69 @@ impl NixoApp {
     }
 }
 
-pub(crate) fn vertical_gradient_mesh(y0: f32, y1: f32, w: f32, c0: Color32, c1: Color32) -> Mesh {
+/// Gera o gradiente de sombra superior estilo YouTube (para contraste do título e controles do topo).
+pub(crate) fn youtube_top_scrim_mesh(rect: Rect, alpha_mult: f32) -> Mesh {
+    let h = 95.0_f32.min(rect.height() * 0.25);
+    let x0 = rect.left();
+    let x1 = rect.right();
+    let y0 = rect.top();
+    let y1 = y0 + h * 0.50;
+    let y2 = y0 + h;
+
+    let a0 = (150.0 * alpha_mult).clamp(0.0, 255.0).round() as u8;
+    let a1 = (45.0 * alpha_mult).clamp(0.0, 255.0).round() as u8;
+
+    let v = |x: f32, y: f32, a: u8| Vertex {
+        pos: Pos2::new(x, y),
+        uv: Pos2::ZERO,
+        color: Color32::from_black_alpha(a),
+    };
+
     Mesh {
-        indices: vec![0, 1, 2, 2, 3, 0],
+        indices: vec![0, 1, 3, 3, 2, 0, 2, 3, 5, 5, 4, 2],
         vertices: vec![
-            Vertex {
-                pos: Pos2::new(0.0, y0),
-                uv: Pos2::ZERO,
-                color: c0,
-            },
-            Vertex {
-                pos: Pos2::new(w, y0),
-                uv: Pos2::ZERO,
-                color: c0,
-            },
-            Vertex {
-                pos: Pos2::new(w, y1),
-                uv: Pos2::ZERO,
-                color: c1,
-            },
-            Vertex {
-                pos: Pos2::new(0.0, y1),
-                uv: Pos2::ZERO,
-                color: c1,
-            },
+            v(x0, y0, a0),
+            v(x1, y0, a0),
+            v(x0, y1, a1),
+            v(x1, y1, a1),
+            v(x0, y2, 0),
+            v(x1, y2, 0),
+        ],
+        ..Default::default()
+    }
+}
+
+/// Gera o gradiente de sombra inferior estilo YouTube com curva suave (para seekbar e botões de controle).
+pub(crate) fn youtube_bottom_scrim_mesh(rect: Rect, alpha_mult: f32) -> Mesh {
+    let h = 200.0_f32.min(rect.height() * 0.45);
+    let x0 = rect.left();
+    let x1 = rect.right();
+    let y0 = rect.bottom() - h;
+    let y1 = y0 + h * 0.35;
+    let y2 = y0 + h * 0.70;
+    let y3 = rect.bottom();
+
+    let a1 = (35.0 * alpha_mult).clamp(0.0, 255.0).round() as u8;
+    let a2 = (120.0 * alpha_mult).clamp(0.0, 255.0).round() as u8;
+    let a3 = (225.0 * alpha_mult).clamp(0.0, 255.0).round() as u8;
+
+    let v = |x: f32, y: f32, a: u8| Vertex {
+        pos: Pos2::new(x, y),
+        uv: Pos2::ZERO,
+        color: Color32::from_black_alpha(a),
+    };
+
+    Mesh {
+        indices: vec![0, 1, 3, 3, 2, 0, 2, 3, 5, 5, 4, 2, 4, 5, 7, 7, 6, 4],
+        vertices: vec![
+            v(x0, y0, 0),
+            v(x1, y0, 0),
+            v(x0, y1, a1),
+            v(x1, y1, a1),
+            v(x0, y2, a2),
+            v(x1, y2, a2),
+            v(x0, y3, a3),
+            v(x1, y3, a3),
         ],
         ..Default::default()
     }

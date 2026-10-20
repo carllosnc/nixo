@@ -13,7 +13,7 @@ pub use crate::popovers::SettingsTab;
 use crate::settings::{
     AppSettings, PlaybackSettings, SettingsStore, SubtitleSettings, WindowSettings,
 };
-use crate::widgets::vertical_gradient_mesh;
+use crate::widgets::{youtube_bottom_scrim_mesh, youtube_top_scrim_mesh};
 
 pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(55, 167, 33); // Verde da marca Nixo (#37A721)
 pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
@@ -77,15 +77,12 @@ impl NixoApp {
 
         let status = backend.status();
 
-        let always_on_top = settings.window.always_on_top;
-        if always_on_top {
+        if settings.window.always_on_top {
             cc.egui_ctx
                 .send_viewport_cmd(egui::ViewportCommand::WindowLevel(
                     egui::WindowLevel::AlwaysOnTop,
                 ));
         }
-        let saved_aspect_ratio_fit = false;
-        let aspect_ratio_fit = false;
 
         Self {
             backend,
@@ -104,9 +101,9 @@ impl NixoApp {
             titlebar_configured: false,
             settings_store,
             language: settings.language,
-            always_on_top,
-            aspect_ratio_fit,
-            saved_aspect_ratio_fit,
+            always_on_top: settings.window.always_on_top,
+            aspect_ratio_fit: false,
+            saved_aspect_ratio_fit: false,
             last_window_size: Vec2::ZERO,
             toast: None,
             home_state: crate::home::HomeState::new(),
@@ -208,23 +205,21 @@ impl NixoApp {
                 if let PlayerCommand::LoadFile(ref path) = cmd {
                     self.record_current_playback();
                     self.current_file = Some(path.clone());
-                    if let Some(entry) = self.watch_history.get(path)
-                        && entry.position_secs > 5.0
-                        && !entry.is_completed()
-                    {
-                        self.pending_resume = Some(Duration::from_secs_f64(entry.position_secs));
-                    } else {
-                        self.pending_resume = None;
-                    }
+                    self.pending_resume = self
+                        .watch_history
+                        .get(path)
+                        .filter(|e| e.position_secs > 5.0 && !e.is_completed())
+                        .map(|e| Duration::from_secs_f64(e.position_secs));
                 }
                 self.aspect_ratio_fit = self.saved_aspect_ratio_fit;
             }
         }
-        if let Err(err) = self.backend.execute(cmd) {
-            error!("Comando falhou: {err}");
-            self.error_banner = Some(err.to_string());
-        } else {
-            self.error_banner = None;
+        match self.backend.execute(cmd) {
+            Ok(()) => self.error_banner = None,
+            Err(err) => {
+                error!("Comando falhou: {err}");
+                self.error_banner = Some(err.to_string());
+            }
         }
         self.status = self.backend.status();
     }
@@ -236,10 +231,21 @@ impl NixoApp {
 
         if let Some(frame) = self.backend.poll_video_frame((target_w, target_h)) {
             self.last_frame_id = frame.frame_id;
-            let image = ColorImage::from_rgba_premultiplied(
-                [frame.width as usize, frame.height as usize],
-                &frame.rgba,
-            );
+            let (w, h) = (frame.width as usize, frame.height as usize);
+            let total_pixels = w * h;
+
+            // Zero-copy: converte o buffer RGBA diretamente em ColorImage com o mesmo layout de memória
+            let image = match bytemuck::try_cast_vec::<u8, Color32>(frame.rgba) {
+                Ok(pixels) if pixels.len() == total_pixels => ColorImage {
+                    size: [w, h],
+                    pixels,
+                },
+                Ok(pixels) => ColorImage::from_rgba_premultiplied(
+                    [w, h],
+                    &bytemuck::cast_vec::<Color32, u8>(pixels),
+                ),
+                Err((_, rgba)) => ColorImage::from_rgba_premultiplied([w, h], &rgba),
+            };
 
             match &mut self.video_texture {
                 Some(tex) => tex.set(image, TextureOptions::LINEAR),
@@ -380,26 +386,15 @@ impl eframe::App for NixoApp {
                             .ratio_f64()
                             .map(|r| r as f32)
                             .unwrap_or_else(|| (tex_size.x / tex_size.y.max(1.0)).max(0.1));
-                        let (draw_w, draw_h) = match self.status.video_fit {
-                            nixo_core::VideoFit::Fit => {
-                                let mut w = rect.width();
-                                let mut h = w / aspect;
-                                if h > rect.height() {
-                                    h = rect.height();
-                                    w = h * aspect;
-                                }
-                                (w, h)
-                            }
-                            nixo_core::VideoFit::Fill => {
-                                let mut w = rect.width();
-                                let mut h = w / aspect;
-                                if h < rect.height() {
-                                    h = rect.height();
-                                    w = h * aspect;
-                                }
-                                (w, h)
-                            }
+                        let (mut draw_w, mut draw_h) = (rect.width(), rect.width() / aspect);
+                        let needs_h_clamp = match self.status.video_fit {
+                            nixo_core::VideoFit::Fit => draw_h > rect.height(),
+                            nixo_core::VideoFit::Fill => draw_h < rect.height(),
                         };
+                        if needs_h_clamp {
+                            draw_h = rect.height();
+                            draw_w = draw_h * aspect;
+                        }
 
                         let video_rect =
                             Rect::from_center_size(rect.center(), Vec2::new(draw_w, draw_h));
@@ -409,34 +404,15 @@ impl eframe::App for NixoApp {
                             Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                             Color32::WHITE,
                         );
+                    }
 
-                        // Gradiente vertical estilo YouTube (vignette suave) com fade in / fade out
-                        if osd_alpha > 0.005 {
-                            let w = rect.width();
-                            let h = rect.height();
-
-                            let top_alpha = (160.0 * osd_alpha).round() as u8;
-                            let top_h = 90.0_f32.min(h * 0.25);
-                            let top_c = Color32::from_rgba_unmultiplied(0, 0, 0, top_alpha);
-                            ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
-                                0.0,
-                                top_h,
-                                w,
-                                top_c,
-                                Color32::TRANSPARENT,
-                            )));
-
-                            let bottom_alpha = (220.0 * osd_alpha).round() as u8;
-                            let bottom_h = 145.0_f32.min(h * 0.40);
-                            let bottom_c = Color32::from_rgba_unmultiplied(0, 0, 0, bottom_alpha);
-                            ui.painter().add(egui::Shape::mesh(vertical_gradient_mesh(
-                                h - bottom_h,
-                                h,
-                                w,
-                                Color32::TRANSPARENT,
-                                bottom_c,
-                            )));
-                        }
+                    // Gradiente vertical estilo YouTube (vignette suave) com fade in / fade out
+                    if osd_alpha > 0.005 {
+                        let painter = ui.painter();
+                        painter.add(egui::Shape::mesh(youtube_top_scrim_mesh(rect, osd_alpha)));
+                        painter.add(egui::Shape::mesh(youtube_bottom_scrim_mesh(
+                            rect, osd_alpha,
+                        )));
                     }
                 } else {
                     let rect = ui.max_rect();
@@ -482,9 +458,14 @@ impl eframe::App for NixoApp {
                 });
         }
 
-        // Sincroniza repintura com o VSync quando reproduzindo ou concluindo um seek assíncrono
+        // Sincroniza repintura com o VSync: se os controles estiverem ocultos e estáveis,
+        // limita a repintura contínua a 60 FPS (16ms) para poupar GPU em telas de 144Hz/240Hz.
         if self.status.state == PlaybackState::Playing || self.seek_override.is_some() {
-            ctx.request_repaint();
+            if osd_alpha > 0.005 || self.toast.is_some() || self.pending_resume.is_some() {
+                ctx.request_repaint();
+            } else {
+                ctx.request_repaint_after(Duration::from_millis(16));
+            }
         } else if ctx.memory(|m| m.any_popup_open()) {
             ctx.request_repaint_after(Duration::from_millis(33));
         }

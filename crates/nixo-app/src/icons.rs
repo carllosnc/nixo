@@ -31,19 +31,35 @@ impl NixoApp {
             let hovered = response.hovered();
             let pressed = response.is_pointer_button_down_on();
 
-            // Fundo Ghost translúcido em hover/press
-            if pressed {
-                ui.painter().rect_filled(
-                    rect,
-                    CornerRadius::same(7),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 38),
-                );
+            let is_active = match icon {
+                ControlIcon::Subtitles { active } => active,
+                ControlIcon::AspectFit { active } => active,
+                _ => false,
+            };
+
+            // Botão full-rounded (círculo proporcional centralizado no slot)
+            let btn_size = 40.0_f32.min(rect.width()).min(rect.height());
+            let btn_rect = Rect::from_center_size(rect.center(), Vec2::splat(btn_size));
+            let radius = CornerRadius::same(99);
+
+            // Botão ghost sem bordas (fundo acende suavemente em hover/press/ativo)
+            let bg_color = if pressed {
+                Color32::from_rgba_unmultiplied(255, 255, 255, 42)
             } else if hovered {
-                ui.painter().rect_filled(
-                    rect,
-                    CornerRadius::same(7),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 22),
-                );
+                Color32::from_rgba_unmultiplied(255, 255, 255, 24)
+            } else if is_active {
+                Color32::from_rgba_unmultiplied(
+                    ACCENT_COLOR.r(),
+                    ACCENT_COLOR.g(),
+                    ACCENT_COLOR.b(),
+                    35,
+                )
+            } else {
+                Color32::TRANSPARENT
+            };
+
+            if bg_color != Color32::TRANSPARENT {
+                ui.painter().rect_filled(btn_rect, radius, bg_color);
             }
 
             let fg = if hovered || pressed {
@@ -55,10 +71,10 @@ impl NixoApp {
             let c = rect.center();
             let painter = ui.painter();
 
-            // Escala e projeção do grid Lucide 24x24 para ~21px na tela
-            let scale = 0.88_f32;
+            // Escala e projeção do grid Lucide 24x24 para ~23px na tela
+            let scale = 0.96_f32;
             let p = |x: f32, y: f32| Pos2::new(c.x + (x - 12.0) * scale, c.y + (y - 12.0) * scale);
-            let stroke = Stroke::new(1.85_f32, fg);
+            let stroke = Stroke::new(1.95_f32, fg);
 
             match icon {
                 ControlIcon::Play => {

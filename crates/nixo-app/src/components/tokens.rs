@@ -84,7 +84,10 @@ pub const ACCENT_NEUTRAL_HOVER: Color32 = NEUTRAL_50;
 pub const ACCENT_NEUTRAL_TEXT: Color32 = NEUTRAL_950;
 
 /// Borda sutil translúcida (~10% branco) para divisores e contornos modernos.
-pub const BORDER_SUBTLE: Color32 = Color32::from_rgba_premultiplied(255, 255, 255, 24);
+pub const BORDER_SUBTLE: Color32 = Color32::from_rgba_premultiplied(24, 24, 24, 24);
+
+/// Borda sutil na tonalidade verde da marca Nixo (#37A721 com ~40% opacidade) para popovers e menus flutuantes.
+pub const BORDER_ACCENT_SUBTLE: Color32 = Color32::from_rgba_premultiplied(21, 65, 13, 100);
 
 // ── Tipografia & Cores de Texto ──
 /// Texto Primário: Títulos principais, itens ativos e texto de alto contraste (Tailwind zinc-100).

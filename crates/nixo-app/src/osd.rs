@@ -30,12 +30,12 @@ impl NixoApp {
             backend_secs
         };
 
-        const BTN_HEIGHT: f32 = 40.0;
+        const BTN_HEIGHT: f32 = 44.0;
 
         // 1. Linha Superior: Seekbar 100% de ponta a ponta (estilo YouTube)
         let total_w = ui.available_width();
         let slider_resp =
-            Self::render_compact_slider(ui, &mut current_secs, 0.0..=total_secs, total_w, 2.5, 3.5);
+            Self::render_compact_slider(ui, &mut current_secs, 0.0..=total_secs, total_w, 3.0, 4.0);
         let is_dragging = slider_resp.dragged();
         let drag_ended = slider_resp.drag_stopped();
 
@@ -86,7 +86,7 @@ impl NixoApp {
             ui.allocate_exact_size(vec2(ui.available_width(), BTN_HEIGHT), Sense::hover());
 
         // A. Bloco da Esquerda (Play, Próximo, Volume, Tempo)
-        let left_w = (row_rect.width() - 155.0).max(280.0);
+        let left_w = (row_rect.width() - 155.0).max(310.0);
         let left_rect = Rect::from_min_size(row_rect.left_top(), vec2(left_w, BTN_HEIGHT));
         let mut left_ui = ui.new_child(
             egui::UiBuilder::new()
@@ -107,7 +107,7 @@ impl NixoApp {
         };
         if Self::render_ghost_icon_btn(
             &mut left_ui,
-            vec2(42.0, BTN_HEIGHT),
+            vec2(44.0, BTN_HEIGHT),
             play_icon,
             play_tooltip,
         )
@@ -119,7 +119,7 @@ impl NixoApp {
         // 2. Próximo (+5s)
         if Self::render_ghost_icon_btn(
             &mut left_ui,
-            vec2(38.0, BTN_HEIGHT),
+            vec2(40.0, BTN_HEIGHT),
             ControlIcon::NextTrack,
             self.t().forward_5s_tooltip,
         )
@@ -136,7 +136,7 @@ impl NixoApp {
         };
         if Self::render_ghost_icon_btn(
             &mut left_ui,
-            vec2(38.0, BTN_HEIGHT),
+            vec2(40.0, BTN_HEIGHT),
             ControlIcon::Volume {
                 level: self.status.volume,
                 muted: self.status.muted,
@@ -156,7 +156,7 @@ impl NixoApp {
         };
         let mut vol_f64 = vol as f64;
         let vol_resp =
-            Self::render_compact_slider(&mut left_ui, &mut vol_f64, 0.0..=100.0, 85.0, 2.5, 3.0);
+            Self::render_compact_slider(&mut left_ui, &mut vol_f64, 0.0..=100.0, 85.0, 3.0, 3.5);
         if vol_resp.changed() {
             let next_vol = vol_f64 as f32;
             if self.status.muted && next_vol > 0.0 {
