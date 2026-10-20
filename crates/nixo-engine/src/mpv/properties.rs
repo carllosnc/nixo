@@ -301,76 +301,85 @@ impl MpvBackend {
             video_height: height,
         });
 
-        let mut audio_tracks = Vec::new();
-        let mut subtitle_tracks = Vec::new();
-        let mut selected_sub_image_codec: Option<String> = None;
-        let track_count = self.get_i64(c"track-list/count").unwrap_or(0);
-        for i in 0..track_count {
-            let prop_type_str = format!("track-list/{i}/type\0");
-            let prop_id_str = format!("track-list/{i}/id\0");
-            let prop_title_str = format!("track-list/{i}/title\0");
-            let prop_lang_str = format!("track-list/{i}/lang\0");
-            let prop_sel_str = format!("track-list/{i}/selected\0");
+        if self.tracks_dirty || self.last_tracks_poll.elapsed() >= Duration::from_millis(1500) {
+            let mut audio = Vec::new();
+            let mut subs = Vec::new();
+            let mut sub_codec: Option<String> = None;
+            let count = self.get_i64(c"track-list/count").unwrap_or(0);
+            for i in 0..count {
+                let p_type = format!("track-list/{i}/type\0");
+                let p_id = format!("track-list/{i}/id\0");
+                let p_title = format!("track-list/{i}/title\0");
+                let p_lang = format!("track-list/{i}/lang\0");
+                let p_sel = format!("track-list/{i}/selected\0");
 
-            let track_type = CStr::from_bytes_with_nul(prop_type_str.as_bytes())
-                .ok()
-                .and_then(|c| self.get_string(c));
-            let id = CStr::from_bytes_with_nul(prop_id_str.as_bytes())
-                .ok()
-                .and_then(|c| self.get_i64(c))
-                .unwrap_or(i + 1);
-            let title = CStr::from_bytes_with_nul(prop_title_str.as_bytes())
-                .ok()
-                .and_then(|c| self.get_string(c));
-            let lang = CStr::from_bytes_with_nul(prop_lang_str.as_bytes())
-                .ok()
-                .and_then(|c| self.get_string(c));
-            let selected = CStr::from_bytes_with_nul(prop_sel_str.as_bytes())
-                .ok()
-                .and_then(|c| self.get_flag(c))
-                .unwrap_or(false);
+                let track_type = CStr::from_bytes_with_nul(p_type.as_bytes())
+                    .ok()
+                    .and_then(|c| self.get_string(c));
+                let id = CStr::from_bytes_with_nul(p_id.as_bytes())
+                    .ok()
+                    .and_then(|c| self.get_i64(c))
+                    .unwrap_or(i + 1);
+                let title = CStr::from_bytes_with_nul(p_title.as_bytes())
+                    .ok()
+                    .and_then(|c| self.get_string(c));
+                let lang = CStr::from_bytes_with_nul(p_lang.as_bytes())
+                    .ok()
+                    .and_then(|c| self.get_string(c));
+                let selected = CStr::from_bytes_with_nul(p_sel.as_bytes())
+                    .ok()
+                    .and_then(|c| self.get_flag(c))
+                    .unwrap_or(false);
 
-            let track = TrackInfo {
-                id,
-                title,
-                lang,
-                selected,
-            };
-
-            match track_type.as_deref() {
-                Some("audio") => audio_tracks.push(track),
-                Some("sub") => {
-                    if selected {
-                        let prop_img = format!("track-list/{i}/image\0");
-                        let prop_codec = format!("track-list/{i}/codec\0");
-                        let is_img = CStr::from_bytes_with_nul(prop_img.as_bytes())
-                            .ok()
-                            .and_then(|c| self.get_flag(c))
-                            .unwrap_or(false);
-                        let codec = CStr::from_bytes_with_nul(prop_codec.as_bytes())
-                            .ok()
-                            .and_then(|c| self.get_string(c));
-                        let is_bitmap_codec = matches!(
-                            codec.as_deref(),
-                            Some(
-                                "dvd_subtitle"
-                                    | "hdmv_pgs_subtitle"
-                                    | "pgssub"
-                                    | "dvb_subtitle"
-                                    | "xsub"
-                                    | "vobsub"
-                            )
-                        );
-                        if is_img || is_bitmap_codec {
-                            selected_sub_image_codec =
-                                Some(codec.unwrap_or_else(|| "bitmap".to_string()));
+                let track = TrackInfo {
+                    id,
+                    title,
+                    lang,
+                    selected,
+                };
+                match track_type.as_deref() {
+                    Some("audio") => audio.push(track),
+                    Some("sub") => {
+                        if selected {
+                            let p_img = format!("track-list/{i}/image\0");
+                            let p_codec = format!("track-list/{i}/codec\0");
+                            let is_img = CStr::from_bytes_with_nul(p_img.as_bytes())
+                                .ok()
+                                .and_then(|c| self.get_flag(c))
+                                .unwrap_or(false);
+                            let codec = CStr::from_bytes_with_nul(p_codec.as_bytes())
+                                .ok()
+                                .and_then(|c| self.get_string(c));
+                            let is_bmp = matches!(
+                                codec.as_deref(),
+                                Some(
+                                    "dvd_subtitle"
+                                        | "hdmv_pgs_subtitle"
+                                        | "pgssub"
+                                        | "dvb_subtitle"
+                                        | "xsub"
+                                        | "vobsub"
+                                )
+                            );
+                            if is_img || is_bmp {
+                                sub_codec = Some(codec.unwrap_or_else(|| "bitmap".to_string()));
+                            }
                         }
+                        subs.push(track);
                     }
-                    subtitle_tracks.push(track);
+                    _ => {}
                 }
-                _ => {}
             }
+            self.cached_audio_tracks = audio;
+            self.cached_subtitle_tracks = subs;
+            self.cached_selected_sub_image_codec = sub_codec;
+            self.tracks_dirty = false;
+            self.last_tracks_poll = Instant::now();
         }
+
+        let audio_tracks = self.cached_audio_tracks.clone();
+        let subtitle_tracks = self.cached_subtitle_tracks.clone();
+        let selected_sub_image_codec = self.cached_selected_sub_image_codec.clone();
         let subtitles_visible = self.get_flag(c"sub-visibility").unwrap_or(true);
         let has_selected_sub = subtitle_tracks.iter().any(|t| t.selected);
 

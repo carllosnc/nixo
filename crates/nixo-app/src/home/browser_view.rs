@@ -69,6 +69,20 @@ pub fn render_folder_browser(
                 resp.scroll_to_me(Some(egui::Align::Center));
             }
 
+            if resp.clicked() {
+                *selected_index = idx;
+                *keyboard_nav_active = false;
+                action = HomeAction::OpenFolder(dir.path.clone());
+            }
+
+            let resp = resp.on_hover_cursor(CursorIcon::PointingHand);
+
+            // Culling de subpastas fora da viewport visível
+            if !ui.is_rect_visible(rect) && !is_selected {
+                ui.add_space(spacing);
+                continue;
+            }
+
             let hover_t = ui.ctx().animate_bool_with_time(
                 resp.id.with("chip_hover"),
                 hovered || is_selected,
@@ -87,12 +101,12 @@ pub fn render_folder_browser(
                     egui::Stroke::new(1.5_f32, ACCENT_COLOR),
                     egui::StrokeKind::Inside,
                 );
-                let indicator_rect = Rect::from_min_size(
+                let ind = Rect::from_min_size(
                     Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 28.0) * 0.5),
                     vec2(3.5, 28.0),
                 );
                 ui.painter()
-                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
+                    .rect_filled(ind, egui::CornerRadius::same(2), ACCENT_COLOR);
             }
 
             // Ícone da subpasta à esquerda: usa o ícone 3D nativo ampliado com padding confortável
@@ -150,14 +164,6 @@ pub fn render_folder_browser(
                 chevron_color,
             );
 
-            if resp.clicked() {
-                *selected_index = idx;
-                *keyboard_nav_active = false;
-                action = HomeAction::OpenFolder(dir.path.clone());
-            }
-
-            resp.on_hover_cursor(CursorIcon::PointingHand);
-
             ui.add_space(spacing);
         }
 
@@ -189,10 +195,17 @@ pub fn render_folder_browser(
                 resp.scroll_to_me(Some(egui::Align::Center));
             }
 
+            if resp.clicked() {
+                *selected_index = global_idx;
+                *keyboard_nav_active = false;
+                action = HomeAction::PlayFile(item.path.clone());
+            }
+            let resp = resp.on_hover_cursor(CursorIcon::PointingHand);
+
             let is_visible = ui.is_rect_visible(rect);
             let is_video = matches!(item.kind, super::scanner::MediaKind::Video);
 
-            if !is_visible {
+            if !is_visible && !is_selected {
                 ui.add_space(spacing);
                 continue;
             }
@@ -212,12 +225,12 @@ pub fn render_folder_browser(
                     egui::Stroke::new(1.5_f32, ACCENT_COLOR),
                     egui::StrokeKind::Inside,
                 );
-                let indicator_rect = Rect::from_min_size(
+                let ind = Rect::from_min_size(
                     Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 40.0) * 0.5),
                     vec2(3.5, 40.0),
                 );
                 ui.painter()
-                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
+                    .rect_filled(ind, egui::CornerRadius::same(2), ACCENT_COLOR);
             }
 
             // Dispara requisição de metadados em background para itens visíveis na tela
@@ -264,17 +277,13 @@ pub fn render_folder_browser(
                             tint,
                         );
                     } else {
-                        let ic_col = if hovered {
-                            Color32::from_white_alpha(60)
-                        } else {
-                            Color32::from_white_alpha(30)
-                        };
+                        let alpha = if hovered { 60 } else { 30 };
                         ui.painter().text(
                             thumb_rect.center(),
                             Align2::CENTER_CENTER,
                             lucide::FILM,
                             lucide::font_id(28.0),
-                            ic_col,
+                            Color32::from_white_alpha(alpha),
                         );
                     }
                 }
@@ -347,10 +356,11 @@ pub fn render_folder_browser(
                 item.extension.to_uppercase()
             } else {
                 match item.kind {
-                    super::scanner::MediaKind::Video => "VÍDEO".to_string(),
-                    super::scanner::MediaKind::Audio => "ÁUDIO".to_string(),
-                    super::scanner::MediaKind::Directory => "PASTA".to_string(),
+                    super::scanner::MediaKind::Video => "VÍDEO",
+                    super::scanner::MediaKind::Audio => "ÁUDIO",
+                    super::scanner::MediaKind::Directory => "PASTA",
                 }
+                .to_string()
             };
 
             let badge_font = font_xs_bold();
@@ -431,13 +441,13 @@ pub fn render_folder_browser(
                     );
                     meta_x += 10.0;
 
-                    let resume_galley =
+                    let res_galley =
                         ui.painter()
                             .layout_no_wrap(resume_text, font_xs(), resume_color);
-                    let resume_w = resume_galley.size().x;
+                    let resume_w = res_galley.size().x;
                     ui.painter().galley(
-                        Pos2::new(meta_x, desc_y - resume_galley.size().y * 0.5),
-                        resume_galley,
+                        Pos2::new(meta_x, desc_y - res_galley.size().y * 0.5),
+                        res_galley,
                         resume_color,
                     );
                     meta_x += resume_w + 8.0;
@@ -471,14 +481,6 @@ pub fn render_folder_browser(
                 font_sm(),
                 size_color,
             );
-
-            if resp.clicked() {
-                *selected_index = global_idx;
-                *keyboard_nav_active = false;
-                action = HomeAction::PlayFile(item.path.clone());
-            }
-
-            resp.on_hover_cursor(CursorIcon::PointingHand);
 
             ui.add_space(spacing);
         }

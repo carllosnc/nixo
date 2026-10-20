@@ -1709,6 +1709,7 @@ name = "nixo-app"
 version = "0.1.0"
 dependencies = [
  "arboard",
+ "bytemuck",
  "dirs",
  "eframe",
  "egui",

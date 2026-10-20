@@ -48,6 +48,11 @@ pub struct MpvBackend {
     sub_cues_seen: u32,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
+    cached_audio_tracks: Vec<nixo_core::TrackInfo>,
+    cached_subtitle_tracks: Vec<nixo_core::TrackInfo>,
+    cached_selected_sub_image_codec: Option<String>,
+    last_tracks_poll: Instant,
+    tracks_dirty: bool,
 }
 
 // SAFETY: O handle do mpv é acessado de forma exclusiva através de `&mut self` protegido pela trait.
@@ -154,6 +159,11 @@ impl MpvBackend {
                 sub_cues_seen: 0,
                 aspect_ratio: VideoAspect::default(),
                 video_fit: VideoFit::default(),
+                cached_audio_tracks: Vec::new(),
+                cached_subtitle_tracks: Vec::new(),
+                cached_selected_sub_image_codec: None,
+                last_tracks_poll: Instant::now() - Duration::from_secs(10),
+                tracks_dirty: true,
             };
             instance.apply_subtitle_style(default_style);
             Ok(instance)
@@ -175,9 +185,25 @@ impl MpvBackend {
         self.current_path = Some(display_path);
         self.first_frame_pending = true;
         self.status_dirty = true;
+        self.tracks_dirty = true;
         self.reset_subtitle_health_tracking();
         self.preview_worker.set_uri(Some(uri.to_string()));
         Ok(())
+    }
+
+    fn mpv_cmd(&self, args: &[&std::ffi::CStr]) {
+        let mut ptrs: Vec<*const std::ffi::c_char> = args.iter().map(|s| s.as_ptr()).collect();
+        ptrs.push(ptr::null());
+        // SAFETY: `ptrs` é array terminado em nulo de strings C válidas passadas ao libmpv.
+        unsafe {
+            let _ = (self.api.command)(self.handle, ptrs.as_ptr());
+        }
+    }
+
+    fn command_seek(&self, val: &str, mode: &std::ffi::CStr) {
+        if let Ok(c_val) = CString::new(val) {
+            self.mpv_cmd(&[c"seek", &c_val, mode]);
+        }
     }
 }
 
@@ -241,47 +267,25 @@ impl MediaBackend for MpvBackend {
                 }
             }
             PlayerCommand::Stop => {
-                let args = [c"stop".as_ptr(), ptr::null()];
-                // SAFETY: `args` é um array terminado em nulo de strings C válidas.
-                unsafe {
-                    let _ = (self.api.command)(self.handle, args.as_ptr());
-                }
+                self.mpv_cmd(&[c"stop"]);
                 self.current_path = None;
                 self.pending_seek = None;
+                self.tracks_dirty = true;
+                self.cached_audio_tracks.clear();
+                self.cached_subtitle_tracks.clear();
+                self.cached_selected_sub_image_codec = None;
                 self.reset_subtitle_health_tracking();
                 self.preview_worker.set_uri(None);
             }
             PlayerCommand::Seek(pos) => {
                 let target = pos.as_secs_f64().max(0.0);
-                if let Ok(c_target) = CString::new(format!("{target:.3}")) {
-                    let args = [
-                        c"seek".as_ptr(),
-                        c_target.as_ptr(),
-                        c"absolute".as_ptr(),
-                        ptr::null(),
-                    ];
-                    // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
-                    unsafe {
-                        let _ = (self.api.command)(self.handle, args.as_ptr());
-                    }
-                }
+                self.command_seek(&format!("{target:.3}"), c"absolute");
                 self.pending_seek = Some((target, Instant::now()));
                 self.cached_status.position = Duration::from_secs_f64(target);
                 self.first_frame_pending = true;
             }
             PlayerCommand::SeekRelative(delta_secs) => {
-                if let Ok(c_delta) = CString::new(format!("{delta_secs:.3}")) {
-                    let args = [
-                        c"seek".as_ptr(),
-                        c_delta.as_ptr(),
-                        c"relative".as_ptr(),
-                        ptr::null(),
-                    ];
-                    // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas para a API do libmpv.
-                    unsafe {
-                        let _ = (self.api.command)(self.handle, args.as_ptr());
-                    }
-                }
+                self.command_seek(&format!("{delta_secs:.3}"), c"relative");
                 let current = self
                     .pending_seek
                     .map(|(t, _)| t)
@@ -313,6 +317,7 @@ impl MediaBackend for MpvBackend {
                 } else {
                     self.set_property_string(c"aid", c"no");
                 }
+                self.tracks_dirty = true;
             }
             PlayerCommand::SetSubtitleTrack(id) => {
                 if let Some(id) = id {
@@ -321,62 +326,37 @@ impl MediaBackend for MpvBackend {
                 } else {
                     self.set_property_string(c"sid", c"no");
                 }
+                self.tracks_dirty = true;
                 self.reset_subtitle_health_tracking();
             }
             PlayerCommand::ToggleSubtitleVisibility => {
                 let current = self.get_flag(c"sub-visibility").unwrap_or(true);
                 self.set_flag(c"sub-visibility", !current);
+                self.tracks_dirty = true;
             }
             PlayerCommand::CycleAudioTrack => {
-                let args = [c"cycle".as_ptr(), c"aid".as_ptr(), ptr::null()];
-                // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas.
-                unsafe {
-                    let _ = (self.api.command)(self.handle, args.as_ptr());
-                }
+                self.mpv_cmd(&[c"cycle", c"aid"]);
+                self.tracks_dirty = true;
             }
             PlayerCommand::CycleSubtitleTrack => {
-                let args = [c"cycle".as_ptr(), c"sid".as_ptr(), ptr::null()];
-                // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas.
-                unsafe {
-                    let _ = (self.api.command)(self.handle, args.as_ptr());
-                }
+                self.mpv_cmd(&[c"cycle", c"sid"]);
+                self.tracks_dirty = true;
                 self.reset_subtitle_health_tracking();
             }
             PlayerCommand::LoadSubtitleFile(path) => {
-                let path_str = path.to_string_lossy().into_owned();
-                if let Ok(c_path) = CString::new(path_str) {
-                    let args = [
-                        c"sub-add".as_ptr(),
-                        c_path.as_ptr(),
-                        c"select".as_ptr(),
-                        ptr::null(),
-                    ];
-                    // SAFETY: `args` é um array terminado em ponteiro nulo de strings C válidas passadas ao libmpv.
-                    unsafe {
-                        let _ = (self.api.command)(self.handle, args.as_ptr());
-                    }
+                if let Ok(c_path) = CString::new(path.to_string_lossy().into_owned()) {
+                    self.mpv_cmd(&[c"sub-add", &c_path, c"select"]);
                     self.set_flag(c"sub-visibility", true);
+                    self.tracks_dirty = true;
                     self.reset_subtitle_health_tracking();
                 }
             }
-            PlayerCommand::SetSubtitleStyle(style) => {
-                self.apply_subtitle_style(style);
-            }
-            PlayerCommand::SetSubDelay(delay) => {
-                self.set_double(c"sub-delay", delay);
-            }
-            PlayerCommand::SetAudioDelay(delay) => {
-                self.set_double(c"audio-delay", delay);
-            }
-            PlayerCommand::SetAspectRatio(aspect) => {
-                self.set_aspect_ratio(aspect);
-            }
-            PlayerCommand::SetVideoFit(fit) => {
-                self.set_video_fit(fit);
-            }
-            PlayerCommand::TakeScreenshot(path) => {
-                self.take_screenshot(&path);
-            }
+            PlayerCommand::SetSubtitleStyle(style) => self.apply_subtitle_style(style),
+            PlayerCommand::SetSubDelay(delay) => self.set_double(c"sub-delay", delay),
+            PlayerCommand::SetAudioDelay(delay) => self.set_double(c"audio-delay", delay),
+            PlayerCommand::SetAspectRatio(aspect) => self.set_aspect_ratio(aspect),
+            PlayerCommand::SetVideoFit(fit) => self.set_video_fit(fit),
+            PlayerCommand::TakeScreenshot(path) => self.take_screenshot(&path),
         }
         self.status_dirty = true;
         Ok(())
@@ -400,11 +380,25 @@ impl MediaBackend for MpvBackend {
         let (vid_w, vid_h) = self.cached_vid_size;
         let aspect = (vid_w.max(1) as f64) / (vid_h.max(1) as f64);
 
-        // Garante que o canvas de saída tenha sempre resolução mínima Full HD (1920x1080)
-        // proporcional ao aspecto do vídeo (ex.: 1440x1080 em animes 4:3 SD 480p, 1920x1080 em 16:9).
-        // Assim, o libass sempre rasteriza as legendas vetoriais em alta definição (nunca em 480p/720p).
-        let box_w = target_size.0.clamp(1920, 2560) as f64;
-        let box_h = target_size.1.clamp(1080, 1440) as f64;
+        // Se há legendas ativas, garante resolução suficiente para rasterização nítida;
+        // caso contrário, adapta-se diretamente à resolução física da viewport (economizando CPU/RAM).
+        let has_subs = self.cached_status.subtitles_visible
+            && self
+                .cached_status
+                .subtitle_tracks
+                .iter()
+                .any(|t| t.selected);
+        let (box_w, box_h) = if has_subs {
+            (
+                (target_size.0 as f64).clamp(1280.0, 2560.0),
+                (target_size.1 as f64).clamp(720.0, 1440.0),
+            )
+        } else {
+            (
+                (target_size.0 as f64).clamp(640.0, 2560.0),
+                (target_size.1 as f64).clamp(360.0, 1440.0),
+            )
+        };
         let mut fit_w = box_w;
         let mut fit_h = fit_w / aspect;
         if fit_h > box_h {
@@ -439,7 +433,7 @@ impl MediaBackend for MpvBackend {
         }
 
         let mut size_param: [c_int; 2] = [width as c_int, height as c_int];
-        let format_cstr = c"rgb0";
+        let format_cstr = c"rgba";
         let mut stride_param: usize = stride;
         let mut block_for_target_time: c_int = 0;
 
@@ -474,10 +468,6 @@ impl MediaBackend for MpvBackend {
         let rc = unsafe { (self.api.render_context_render)(self.render_ctx, params.as_mut_ptr()) };
         if rc < 0 {
             return None;
-        }
-
-        for px in self.pixel_buffer.as_chunks_mut::<4>().0 {
-            px[3] = 255;
         }
 
         self.last_render_size = (width, height);

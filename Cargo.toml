@@ -28,6 +28,7 @@ serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
 dirs = "6.0"
 arboard = "3.7"
+bytemuck = "1.25"
 
 [profile.dev]
 opt-level = 2
@@ -40,6 +41,7 @@ opt-level = 3
 lto = "thin"
 codegen-units = 1
 strip = true
+panic = "abort"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"
