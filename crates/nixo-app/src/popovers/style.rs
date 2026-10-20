@@ -9,6 +9,7 @@ use std::sync::LazyLock;
 use egui::{Color32, CornerRadius, FontId, Margin, Shadow, Stroke, Vec2, vec2};
 
 use crate::app::ACCENT_COLOR;
+use crate::components::tokens::*;
 use crate::theme::font_bold;
 
 /// Par de cores (preenchimento + contorno) de um badge de ícone.
@@ -112,16 +113,16 @@ pub(crate) struct MenuStyle {
 }
 
 impl MenuStyle {
-    /// Tema escuro OLED full-black do Nixo.
+    /// Tema escuro do Nixo alinhado ao Design System Tailwind Zinc.
     fn nixo_dark() -> Self {
         Self {
             popover_width: 356.0,
             popover_margin_left: 16.0,
             popover_margin_right: 18.0,
             popover_anchor_gap: 10.0,
-            popover_fill: Color32::BLACK,
-            popover_stroke: Stroke::new(1.0_f32, Color32::from_rgb(48, 48, 54)),
-            popover_radius: CornerRadius::same(16),
+            popover_fill: SURFACE_LOW,
+            popover_stroke: Stroke::new(1.0_f32, BORDER_SUBTLE),
+            popover_radius: RADIUS_LG,
             popover_shadow: Shadow {
                 offset: [0, 14],
                 blur: 32,
@@ -132,22 +133,22 @@ impl MenuStyle {
             item_spacing_y: 3.0,
             height_morph_duration: 0.18,
 
-            row_radius: CornerRadius::same(99),
-            row_hover_fill: Color32::from_rgb(34, 34, 40),
-            row_selected_fill: Color32::from_rgb(22, 22, 27),
+            row_radius: RADIUS_FULL,
+            row_hover_fill: SURFACE_HIGH,
+            row_selected_fill: SURFACE_MED,
             row_padding_x: 14.0,
             option_height: 38.0,
             nav_height: 38.0,
             header_height: 38.0,
             section_title_height: 28.0,
 
-            text_hover: Color32::WHITE,
-            text_option: Color32::from_rgb(195, 195, 202),
-            text_nav_title: Color32::from_rgb(150, 150, 158),
-            text_nav_value: Color32::from_rgb(225, 225, 230),
-            text_header: Color32::from_rgb(215, 215, 220),
-            text_section_title: Color32::from_rgb(160, 160, 168),
-            text_muted: Color32::from_gray(150),
+            text_hover: NEUTRAL_50,
+            text_option: TEXT_PRIMARY,
+            text_nav_title: TEXT_SECONDARY,
+            text_nav_value: TEXT_PRIMARY,
+            text_header: TEXT_PRIMARY,
+            text_section_title: TEXT_SECONDARY,
+            text_muted: TEXT_MUTED,
             font_option: FontId::proportional(14.0),
             font_option_selected: font_bold(14.0),
             font_option_emphasis: font_bold(13.5),
@@ -164,32 +165,32 @@ impl MenuStyle {
             chevron_inset: 12.0,
             chevron_size: 4.5,
             chevron_stroke_width: 1.7,
-            chevron_idle: Color32::from_rgb(115, 115, 125),
+            chevron_idle: TEXT_MUTED,
             nav_value_gap: 12.0,
             header_text_gap: 12.0,
 
             badge_size: vec2(26.0, 18.0),
-            badge_radius: CornerRadius::same(4),
+            badge_radius: RADIUS_SM,
             badge_neutral: BadgeColors {
-                fill: Color32::from_rgb(26, 26, 32),
-                stroke: Stroke::new(1.2_f32, Color32::from_rgb(68, 68, 80)),
+                fill: SURFACE_MED,
+                stroke: Stroke::new(1.0_f32, BORDER_SUBTLE),
             },
-            icon_fg: Color32::WHITE,
+            icon_fg: TEXT_PRIMARY,
             icon_accent: ACCENT_COLOR,
             icon_glyph_stroke: 1.85,
             icon_circle_radius: 8.5,
-            icon_disabled_fill: Color32::from_rgb(22, 22, 27),
-            icon_disabled_stroke: Stroke::new(1.75_f32, Color32::from_rgb(180, 180, 192)),
-            icon_swatch_ring: Stroke::new(1.2_f32, Color32::from_rgb(90, 90, 102)),
+            icon_disabled_fill: SURFACE_MED,
+            icon_disabled_stroke: Stroke::new(1.75_f32, TEXT_MUTED),
+            icon_swatch_ring: Stroke::new(1.2_f32, NEUTRAL_600),
             font_icon_glyph: font_bold(12.5),
 
             divider_height: 11.0,
             divider_inset: 4.0,
-            divider_stroke: Stroke::new(1.0_f32, Color32::from_rgb(52, 52, 60)),
+            divider_stroke: Stroke::new(1.0_f32, BORDER_SUBTLE),
 
-            warning_fill: Color32::from_rgb(64, 15, 17),
-            warning_text: Color32::from_rgb(242, 195, 195),
-            warning_radius: CornerRadius::same(10),
+            warning_fill: DANGER_SURFACE,
+            warning_text: DANGER_TEXT,
+            warning_radius: RADIUS_MD,
             warning_padding: Margin::symmetric(12, 9),
             warning_margin: Margin::symmetric(4, 4),
             warning_font: FontId::proportional(12.5),
@@ -197,11 +198,11 @@ impl MenuStyle {
             button_height: 38.0,
             button_inset_x: 4.0,
             button_margin_y: 2.0,
-            button_radius: CornerRadius::same(8),
-            button_fill: Color32::from_rgb(26, 26, 31),
-            button_fill_hover: Color32::from_rgb(40, 40, 48),
-            button_fill_active: Color32::from_rgb(50, 50, 60),
-            button_text: Color32::from_rgb(225, 225, 232),
+            button_radius: RADIUS_MD,
+            button_fill: SURFACE_MED,
+            button_fill_hover: SURFACE_HIGH,
+            button_fill_active: SURFACE_ACTIVE,
+            button_text: TEXT_PRIMARY,
             button_font: font_bold(13.5),
         }
     }

@@ -10,6 +10,7 @@ use egui::{
 
 use super::primitives::{allocate_row, hover_color, paint_row_hover, paint_text};
 use crate::app::ACCENT_COLOR;
+use crate::components::tokens::*;
 use crate::popovers::style::menu_style;
 use crate::theme::font_bold;
 
@@ -25,16 +26,6 @@ impl<'a> MenuToggle<'a> {
     pub(crate) fn new(title: &'a str, active: bool) -> Self {
         Self { title, active }
     }
-}
-
-/// Interpola linearmente entre duas cores RGBA.
-fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
-    Color32::from_rgba_premultiplied(
-        (f32::from(a.r()) + (f32::from(b.r()) - f32::from(a.r())) * t + 0.5) as u8,
-        (f32::from(a.g()) + (f32::from(b.g()) - f32::from(a.g())) * t + 0.5) as u8,
-        (f32::from(a.b()) + (f32::from(b.b()) - f32::from(a.b())) * t + 0.5) as u8,
-        (f32::from(a.a()) + (f32::from(b.a()) - f32::from(a.a())) * t + 0.5) as u8,
-    )
 }
 
 impl Widget for MenuToggle<'_> {
@@ -74,14 +65,10 @@ impl Widget for MenuToggle<'_> {
                 .animate_bool_with_time(resp.id.with("switch_stretch"), is_pressed, 0.10);
 
         // Cores interpoladas para transição suave de fundo e borda
-        let track_fill_off = Color32::from_rgb(32, 32, 38);
+        let track_fill_off = SURFACE_CARD_HOVER;
         let track_fill = lerp_color(track_fill_off, ACCENT_COLOR, t);
 
-        let stroke_off = if hovered {
-            Color32::from_rgb(90, 90, 102)
-        } else {
-            Color32::from_rgb(58, 58, 66)
-        };
+        let stroke_off = if hovered { NEUTRAL_600 } else { NEUTRAL_700 };
         let track_stroke = Stroke::new(1.2_f32, lerp_color(stroke_off, ACCENT_COLOR, t));
 
         ui.painter().rect(
@@ -97,7 +84,7 @@ impl Widget for MenuToggle<'_> {
         let x_on = switch_rect.right() - 3.2 - thumb_r;
         let thumb_x = egui::lerp(x_off..=x_on, t);
 
-        let thumb_color = lerp_color(Color32::from_rgb(175, 175, 185), Color32::WHITE, t);
+        let thumb_color = lerp_color(TEXT_SECONDARY, NEUTRAL_50, t);
 
         // Sombra suave sob o botão quando ativo
         if t > 0.05 {
@@ -154,10 +141,10 @@ pub(crate) fn delay_stepper(ui: &mut Ui, label: &str, current_delay: f64) -> Opt
 
     let mut new_delay = None;
 
-    let btn_radius = CornerRadius::same(6);
-    let btn_idle_bg = Color32::from_rgb(38, 40, 46);
-    let btn_hover_bg = Color32::from_rgb(52, 55, 64);
-    let btn_active_bg = Color32::from_rgb(66, 70, 82);
+    let btn_radius = RADIUS_SM;
+    let btn_idle_bg = SURFACE_MED;
+    let btn_hover_bg = SURFACE_HIGH;
+    let btn_active_bg = SURFACE_ACTIVE;
 
     // Botão Menos [-]
     let minus_resp = ui
@@ -293,10 +280,10 @@ pub(crate) fn menu_slider(
     let mut new_val = None;
 
     let btn_size = vec2(28.0, 26.0);
-    let btn_radius = CornerRadius::same(6);
-    let btn_idle_bg = Color32::from_rgb(26, 28, 34);
-    let btn_hover_bg = Color32::from_rgb(42, 44, 54);
-    let btn_active_bg = Color32::from_rgb(56, 60, 72);
+    let btn_radius = RADIUS_SM;
+    let btn_idle_bg = SURFACE_MED;
+    let btn_hover_bg = SURFACE_HIGH;
+    let btn_active_bg = SURFACE_ACTIVE;
 
     // Botão Menos [-]
     let minus_center = Pos2::new(rect.left() + st.row_padding_x + btn_size.x * 0.5, bottom_y);
@@ -390,11 +377,8 @@ pub(crate) fn menu_slider(
         Pos2::new(track_left, bottom_y - rail_h * 0.5),
         Pos2::new(track_right, bottom_y + rail_h * 0.5),
     );
-    ui.painter().rect_filled(
-        rail_bg,
-        CornerRadius::same(2),
-        Color32::from_rgb(42, 44, 54),
-    );
+    ui.painter()
+        .rect_filled(rail_bg, CornerRadius::same(2), SURFACE_HIGH);
 
     let rail_fill = Rect::from_min_max(
         Pos2::new(track_left, bottom_y - rail_h * 0.5),
@@ -414,7 +398,7 @@ pub(crate) fn menu_slider(
         .circle_filled(Pos2::new(thumb_x, bottom_y), thumb_r, ACCENT_COLOR);
     if anim_t > 0.05 {
         ui.painter()
-            .circle_filled(Pos2::new(thumb_x, bottom_y), thumb_r * 0.45, Color32::WHITE);
+            .circle_filled(Pos2::new(thumb_x, bottom_y), thumb_r * 0.45, NEUTRAL_50);
     }
 
     if let Some(v) = new_val {

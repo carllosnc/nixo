@@ -9,6 +9,7 @@ use std::sync::Arc;
 use egui::text::{LayoutJob, TextFormat, TextWrapping};
 use egui::{Align2, Color32, FontId, Galley, Pos2, Rect, Response, Sense, Stroke, Ui, vec2};
 
+use crate::components::tokens::*;
 use crate::popovers::style::menu_style;
 
 /// Direção para onde a ponta do chevron aponta.
@@ -83,11 +84,7 @@ pub(crate) fn paint_radio_button(ui: &Ui, center: Pos2, selected: bool, hovered:
             .circle_stroke(center, r_outer, Stroke::new(1.85_f32, accent));
         ui.painter().circle_filled(center, 2.8, accent);
     } else {
-        let ring_color = if hovered {
-            Color32::from_rgb(145, 145, 155)
-        } else {
-            Color32::from_rgb(72, 72, 80)
-        };
+        let ring_color = if hovered { TEXT_SECONDARY } else { NEUTRAL_600 };
         ui.painter()
             .circle_stroke(center, r_outer, Stroke::new(1.35_f32, ring_color));
     }
