@@ -10,7 +10,7 @@ pub(crate) enum ControlIcon {
     Volume { level: f32, muted: bool },
     Subtitles { active: bool },
     SettingsGear,
-    Home,
+    Dashboard,
     Fullscreen { is_fullscreen: bool },
     AspectFit { active: bool },
     Screenshot,
@@ -159,22 +159,17 @@ impl NixoApp {
                         .collect();
                     painter.add(Shape::closed_line(cog_pts, stroke));
                 }
-                ControlIcon::Home => {
-                    // Lucide 'home': silhueta canônica de casa com telhado e porta
-                    let house_pts = vec![
-                        p(3.0, 9.5),
-                        p(12.0, 2.5),
-                        p(21.0, 9.5),
-                        p(21.0, 20.0),
-                        p(19.5, 21.5),
-                        p(4.5, 21.5),
-                        p(3.0, 20.0),
-                    ];
-                    painter.add(Shape::closed_line(house_pts, stroke));
-                    painter.add(Shape::line(
-                        vec![p(9.0, 21.5), p(9.0, 12.0), p(15.0, 12.0), p(15.0, 21.5)],
-                        stroke,
-                    ));
+                ControlIcon::Dashboard => {
+                    // Lucide 'layout-dashboard': 4 blocos assimétricos característicos de painel
+                    let r1 = Rect::from_min_max(p(3.0, 3.0), p(10.0, 12.0));
+                    let r2 = Rect::from_min_max(p(14.0, 3.0), p(21.0, 8.0));
+                    let r3 = Rect::from_min_max(p(14.0, 12.0), p(21.0, 21.0));
+                    let r4 = Rect::from_min_max(p(3.0, 16.0), p(10.0, 21.0));
+                    let radius = CornerRadius::same(1);
+                    painter.rect_stroke(r1, radius, stroke, StrokeKind::Inside);
+                    painter.rect_stroke(r2, radius, stroke, StrokeKind::Inside);
+                    painter.rect_stroke(r3, radius, stroke, StrokeKind::Inside);
+                    painter.rect_stroke(r4, radius, stroke, StrokeKind::Inside);
                 }
                 ControlIcon::Fullscreen { is_fullscreen } => {
                     if !is_fullscreen {

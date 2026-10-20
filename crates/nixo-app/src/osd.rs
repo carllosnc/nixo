@@ -259,19 +259,7 @@ impl NixoApp {
             self.take_screenshot();
         }
 
-        // 4. Retornar para a página inicial (Home)
-        if Self::render_ghost_icon_btn(
-            &mut right_ui,
-            vec2(40.0, BTN_HEIGHT),
-            ControlIcon::Home,
-            self.t().home_tooltip,
-        )
-        .clicked()
-        {
-            self.go_home();
-        }
-
-        // 3. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
+        // 4. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
         let speed_tooltip = self.t().settings_speed_tooltip(self.status.speed);
         let gear_resp = Self::render_ghost_icon_btn(
             &mut right_ui,
@@ -280,7 +268,7 @@ impl NixoApp {
             &speed_tooltip,
         );
 
-        // 4. Legendas CC (Atalho rápido estilo YouTube + Badge vermelho de alerta quando inativa/fixa)
+        // 5. Legendas CC (Atalho rápido estilo YouTube + Badge vermelho de alerta quando inativa/fixa)
         let subs_active =
             self.status.subtitles_visible && self.status.subtitle_tracks.iter().any(|t| t.selected);
         let cc_tooltip = if let Some(warn_msg) = self.subtitle_health_warning() {
@@ -311,6 +299,18 @@ impl NixoApp {
         }
         if cc_resp.clicked() {
             self.dispatch(PlayerCommand::ToggleSubtitleVisibility);
+        }
+
+        // 6. Retornar para o Dashboard / Biblioteca de Mídia (primeira posição na esquerda)
+        if Self::render_ghost_icon_btn(
+            &mut right_ui,
+            vec2(40.0, BTN_HEIGHT),
+            ControlIcon::Dashboard,
+            self.t().home_tooltip,
+        )
+        .clicked()
+        {
+            self.go_home();
         }
 
         self.render_settings_popup(ctx, &gear_resp);
