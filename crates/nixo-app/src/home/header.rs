@@ -195,14 +195,14 @@ pub fn render_header(
                     .order(egui::Order::Foreground)
                     .show(ui.ctx(), |ui| {
                         let frame = egui::Frame::NONE
-                            .fill(SURFACE_LOW)
-                            .stroke(Stroke::new(1.0_f32, BORDER_SUBTLE))
+                            .fill(SURFACE_MED)
+                            .stroke(Stroke::NONE)
                             .corner_radius(RADIUS_MD)
                             .shadow(egui::Shadow {
                                 offset: [0, 8],
-                                blur: 24,
+                                blur: 28,
                                 spread: 0,
-                                color: Color32::from_black_alpha(200),
+                                color: Color32::from_black_alpha(230),
                             })
                             .inner_margin(egui::Margin::same(4));
 
@@ -224,9 +224,9 @@ pub fn render_header(
                                     let bg = if resp.is_pointer_button_down_on() {
                                         SURFACE_ACTIVE
                                     } else if is_selected {
-                                        lerp_color(SURFACE_MED, SURFACE_HIGH, hover_t)
+                                        lerp_color(SURFACE_HIGH, SURFACE_ACTIVE, hover_t)
                                     } else {
-                                        lerp_color(Color32::TRANSPARENT, SURFACE_MED, hover_t)
+                                        lerp_color(Color32::TRANSPARENT, SURFACE_HIGH, hover_t)
                                     };
 
                                     ui.painter().rect_filled(row_rect, RADIUS_SM, bg);
@@ -246,7 +246,7 @@ pub fn render_header(
                                     let text_color = if is_selected || resp.hovered() {
                                         TEXT_PRIMARY
                                     } else {
-                                        TEXT_SECONDARY
+                                        NEUTRAL_300
                                     };
                                     ui.painter().text(
                                         Pos2::new(row_rect.left() + 38.0, row_rect.center().y),
