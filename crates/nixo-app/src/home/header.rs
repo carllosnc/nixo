@@ -137,12 +137,12 @@ pub fn render_header(
             }
         } else if let Some(tex) = logo_texture {
             let header_h = 38.0_f32;
-            let logo_h = 22.0_f32;
+            let logo_h = 24.0_f32;
             let tex_sz = tex.size_vec2();
             let aspect = if tex_sz.y > 0.0 {
                 tex_sz.x / tex_sz.y
             } else {
-                1024.0 / 297.0
+                616.0 / 867.0
             };
             let logo_w = (logo_h * aspect).round();
             let (rect, resp) = ui.allocate_exact_size(vec2(logo_w, header_h), Sense::click());
@@ -150,11 +150,17 @@ pub fn render_header(
             let logo_left = rect.left().round();
             let logo_rect =
                 Rect::from_min_size(Pos2::new(logo_left, logo_top), vec2(logo_w, logo_h));
+
+            // Logo branca com 30% de transparência em repouso (70% de opacidade = 178), iluminando no hover
+            let hover_t =
+                ui.ctx()
+                    .animate_bool_with_time(resp.id.with("logo_hover"), resp.hovered(), 0.15);
+            let alpha = (178.0 + (255.0 - 178.0) * hover_t).round() as u8;
             ui.painter().image(
                 tex.id(),
                 logo_rect,
                 Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-                Color32::WHITE,
+                Color32::from_rgba_unmultiplied(255, 255, 255, alpha),
             );
             if resp.clicked() {
                 action = HomeAction::GoRoot;

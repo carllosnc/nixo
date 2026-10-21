@@ -16,7 +16,7 @@ if ((Test-Path $masterIcon) -and $hasMagick) {
     & magick $masterIcon -define icon:auto-resize=256,128,64,48,32,16 $icoPath
     if (Test-Path $masterLogo) {
         Write-Host "Gerando logo.png otimizado a partir de logo-1024.png..."
-        & magick $masterLogo -filter Lanczos -resize 304x88 $logoPath
+        & magick $masterLogo -filter Lanczos -resize x128 $logoPath
     }
     Write-Host "Ativos gerados com sucesso em $assetsDir"
     exit 0
