@@ -101,12 +101,6 @@ pub fn render_folder_browser(
                     egui::Stroke::new(1.5_f32, ACCENT_COLOR),
                     egui::StrokeKind::Inside,
                 );
-                let ind = Rect::from_min_size(
-                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 28.0) * 0.5),
-                    vec2(3.5, 28.0),
-                );
-                ui.painter()
-                    .rect_filled(ind, egui::CornerRadius::same(2), ACCENT_COLOR);
             }
 
             // Ícone da subpasta à esquerda: usa o ícone 3D nativo ampliado com padding confortável
@@ -225,12 +219,6 @@ pub fn render_folder_browser(
                     egui::Stroke::new(1.5_f32, ACCENT_COLOR),
                     egui::StrokeKind::Inside,
                 );
-                let ind = Rect::from_min_size(
-                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 40.0) * 0.5),
-                    vec2(3.5, 40.0),
-                );
-                ui.painter()
-                    .rect_filled(ind, egui::CornerRadius::same(2), ACCENT_COLOR);
             }
 
             // Dispara requisição de metadados em background para itens visíveis na tela

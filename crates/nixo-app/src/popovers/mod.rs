@@ -125,6 +125,7 @@ impl NixoApp {
         }
         if actions.toggle_always_on_top {
             self.always_on_top = !self.always_on_top;
+            self.settings_store.observe(self.current_settings());
             let level = if self.always_on_top {
                 egui::WindowLevel::AlwaysOnTop
             } else {

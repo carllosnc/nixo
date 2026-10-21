@@ -48,8 +48,8 @@ pub struct MpvBackend {
     sub_cues_seen: u32,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
-    cached_audio_tracks: Vec<nixo_core::TrackInfo>,
-    cached_subtitle_tracks: Vec<nixo_core::TrackInfo>,
+    cached_audio_tracks: Arc<[nixo_core::TrackInfo]>,
+    cached_subtitle_tracks: Arc<[nixo_core::TrackInfo]>,
     cached_selected_sub_image_codec: Option<String>,
     last_tracks_poll: Instant,
     tracks_dirty: bool,
@@ -71,10 +71,11 @@ impl MpvBackend {
 
             for (k, v) in [
                 (c"vo", c"libmpv"),
-                (c"hwdec", c"auto-safe"),
+                (c"hwdec", c"auto-copy"),
                 (c"vd-lavc-threads", c"0"),
-                (c"sws-scaler", c"bicubic"),
-                (c"sws-fast", c"no"),
+                (c"vd-lavc-fast", c"yes"),
+                (c"sws-scaler", c"fast-bilinear"),
+                (c"sws-fast", c"yes"),
                 (c"blend-subtitles", c"no"),
                 (c"sub-gauss", c"0.6"),
                 (c"sub-gray", c"yes"),
@@ -159,8 +160,8 @@ impl MpvBackend {
                 sub_cues_seen: 0,
                 aspect_ratio: VideoAspect::default(),
                 video_fit: VideoFit::default(),
-                cached_audio_tracks: Vec::new(),
-                cached_subtitle_tracks: Vec::new(),
+                cached_audio_tracks: Arc::from([]),
+                cached_subtitle_tracks: Arc::from([]),
                 cached_selected_sub_image_codec: None,
                 last_tracks_poll: Instant::now() - Duration::from_secs(10),
                 tracks_dirty: true,
@@ -271,8 +272,8 @@ impl MediaBackend for MpvBackend {
                 self.current_path = None;
                 self.pending_seek = None;
                 self.tracks_dirty = true;
-                self.cached_audio_tracks.clear();
-                self.cached_subtitle_tracks.clear();
+                self.cached_audio_tracks = Arc::from([]);
+                self.cached_subtitle_tracks = Arc::from([]);
                 self.cached_selected_sub_image_codec = None;
                 self.reset_subtitle_health_tracking();
                 self.preview_worker.set_uri(None);
@@ -474,10 +475,11 @@ impl MediaBackend for MpvBackend {
         self.first_frame_pending = self.pending_seek.is_some();
         self.frame_counter += 1;
 
+        let out_buffer = std::mem::take(&mut self.pixel_buffer);
         Some(VideoFrame {
             width,
             height,
-            rgba: self.pixel_buffer.clone(),
+            rgba: out_buffer,
             frame_id: self.frame_counter,
         })
     }

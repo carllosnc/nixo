@@ -124,24 +124,27 @@ impl NixoApp {
         }
 
         // Suporte a Drag & Drop de arquivos de vídeo e pastas de mídia direto na janela
-        let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
-        let mut added_folders = false;
-        for file in dropped_files {
-            if let Some(path) = file.path {
-                if path.is_dir() {
-                    if !self.media_folders.contains(&path) {
-                        self.media_folders.push(path.clone());
-                        self.home_state.scanner.invalidate(&path);
-                        added_folders = true;
+        let has_dropped = ctx.input(|i| !i.raw.dropped_files.is_empty());
+        if has_dropped {
+            let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
+            let mut added_folders = false;
+            for file in dropped_files {
+                if let Some(path) = file.path {
+                    if path.is_dir() {
+                        if !self.media_folders.contains(&path) {
+                            self.media_folders.push(path.clone());
+                            self.home_state.scanner.invalidate(&path);
+                            added_folders = true;
+                        }
+                    } else {
+                        self.dispatch(PlayerCommand::LoadFile(path));
+                        break;
                     }
-                } else {
-                    self.dispatch(PlayerCommand::LoadFile(path));
-                    break;
                 }
             }
-        }
-        if added_folders {
-            self.settings_store.observe(self.current_settings());
+            if added_folders {
+                self.settings_store.observe(self.current_settings());
+            }
         }
 
         // Máquina de estados de hover inspirada no YouTube:
@@ -312,6 +315,7 @@ impl NixoApp {
         }
         if ctx.input(|i| i.key_pressed(Key::T)) {
             self.always_on_top = !self.always_on_top;
+            self.settings_dirty = true;
             let level = if self.always_on_top {
                 egui::WindowLevel::AlwaysOnTop
             } else {

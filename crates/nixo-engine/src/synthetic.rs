@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use nixo_core::{
@@ -16,7 +17,7 @@ pub struct SyntheticBackend {
     volume: f32,
     muted: bool,
     speed: f32,
-    metadata: Option<MediaMetadata>,
+    metadata: Option<Arc<MediaMetadata>>,
     last_tick: Instant,
     frame_counter: u64,
     dirty_frame: bool,
@@ -111,20 +112,29 @@ impl SyntheticBackend {
             (self.position.as_secs_f32() / self.duration.as_secs_f32().max(1.0)).clamp(0.0, 1.0);
         let scan_x = ((width as f32) * progress) as u32;
 
+        let mut wave1 = [0.0f32; 640];
+        for (x, w1) in wave1.iter_mut().enumerate() {
+            let uf = (x as f32) / 640.0;
+            *w1 = (uf * 6.0 + t).sin() * 0.5 + 0.5;
+        }
+        let mut wave2 = [0.0f32; 360];
+        for (y, w2) in wave2.iter_mut().enumerate() {
+            let vf = (y as f32) / 360.0;
+            *w2 = (vf * 5.0 - t * 0.7).cos() * 0.5 + 0.5;
+        }
+
         for y in 0..height {
             let vf = (y as f32) / (height as f32);
+            let w2 = wave2[y as usize];
             for x in 0..width {
                 let uf = (x as f32) / (width as f32);
+                let w1 = wave1[x as usize];
                 let idx = ((y * width + x) * 4) as usize;
 
-                // Gradiente animado estilo cinema/aurora com marcador de varredura temporal
-                let wave1 = (uf * 6.0 + t).sin() * 0.5 + 0.5;
-                let wave2 = (vf * 5.0 - t * 0.7).cos() * 0.5 + 0.5;
-                let mut r = (24.0 + 70.0 * wave1 * (1.0 - vf * 0.4)) as u8;
-                let mut g = (30.0 + 110.0 * wave2 * uf) as u8;
-                let mut b = (65.0 + 155.0 * (0.5 * wave1 + 0.5 * wave2)) as u8;
+                let mut r = (24.0 + 70.0 * w1 * (1.0 - vf * 0.4)) as u8;
+                let mut g = (30.0 + 110.0 * w2 * uf) as u8;
+                let mut b = (65.0 + 155.0 * (0.5 * w1 + 0.5 * w2)) as u8;
 
-                // Linha vertical indicando a posição exata do vídeo no frame
                 if x.abs_diff(scan_x) <= 1 {
                     r = 255;
                     g = 120;
@@ -164,13 +174,13 @@ impl MediaBackend for SyntheticBackend {
                 self.duration = Duration::from_secs(180);
                 self.position = Duration::ZERO;
                 self.state = PlaybackState::Playing;
-                self.metadata = Some(MediaMetadata {
+                self.metadata = Some(Arc::new(MediaMetadata {
                     title,
                     path,
                     duration: self.duration,
                     video_width: 1280,
                     video_height: 720,
-                });
+                }));
                 self.last_preview_sec = None;
                 self.dirty_frame = true;
             }
@@ -351,8 +361,8 @@ impl MediaBackend for SyntheticBackend {
             speed: self.speed,
             metadata: self.metadata.clone(),
             backend_name: self.name(),
-            audio_tracks: self.audio_tracks.clone(),
-            subtitle_tracks: self.subtitle_tracks.clone(),
+            audio_tracks: Arc::from(self.audio_tracks.as_slice()),
+            subtitle_tracks: Arc::from(self.subtitle_tracks.as_slice()),
             subtitles_visible: self.subtitles_visible,
             subtitle_style: self.subtitle_style.clone(),
             subtitle_health: nixo_core::SubtitleHealth::Ok,
@@ -393,17 +403,28 @@ impl MediaBackend for SyntheticBackend {
         let dur_secs = self.duration.as_secs_f32().max(1.0);
         let scan_x = (((sec as f32) / dur_secs) * (width as f32)) as u32;
 
+        let mut wave1 = [0.0f32; 160];
+        for (x, w1) in wave1.iter_mut().enumerate() {
+            let uf = (x as f32) / 160.0;
+            *w1 = (uf * 5.0 + t).sin() * 0.5 + 0.5;
+        }
+        let mut wave2 = [0.0f32; 90];
+        for (y, w2) in wave2.iter_mut().enumerate() {
+            let vf = (y as f32) / 90.0;
+            *w2 = (vf * 4.0 - t * 0.7).cos() * 0.5 + 0.5;
+        }
+
         for y in 0..height {
             let vf = (y as f32) / (height as f32);
+            let w2 = wave2[y as usize];
             for x in 0..width {
                 let uf = (x as f32) / (width as f32);
+                let w1 = wave1[x as usize];
                 let idx = ((y * width + x) * 4) as usize;
 
-                let wave1 = (uf * 5.0 + t).sin() * 0.5 + 0.5;
-                let wave2 = (vf * 4.0 - t * 0.7).cos() * 0.5 + 0.5;
-                let mut r = (28.0 + 60.0 * wave1 * (1.0 - vf * 0.4)) as u8;
-                let mut g = (32.0 + 90.0 * wave2 * uf) as u8;
-                let mut b = (70.0 + 130.0 * (0.5 * wave1 + 0.5 * wave2)) as u8;
+                let mut r = (28.0 + 60.0 * w1 * (1.0 - vf * 0.4)) as u8;
+                let mut g = (32.0 + 90.0 * w2 * uf) as u8;
+                let mut b = (70.0 + 130.0 * (0.5 * w1 + 0.5 * w2)) as u8;
 
                 if x.abs_diff(scan_x) <= 1 {
                     r = 255;

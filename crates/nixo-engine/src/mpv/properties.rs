@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString, c_double, c_int, c_void};
 use std::path::Path;
 use std::ptr;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use nixo_core::{
@@ -290,15 +291,17 @@ impl MpvBackend {
             self.cached_vid_size = (width, height);
         }
 
-        let metadata = self.current_path.as_ref().map(|path| MediaMetadata {
-            title: path
-                .file_name()
-                .map(|s| s.to_string_lossy().into_owned())
-                .unwrap_or_else(|| "Vídeo".to_string()),
-            path: path.clone(),
-            duration: Duration::from_secs_f64(dur_secs),
-            video_width: width,
-            video_height: height,
+        let metadata = self.current_path.as_ref().map(|path| {
+            Arc::new(MediaMetadata {
+                title: path
+                    .file_name()
+                    .map(|s| s.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| "Vídeo".to_string()),
+                path: path.clone(),
+                duration: Duration::from_secs_f64(dur_secs),
+                video_width: width,
+                video_height: height,
+            })
         });
 
         if self.tracks_dirty || self.last_tracks_poll.elapsed() >= Duration::from_millis(1500) {
@@ -370,8 +373,8 @@ impl MpvBackend {
                     _ => {}
                 }
             }
-            self.cached_audio_tracks = audio;
-            self.cached_subtitle_tracks = subs;
+            self.cached_audio_tracks = Arc::from(audio);
+            self.cached_subtitle_tracks = Arc::from(subs);
             self.cached_selected_sub_image_codec = sub_codec;
             self.tracks_dirty = false;
             self.last_tracks_poll = Instant::now();

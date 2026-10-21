@@ -5,6 +5,8 @@ New-Item -ItemType Directory -Force -Path $assetsDir | Out-Null
 $masterIcon = Join-Path $assetsDir "icon-1024.png"
 $pngPath = Join-Path $assetsDir "icon.png"
 $icoPath = Join-Path $assetsDir "icon.ico"
+$masterLogo = Join-Path $assetsDir "logo-1024.png"
+$logoPath = Join-Path $assetsDir "logo.png"
 
 # Se o ícone mestre e o ImageMagick estiverem disponíveis, usa ImageMagick para gerar ícones multirresolução
 $hasMagick = (Get-Command magick -ErrorAction SilentlyContinue) -ne $null
@@ -12,7 +14,11 @@ if ((Test-Path $masterIcon) -and $hasMagick) {
     Write-Host "Gerando icon.png e icon.ico a partir de icon-1024.png usando ImageMagick..."
     & magick $masterIcon -resize 256x256 $pngPath
     & magick $masterIcon -define icon:auto-resize=256,128,64,48,32,16 $icoPath
-    Write-Host "Ícones gerados com sucesso em $assetsDir"
+    if (Test-Path $masterLogo) {
+        Write-Host "Gerando logo.png otimizado a partir de logo-1024.png..."
+        & magick $masterLogo -filter Lanczos -resize 304x88 $logoPath
+    }
+    Write-Host "Ativos gerados com sucesso em $assetsDir"
     exit 0
 }
 

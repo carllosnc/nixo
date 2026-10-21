@@ -1,6 +1,7 @@
 pub mod subtitle;
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
 
@@ -273,10 +274,10 @@ pub struct PlayerStatus {
     pub volume: f32,
     pub muted: bool,
     pub speed: f32,
-    pub metadata: Option<MediaMetadata>,
+    pub metadata: Option<Arc<MediaMetadata>>,
     pub backend_name: &'static str,
-    pub audio_tracks: Vec<TrackInfo>,
-    pub subtitle_tracks: Vec<TrackInfo>,
+    pub audio_tracks: Arc<[TrackInfo]>,
+    pub subtitle_tracks: Arc<[TrackInfo]>,
     pub subtitles_visible: bool,
     pub subtitle_style: SubtitleStyle,
     pub subtitle_health: SubtitleHealth,
@@ -297,8 +298,8 @@ impl Default for PlayerStatus {
             speed: 1.0,
             metadata: None,
             backend_name: "Nenhum",
-            audio_tracks: Vec::new(),
-            subtitle_tracks: Vec::new(),
+            audio_tracks: Arc::from([]),
+            subtitle_tracks: Arc::from([]),
             subtitles_visible: true,
             subtitle_style: SubtitleStyle::default(),
             subtitle_health: SubtitleHealth::default(),

@@ -42,18 +42,19 @@ impl NixoApp {
             let btn_rect = Rect::from_center_size(rect.center(), Vec2::splat(btn_size));
             let radius = CornerRadius::same(99);
 
-            // Botão ghost sem bordas (fundo acende suavemente em hover/press/ativo)
-            let bg_color = if pressed {
+            // Botão com estado ativo em alto contraste (verde da marca Nixo) ou ghost sutil em repouso
+            let bg_color = if is_active {
+                if pressed {
+                    Color32::from_rgb(45, 142, 26)
+                } else if hovered {
+                    Color32::from_rgb(65, 195, 40)
+                } else {
+                    ACCENT_COLOR
+                }
+            } else if pressed {
                 Color32::from_rgba_unmultiplied(255, 255, 255, 42)
             } else if hovered {
                 Color32::from_rgba_unmultiplied(255, 255, 255, 24)
-            } else if is_active {
-                Color32::from_rgba_unmultiplied(
-                    ACCENT_COLOR.r(),
-                    ACCENT_COLOR.g(),
-                    ACCENT_COLOR.b(),
-                    35,
-                )
             } else {
                 Color32::TRANSPARENT
             };
@@ -62,7 +63,7 @@ impl NixoApp {
                 ui.painter().rect_filled(btn_rect, radius, bg_color);
             }
 
-            let fg = if hovered || pressed {
+            let fg = if is_active || hovered || pressed {
                 Color32::WHITE
             } else {
                 Color32::from_gray(220)
@@ -142,9 +143,7 @@ impl NixoApp {
                 }
                 ControlIcon::Subtitles { active } => {
                     // Lucide 'captions': retângulo arredondado 18x14 com linhas de diálogo estilizadas
-                    let icon_color = if active {
-                        ACCENT_COLOR
-                    } else if hovered || pressed {
+                    let icon_color = if active || hovered || pressed {
                         Color32::WHITE
                     } else {
                         Color32::from_gray(185)
@@ -228,24 +227,14 @@ impl NixoApp {
                 }
                 ControlIcon::AspectFit { active } => {
                     // Lucide frame + chevrons de expansão ou barras de proporção
-                    let icon_color = if active { ACCENT_COLOR } else { fg };
+                    let icon_color = if active { Color32::WHITE } else { fg };
                     let st = Stroke::new(1.85_f32, icon_color);
                     let frame = Rect::from_min_max(p(2.5, 5.0), p(21.5, 19.0));
                     painter.rect_stroke(frame, CornerRadius::same(2), st, StrokeKind::Inside);
 
                     if active {
-                        let inner = frame.shrink(2.0);
-                        painter.rect_filled(
-                            inner,
-                            CornerRadius::same(1),
-                            Color32::from_rgba_unmultiplied(
-                                ACCENT_COLOR.r(),
-                                ACCENT_COLOR.g(),
-                                ACCENT_COLOR.b(),
-                                40,
-                            ),
-                        );
-                        let arrow_st = Stroke::new(1.65_f32, ACCENT_COLOR);
+                        // Trava ativa: chevrons de expansão em branco puro de alto contraste sobre o fundo verde da marca
+                        let arrow_st = Stroke::new(1.85_f32, Color32::WHITE);
                         painter.line_segment([p(6.0, 12.0), p(18.0, 12.0)], arrow_st);
                         painter.add(Shape::line(
                             vec![p(8.5, 9.5), p(6.0, 12.0), p(8.5, 14.5)],

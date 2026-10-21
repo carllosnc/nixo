@@ -50,6 +50,7 @@ pub struct NixoApp {
     pub(crate) current_file: Option<PathBuf>,
     pub(crate) pending_resume: Option<Duration>,
     pub(crate) last_history_record: Instant,
+    pub(crate) settings_dirty: bool,
 }
 
 impl NixoApp {
@@ -112,6 +113,7 @@ impl NixoApp {
             current_file: initial_file,
             pending_resume,
             last_history_record: Instant::now(),
+            settings_dirty: false,
         }
     }
 
@@ -189,6 +191,16 @@ impl NixoApp {
     }
 
     pub(crate) fn dispatch(&mut self, cmd: PlayerCommand) {
+        if matches!(
+            cmd,
+            PlayerCommand::SetVolume(_)
+                | PlayerCommand::ToggleMute
+                | PlayerCommand::SetSubtitleStyle(_)
+                | PlayerCommand::ToggleSubtitleVisibility
+        ) {
+            self.settings_dirty = true;
+        }
+
         if matches!(cmd, PlayerCommand::LoadFile(_) | PlayerCommand::Stop)
             || (matches!(cmd, PlayerCommand::Play) && self.status.state == PlaybackState::Stopped)
         {
@@ -298,7 +310,10 @@ impl eframe::App for NixoApp {
         }
 
         // Persistência: detecta mudanças e grava em background após o debounce.
-        self.settings_store.observe(self.current_settings());
+        if self.settings_dirty {
+            self.settings_dirty = false;
+            self.settings_store.observe(self.current_settings());
+        }
         if let Some(wait) = self.settings_store.time_until_save() {
             ctx.request_repaint_after(wait);
         }
@@ -458,16 +473,21 @@ impl eframe::App for NixoApp {
                 });
         }
 
-        // Sincroniza repintura com o VSync: se os controles estiverem ocultos e estáveis,
-        // limita a repintura contínua a 60 FPS (16ms) para poupar GPU em telas de 144Hz/240Hz.
-        if self.status.state == PlaybackState::Playing || self.seek_override.is_some() {
-            if osd_alpha > 0.005 || self.toast.is_some() || self.pending_resume.is_some() {
-                ctx.request_repaint();
-            } else {
-                ctx.request_repaint_after(Duration::from_millis(16));
-            }
-        } else if ctx.memory(|m| m.any_popup_open()) {
-            ctx.request_repaint_after(Duration::from_millis(33));
+        // Se a janela estiver minimizada, desacelera para taxa ultrabaixa (economizando 100% de GPU)
+        if ctx.input(|i| i.viewport().minimized.unwrap_or(false)) {
+            ctx.request_repaint_after(Duration::from_millis(250));
+            return;
+        }
+
+        // Sincroniza repintura com taxa máxima de 60 FPS (16ms) mesmo em monitores de 144Hz/240Hz,
+        // poupando GPU e eliminando multiplicação de carga em qualquer animação ou OSD visível.
+        if self.status.state == PlaybackState::Playing
+            || self.seek_override.is_some()
+            || osd_alpha > 0.005
+            || self.toast.is_some()
+            || ctx.memory(|m| m.any_popup_open())
+        {
+            ctx.request_repaint_after(Duration::from_millis(16));
         }
     }
 }

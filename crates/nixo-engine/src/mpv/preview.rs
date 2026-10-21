@@ -234,8 +234,8 @@ impl PreviewWorker {
                 };
 
                 let Some(target_sec) = next_sec_to_decode else {
-                    // Sem novas solicitações ativas do usuário: dorme completamente em 0% de CPU
-                    std::thread::park_timeout(Duration::from_millis(40));
+                    // Sem novas solicitações ativas do usuário: dorme completamente em 0% de CPU até unpark()
+                    std::thread::park();
                     continue;
                 };
 

@@ -89,12 +89,6 @@ pub fn render_folders_view(
                     egui::Stroke::new(1.5_f32, ACCENT_COLOR),
                     egui::StrokeKind::Inside,
                 );
-                let indicator_rect = Rect::from_min_size(
-                    Pos2::new(rect.left() + 2.0, rect.top() + (item_h - 32.0) * 0.5),
-                    vec2(3.5, 32.0),
-                );
-                ui.painter()
-                    .rect_filled(indicator_rect, egui::CornerRadius::same(2), ACCENT_COLOR);
             }
 
             // Ícone da pasta à esquerda: usa o ícone 3D nativo ampliado com padding generoso
