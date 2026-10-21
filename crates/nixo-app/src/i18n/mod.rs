@@ -185,6 +185,12 @@ pub struct Translations {
     // OSD / Controles inferiores
     pub play_tooltip: &'static str,
     pub pause_tooltip: &'static str,
+    pub previous_track_tooltip: &'static str,
+    pub next_track_tooltip: &'static str,
+    pub repeat_off_tooltip: &'static str,
+    pub repeat_all_tooltip: &'static str,
+    pub repeat_one_tooltip: &'static str,
+    #[allow(dead_code)]
     pub forward_5s_tooltip: &'static str,
     pub unmute_tooltip: &'static str,
     pub mute_tooltip: &'static str,

@@ -1,4 +1,5 @@
 use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
+use nixo_core::RepeatMode;
 
 use crate::app::{ACCENT_COLOR, NixoApp};
 
@@ -6,7 +7,9 @@ use crate::app::{ACCENT_COLOR, NixoApp};
 pub(crate) enum ControlIcon {
     Play,
     Pause,
+    PreviousTrack,
     NextTrack,
+    Repeat { mode: RepeatMode },
     Volume { level: f32, muted: bool },
     Subtitles { active: bool },
     SettingsGear,
@@ -25,15 +28,32 @@ impl NixoApp {
         icon: ControlIcon,
         tooltip: &str,
     ) -> egui::Response {
-        let (rect, response) = ui.allocate_exact_size(size, Sense::click());
+        Self::render_ghost_icon_btn_enabled(ui, size, icon, tooltip, true)
+    }
+
+    /// Renderiza um botão Ghost com suporte a estado ativado/desativado (disabled).
+    pub(crate) fn render_ghost_icon_btn_enabled(
+        ui: &mut Ui,
+        size: Vec2,
+        icon: ControlIcon,
+        tooltip: &str,
+        enabled: bool,
+    ) -> egui::Response {
+        let sense = if enabled {
+            Sense::click()
+        } else {
+            Sense::hover()
+        };
+        let (rect, response) = ui.allocate_exact_size(size, sense);
 
         if ui.is_rect_visible(rect) {
-            let hovered = response.hovered();
-            let pressed = response.is_pointer_button_down_on();
+            let hovered = enabled && response.hovered();
+            let pressed = enabled && response.is_pointer_button_down_on();
 
             let is_active = match icon {
                 ControlIcon::Subtitles { active } => active,
                 ControlIcon::AspectFit { active } => active,
+                ControlIcon::Repeat { mode } => mode != RepeatMode::Off,
                 _ => false,
             };
 
@@ -43,7 +63,9 @@ impl NixoApp {
             let radius = CornerRadius::same(99);
 
             // Botão com estado ativo em alto contraste (verde da marca Nixo) ou ghost sutil em repouso
-            let bg_color = if is_active {
+            let bg_color = if !enabled {
+                Color32::TRANSPARENT
+            } else if is_active {
                 if pressed {
                     Color32::from_rgb(45, 142, 26)
                 } else if hovered {
@@ -63,7 +85,9 @@ impl NixoApp {
                 ui.painter().rect_filled(btn_rect, radius, bg_color);
             }
 
-            let fg = if is_active || hovered || pressed {
+            let fg = if !enabled {
+                Color32::from_rgba_unmultiplied(255, 255, 255, 60)
+            } else if is_active || hovered || pressed {
                 Color32::WHITE
             } else {
                 Color32::from_gray(220)
@@ -93,6 +117,16 @@ impl NixoApp {
                     painter.rect_filled(r1, CornerRadius::same(1), fg);
                     painter.rect_filled(r2, CornerRadius::same(1), fg);
                 }
+                ControlIcon::PreviousTrack => {
+                    // Lucide 'skip-back': barra vertical de parada + triângulo apontando para a esquerda
+                    painter.rect_filled(
+                        Rect::from_min_max(p(3.0, 4.0), p(5.5, 20.0)),
+                        CornerRadius::same(1),
+                        fg,
+                    );
+                    let pts = vec![p(20.0, 4.8), p(8.0, 12.0), p(20.0, 19.2)];
+                    painter.add(Shape::convex_polygon(pts, fg, Stroke::new(1.6_f32, fg)));
+                }
                 ControlIcon::NextTrack => {
                     // Lucide 'skip-forward': triângulo apontando para a direita + barra vertical de parada
                     let pts = vec![p(4.0, 4.8), p(16.0, 12.0), p(4.0, 19.2)];
@@ -102,6 +136,41 @@ impl NixoApp {
                         CornerRadius::same(1),
                         fg,
                     );
+                }
+                ControlIcon::Repeat { mode } => {
+                    let icon_color = if mode != RepeatMode::Off {
+                        Color32::WHITE
+                    } else {
+                        fg
+                    };
+                    let rep_stroke = Stroke::new(1.85_f32, icon_color);
+
+                    // Seta superior (indo para a direita)
+                    painter.add(Shape::line(
+                        vec![p(4.0, 13.0), p(4.0, 8.5), p(5.5, 7.0), p(18.0, 7.0)],
+                        rep_stroke,
+                    ));
+                    painter.add(Shape::line(
+                        vec![p(15.0, 4.0), p(18.0, 7.0), p(15.0, 10.0)],
+                        rep_stroke,
+                    ));
+
+                    // Seta inferior (indo para a esquerda)
+                    painter.add(Shape::line(
+                        vec![p(20.0, 11.0), p(20.0, 15.5), p(18.5, 17.0), p(6.0, 17.0)],
+                        rep_stroke,
+                    ));
+                    painter.add(Shape::line(
+                        vec![p(9.0, 14.0), p(6.0, 17.0), p(9.0, 20.0)],
+                        rep_stroke,
+                    ));
+
+                    if mode == RepeatMode::One {
+                        // Indicador '1' no centro do ícone de repetição
+                        let one_st = Stroke::new(2.0_f32, icon_color);
+                        painter.line_segment([p(12.0, 9.5), p(12.0, 14.5)], one_st);
+                        painter.line_segment([p(10.2, 11.2), p(12.0, 9.5)], one_st);
+                    }
                 }
                 ControlIcon::Volume { level, muted } => {
                     // Lucide 'volume-2' / 'volume-1' / 'volume-x'
@@ -273,7 +342,11 @@ impl NixoApp {
             }
         }
 
-        let response = response.on_hover_cursor(egui::CursorIcon::PointingHand);
+        let response = if enabled {
+            response.on_hover_cursor(egui::CursorIcon::PointingHand)
+        } else {
+            response
+        };
 
         if !tooltip.is_empty() {
             let tt_id = response.id.with("yt_tooltip");

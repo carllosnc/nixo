@@ -46,6 +46,7 @@ pub struct NixoApp {
     pub(crate) toast: Option<crate::toast::ToastNotification>,
     pub(crate) home_state: crate::home::HomeState,
     pub(crate) media_folders: Vec<PathBuf>,
+    pub(crate) playlist: nixo_core::Playlist,
     pub(crate) watch_history: HashMap<PathBuf, crate::settings::WatchHistoryEntry>,
     pub(crate) current_file: Option<PathBuf>,
     pub(crate) pending_resume: Option<Duration>,
@@ -64,7 +65,14 @@ impl NixoApp {
         Self::apply_settings(backend.as_mut(), &settings);
 
         let mut pending_resume = None;
+        let mut playlist = nixo_core::Playlist::new();
+        playlist.set_repeat_mode(settings.playback.repeat_mode);
+
         if let Some(path) = initial_file.as_ref() {
+            if let Some(dir) = path.parent() {
+                playlist = nixo_core::Playlist::from_folder_with_active(dir, path);
+                playlist.set_repeat_mode(settings.playback.repeat_mode);
+            }
             if let Some(entry) = settings.watch_history.get(path)
                 && entry.position_secs > 5.0
                 && !entry.is_completed()
@@ -109,6 +117,7 @@ impl NixoApp {
             toast: None,
             home_state: crate::home::HomeState::new(),
             media_folders: settings.library.folders.clone(),
+            playlist,
             watch_history: settings.watch_history.clone(),
             current_file: initial_file,
             pending_resume,
@@ -148,6 +157,8 @@ impl NixoApp {
             playback: PlaybackSettings {
                 volume: self.status.volume,
                 muted: self.status.muted,
+                repeat_mode: self.playlist.repeat_mode(),
+                autoplay: true,
             },
             subtitles: SubtitleSettings {
                 visible: self.status.subtitles_visible,
@@ -213,6 +224,7 @@ impl NixoApp {
                 self.video_texture = None;
                 self.aspect_ratio_fit = false;
                 self.saved_aspect_ratio_fit = false;
+                self.playlist = nixo_core::Playlist::new();
             } else {
                 if let PlayerCommand::LoadFile(ref path) = cmd {
                     self.record_current_playback();
@@ -222,6 +234,7 @@ impl NixoApp {
                         .get(path)
                         .filter(|e| e.position_secs > 5.0 && !e.is_completed())
                         .map(|e| Duration::from_secs_f64(e.position_secs));
+                    self.sync_playlist_for_file(path);
                 }
                 self.aspect_ratio_fit = self.saved_aspect_ratio_fit;
             }
@@ -288,6 +301,8 @@ impl eframe::App for NixoApp {
         if self.status.state == PlaybackState::Stopped {
             self.aspect_ratio_fit = false;
             self.saved_aspect_ratio_fit = false;
+        } else if self.status.state == PlaybackState::Ended {
+            self.handle_playback_ended();
         }
 
         if let Some(target) = self.pending_resume

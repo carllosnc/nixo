@@ -299,8 +299,32 @@ impl NixoApp {
         if ctx.input(|i| i.key_pressed(Key::V)) {
             self.dispatch(PlayerCommand::ToggleSubtitleVisibility);
         }
+        if ctx
+            .input(|i| (i.modifiers.shift && i.key_pressed(Key::N)) || i.key_pressed(Key::PageDown))
+        {
+            self.play_next();
+        }
+        if ctx.input(|i| (i.modifiers.shift && i.key_pressed(Key::P)) || i.key_pressed(Key::PageUp))
+        {
+            self.play_previous();
+        }
+        if ctx.input(|i| {
+            !i.modifiers.command
+                && !i.modifiers.ctrl
+                && !i.modifiers.alt
+                && !i.modifiers.shift
+                && i.key_pressed(Key::R)
+        }) {
+            self.cycle_repeat_mode();
+        }
+
         if ctx.input(|i| (i.modifiers.command || i.modifiers.ctrl) && i.key_pressed(Key::S))
-            || ctx.input(|i| !i.modifiers.command && !i.modifiers.ctrl && i.key_pressed(Key::P))
+            || ctx.input(|i| {
+                !i.modifiers.command
+                    && !i.modifiers.ctrl
+                    && !i.modifiers.shift
+                    && i.key_pressed(Key::P)
+            })
         {
             self.take_screenshot();
         } else if ctx.input(|i| !i.modifiers.command && !i.modifiers.ctrl && i.key_pressed(Key::S))

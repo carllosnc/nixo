@@ -9,6 +9,7 @@ mod icons;
 mod input;
 mod lucide;
 mod osd;
+mod playlist;
 mod popovers;
 mod settings;
 mod theme;

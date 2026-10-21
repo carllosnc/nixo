@@ -15,7 +15,7 @@ use std::sync::mpsc::{self, Sender};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use nixo_core::SubtitleStyle;
+use nixo_core::{RepeatMode, SubtitleStyle};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, warn};
 
@@ -85,6 +85,8 @@ pub struct PlaybackSettings {
     /// Volume entre 0.0 e 100.0
     pub volume: f32,
     pub muted: bool,
+    pub repeat_mode: RepeatMode,
+    pub autoplay: bool,
 }
 
 impl Default for PlaybackSettings {
@@ -92,6 +94,8 @@ impl Default for PlaybackSettings {
         Self {
             volume: 80.0,
             muted: false,
+            repeat_mode: RepeatMode::Off,
+            autoplay: true,
         }
     }
 }
@@ -323,6 +327,8 @@ mod tests {
             playback: PlaybackSettings {
                 volume: 42.5,
                 muted: true,
+                repeat_mode: RepeatMode::All,
+                autoplay: true,
             },
             subtitles: SubtitleSettings {
                 visible: false,

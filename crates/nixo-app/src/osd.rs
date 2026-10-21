@@ -85,8 +85,9 @@ impl NixoApp {
         let (row_rect, _resp) =
             ui.allocate_exact_size(vec2(ui.available_width(), BTN_HEIGHT), Sense::hover());
 
-        // A. Bloco da Esquerda (Play, Próximo, Volume, Tempo)
-        let left_w = (row_rect.width() - 155.0).max(310.0);
+        // A. Bloco da Esquerda (Anterior, Play, Próximo, Volume, Tempo, Playlist)
+        let right_w = 330.0;
+        let left_w = (row_rect.width() - right_w - 8.0).max(320.0);
         let left_rect = Rect::from_min_size(row_rect.left_top(), vec2(left_w, BTN_HEIGHT));
         let mut left_ui = ui.new_child(
             egui::UiBuilder::new()
@@ -96,7 +97,30 @@ impl NixoApp {
         left_ui.spacing_mut().item_spacing.x = 6.0;
         left_ui.spacing_mut().interact_size.y = BTN_HEIGHT;
 
-        // 1. Play / Pause
+        // 1. Faixa Anterior (Episódio / Vídeo Anterior)
+        let prev_enabled = self.playlist.has_previous();
+        let prev_tooltip = if let Some(prev_path) = self.playlist.peek_previous() {
+            let name = prev_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default();
+            format!("{}: {}", self.t().previous_track_tooltip, name)
+        } else {
+            self.t().previous_track_tooltip.to_string()
+        };
+        if Self::render_ghost_icon_btn_enabled(
+            &mut left_ui,
+            vec2(38.0, BTN_HEIGHT),
+            ControlIcon::PreviousTrack,
+            &prev_tooltip,
+            prev_enabled,
+        )
+        .clicked()
+        {
+            self.play_previous();
+        }
+
+        // 2. Play / Pause
         let play_icon = match self.status.state {
             PlaybackState::Playing => ControlIcon::Pause,
             _ => ControlIcon::Play,
@@ -116,19 +140,30 @@ impl NixoApp {
             self.dispatch(PlayerCommand::TogglePlayPause);
         }
 
-        // 2. Próximo (+5s)
-        if Self::render_ghost_icon_btn(
+        // 3. Próxima Faixa (Episódio / Vídeo Próximo)
+        let next_enabled = self.playlist.has_next();
+        let next_tooltip = if let Some(next_path) = self.playlist.peek_next() {
+            let name = next_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default();
+            format!("{}: {}", self.t().next_track_tooltip, name)
+        } else {
+            self.t().next_track_tooltip.to_string()
+        };
+        if Self::render_ghost_icon_btn_enabled(
             &mut left_ui,
-            vec2(40.0, BTN_HEIGHT),
+            vec2(38.0, BTN_HEIGHT),
             ControlIcon::NextTrack,
-            self.t().forward_5s_tooltip,
+            &next_tooltip,
+            next_enabled,
         )
         .clicked()
         {
-            self.dispatch(PlayerCommand::SeekRelative(5.0));
+            self.play_next();
         }
 
-        // 3. Ícone de Volume / Mute
+        // 4. Ícone de Volume / Mute
         let vol_tooltip = if self.status.muted {
             self.t().unmute_tooltip
         } else {
@@ -148,7 +183,7 @@ impl NixoApp {
             self.dispatch(PlayerCommand::ToggleMute);
         }
 
-        // 4. Slider de Volume inline (estilo YouTube: diretamente ao lado do alto-falante)
+        // 5. Slider de Volume inline (estilo YouTube: diretamente ao lado do alto-falante)
         let vol = if self.status.muted {
             0.0
         } else {
@@ -179,22 +214,25 @@ impl NixoApp {
 
         left_ui.add_space(8.0);
 
-        // 5. Timestamps no estilo YouTube: "14:28 / 42:15" alinhado à esquerda após o volume
+        // 6. Timestamps e Posição na Playlist
         let display_pos = Duration::from_secs_f64(current_secs);
-        let time_text = format!(
+        let mut time_text = format!(
             "{} / {}",
             format_duration(display_pos),
             format_duration(self.status.duration)
         );
+        if self.playlist.len() > 1 {
+            let cur_idx = self.playlist.current_index().map(|i| i + 1).unwrap_or(1);
+            time_text.push_str(&format!("  •  {cur_idx} / {}", self.playlist.len()));
+        }
         left_ui.label(
             RichText::new(time_text)
                 .font(FontId::monospace(13.5))
                 .color(Color32::from_gray(215)),
         );
 
-        // B. Bloco da Direita (CC, Configurações ⚙, Abrir Arquivo, Capturar Tela, Proporção, Tela Cheia)
+        // B. Bloco da Direita (CC, Configurações ⚙, Repetição, Capturar Tela, Proporção, Tela Cheia)
         let has_sub_warning = self.status.subtitle_health.is_warning();
-        let right_w = 285.0;
         let left_max_w = (row_rect.width() - right_w - 8.0).max(260.0);
         let _ = left_max_w;
         let right_rect = Rect::from_min_size(
@@ -259,7 +297,26 @@ impl NixoApp {
             self.take_screenshot();
         }
 
-        // 4. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
+        // 4. Modo de Repetição (Off / All / One)
+        let rep_tooltip = match self.playlist.repeat_mode() {
+            nixo_core::RepeatMode::Off => self.t().repeat_off_tooltip,
+            nixo_core::RepeatMode::All => self.t().repeat_all_tooltip,
+            nixo_core::RepeatMode::One => self.t().repeat_one_tooltip,
+        };
+        if Self::render_ghost_icon_btn(
+            &mut right_ui,
+            vec2(40.0, BTN_HEIGHT),
+            ControlIcon::Repeat {
+                mode: self.playlist.repeat_mode(),
+            },
+            rep_tooltip,
+        )
+        .clicked()
+        {
+            self.cycle_repeat_mode();
+        }
+
+        // 5. Configurações (Ícone de Engrenagem ⚙ estilo YouTube)
         let speed_tooltip = self.t().settings_speed_tooltip(self.status.speed);
         let gear_resp = Self::render_ghost_icon_btn(
             &mut right_ui,
@@ -268,7 +325,7 @@ impl NixoApp {
             &speed_tooltip,
         );
 
-        // 5. Legendas CC (Atalho rápido estilo YouTube + Badge vermelho de alerta quando inativa/fixa)
+        // 6. Legendas CC (Atalho rápido estilo YouTube + Badge vermelho de alerta quando inativa/fixa)
         let subs_active =
             self.status.subtitles_visible && self.status.subtitle_tracks.iter().any(|t| t.selected);
         let cc_tooltip = if let Some(warn_msg) = self.subtitle_health_warning() {
@@ -301,7 +358,7 @@ impl NixoApp {
             self.dispatch(PlayerCommand::ToggleSubtitleVisibility);
         }
 
-        // 6. Retornar para o Dashboard / Biblioteca de Mídia (primeira posição na esquerda)
+        // 7. Retornar para o Dashboard / Biblioteca de Mídia (primeira posição na esquerda)
         if Self::render_ghost_icon_btn(
             &mut right_ui,
             vec2(40.0, BTN_HEIGHT),

@@ -241,8 +241,8 @@ impl BackgroundScanner {
             }
         }
 
-        subdirs.sort_by_key(|a| a.name.to_lowercase());
-        files.sort_by_key(|a| a.name.to_lowercase());
+        subdirs.sort_by(|a, b| nixo_core::natural_cmp(&a.name, &b.name));
+        files.sort_by(|a, b| nixo_core::natural_cmp(&a.name, &b.name));
 
         (subdirs, files)
     }

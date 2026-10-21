@@ -83,6 +83,11 @@ pub static EN: Translations = Translations {
     // OSD / Bottom controls
     play_tooltip: "Play (Space)",
     pause_tooltip: "Pause (Space)",
+    previous_track_tooltip: "Previous video (Shift+P / PageUp)",
+    next_track_tooltip: "Next video (Shift+N / PageDown)",
+    repeat_off_tooltip: "Repeat: Off (R)",
+    repeat_all_tooltip: "Repeat: All (R)",
+    repeat_one_tooltip: "Repeat: Current (R)",
     forward_5s_tooltip: "Forward 5s (Right Arrow)",
     unmute_tooltip: "Unmute (M)",
     mute_tooltip: "Mute (M)",

@@ -83,6 +83,11 @@ pub static PT: Translations = Translations {
     // OSD / Controles inferiores
     play_tooltip: "Reproduzir (Espaço)",
     pause_tooltip: "Pausar (Espaço)",
+    previous_track_tooltip: "Vídeo anterior (Shift+P / PageUp)",
+    next_track_tooltip: "Próximo vídeo (Shift+N / PageDown)",
+    repeat_off_tooltip: "Repetição: Desativada (R)",
+    repeat_all_tooltip: "Repetição: Pasta inteira (R)",
+    repeat_one_tooltip: "Repetição: Arquivo atual (R)",
     forward_5s_tooltip: "Avançar 5s (Seta Direita)",
     unmute_tooltip: "Ativar som (M)",
     mute_tooltip: "Desativar som (M)",
