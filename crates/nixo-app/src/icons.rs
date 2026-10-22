@@ -1,4 +1,4 @@
-use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
+use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, Vec2};
 use nixo_core::RepeatMode;
 
 use crate::app::{ACCENT_COLOR, NixoApp};
@@ -13,7 +13,7 @@ pub(crate) enum ControlIcon {
     Volume { level: f32, muted: bool },
     Subtitles { active: bool },
     SettingsGear,
-    Dashboard,
+    Home,
     Fullscreen { is_fullscreen: bool },
     AspectFit { active: bool },
     Screenshot,
@@ -243,17 +243,15 @@ impl NixoApp {
                         .collect();
                     painter.add(Shape::closed_line(cog_pts, stroke));
                 }
-                ControlIcon::Dashboard => {
-                    // Lucide 'layout-dashboard': 4 blocos assimétricos característicos de painel
-                    let r1 = Rect::from_min_max(p(3.0, 3.0), p(10.0, 12.0));
-                    let r2 = Rect::from_min_max(p(14.0, 3.0), p(21.0, 8.0));
-                    let r3 = Rect::from_min_max(p(14.0, 12.0), p(21.0, 21.0));
-                    let r4 = Rect::from_min_max(p(3.0, 16.0), p(10.0, 21.0));
-                    let radius = CornerRadius::same(1);
-                    painter.rect_stroke(r1, radius, stroke, StrokeKind::Inside);
-                    painter.rect_stroke(r2, radius, stroke, StrokeKind::Inside);
-                    painter.rect_stroke(r3, radius, stroke, StrokeKind::Inside);
-                    painter.rect_stroke(r4, radius, stroke, StrokeKind::Inside);
+                ControlIcon::Home => {
+                    // Glifo 'home' (\u{e0f5}) renderizado diretamente da fonte Lucide
+                    painter.text(
+                        c,
+                        Align2::CENTER_CENTER,
+                        crate::lucide::HOME,
+                        crate::lucide::font_id(20.0),
+                        fg,
+                    );
                 }
                 ControlIcon::Fullscreen { is_fullscreen } => {
                     if !is_fullscreen {

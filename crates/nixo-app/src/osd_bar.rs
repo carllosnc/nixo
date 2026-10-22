@@ -479,7 +479,7 @@ impl NixoApp {
             && Self::render_ghost_icon_btn(
                 &mut right_ui,
                 vec2(40.0, BTN_HEIGHT),
-                ControlIcon::Dashboard,
+                ControlIcon::Home,
                 self.t().home_tooltip,
             )
             .clicked()

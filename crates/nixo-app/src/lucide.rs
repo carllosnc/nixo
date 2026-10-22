@@ -3,6 +3,7 @@
 
 use egui::{Color32, FontId, RichText};
 
+pub const HOME: &str = "\u{e0f5}";
 pub const FOLDER: &str = "\u{e0d7}";
 pub const FOLDER_PLUS: &str = "\u{e0d9}";
 pub const FOLDER_OPEN: &str = "\u{e247}";
