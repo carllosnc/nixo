@@ -201,6 +201,9 @@ pub struct Translations {
     pub aspect_fit_enable_tooltip: &'static str,
     pub screenshot_tooltip: &'static str,
     pub home_tooltip: &'static str,
+    pub playlist_drawer_title: &'static str,
+    pub playlist_drawer_tooltip: &'static str,
+    pub playlist_item_playing: &'static str,
     pub subtitles_disable_tooltip: &'static str,
     pub subtitles_enable_tooltip: &'static str,
 

@@ -98,6 +98,9 @@ pub static ES: Translations = Translations {
     aspect_fit_enable_tooltip: "Ajustar ventana a la proporción del video sin barras negras (Shift+A)",
     screenshot_tooltip: "Capturar pantalla (Ctrl+S / P)",
     home_tooltip: "Biblioteca inicial (Home)",
+    playlist_drawer_title: "Lista de Reproducción",
+    playlist_drawer_tooltip: "Lista de reproducción (L)",
+    playlist_item_playing: "Reproduciendo ahora",
     subtitles_disable_tooltip: "Desactivar subtítulos (V)",
     subtitles_enable_tooltip: "Activar subtítulos (V)",
 

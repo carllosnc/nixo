@@ -4,6 +4,9 @@
 use egui::{Color32, FontId, RichText};
 
 pub const HOME: &str = "\u{e0f5}";
+pub const LIST_VIDEO: &str = "\u{e2e2}";
+pub const REPEAT: &str = "\u{e146}";
+pub const REPEAT_1: &str = "\u{e1fd}";
 pub const FOLDER: &str = "\u{e0d7}";
 pub const FOLDER_PLUS: &str = "\u{e0d9}";
 pub const FOLDER_OPEN: &str = "\u{e247}";

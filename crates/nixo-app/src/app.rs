@@ -52,6 +52,7 @@ pub struct NixoApp {
     pub(crate) pending_resume: Option<Duration>,
     pub(crate) last_history_record: Instant,
     pub(crate) settings_dirty: bool,
+    pub(crate) playlist_drawer_open: bool,
 }
 
 impl NixoApp {
@@ -123,6 +124,7 @@ impl NixoApp {
             pending_resume,
             last_history_record: Instant::now(),
             settings_dirty: false,
+            playlist_drawer_open: false,
         }
     }
 
@@ -461,6 +463,9 @@ impl eframe::App for NixoApp {
         // 2. Elementos Flutuantes (OSD): Renderizados com animação de fade suave
         self.render_floating_osd(ctx, osd_alpha);
 
+        // 3. Gaveta Lateral de Playlist (Drawer)
+        self.render_playlist_drawer(ctx);
+
         // C. Banner de Erro Flutuante (se houver)
         if let Some(err) = &self.error_banner {
             egui::Area::new(Id::new("floating_error_banner"))
@@ -501,6 +506,7 @@ impl eframe::App for NixoApp {
             || osd_alpha > 0.005
             || self.toast.is_some()
             || ctx.memory(|m| m.any_popup_open())
+            || self.playlist_drawer_open
         {
             ctx.request_repaint_after(Duration::from_millis(16));
         }

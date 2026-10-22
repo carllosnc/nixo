@@ -98,6 +98,9 @@ pub static EN: Translations = Translations {
     aspect_fit_enable_tooltip: "Fit window to video aspect ratio without black bars (Shift+A)",
     screenshot_tooltip: "Take screenshot (Ctrl+S / P)",
     home_tooltip: "Home library (Home)",
+    playlist_drawer_title: "Playlist",
+    playlist_drawer_tooltip: "Playlist (L)",
+    playlist_item_playing: "Now playing",
     subtitles_disable_tooltip: "Disable subtitles (V)",
     subtitles_enable_tooltip: "Enable subtitles (V)",
 

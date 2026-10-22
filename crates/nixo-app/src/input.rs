@@ -61,6 +61,7 @@ impl NixoApp {
         self.video_texture = None;
         self.aspect_ratio_fit = false;
         self.saved_aspect_ratio_fit = false;
+        self.playlist_drawer_open = false;
         self.home_state.go_root();
         self.dispatch(PlayerCommand::Stop);
         self.settings_store.observe(self.current_settings());
@@ -284,7 +285,9 @@ impl NixoApp {
                 self.dispatch(PlayerCommand::SetVolume(next_vol));
             }
             if ctx.input(|i| i.key_pressed(Key::Escape)) && !any_popup_open {
-                if self.is_fullscreen {
+                if self.playlist_drawer_open {
+                    self.playlist_drawer_open = false;
+                } else if self.is_fullscreen {
                     self.toggle_fullscreen(ctx);
                 } else {
                     self.home_state.keyboard_nav_active = true;
@@ -316,6 +319,16 @@ impl NixoApp {
                 && i.key_pressed(Key::R)
         }) {
             self.cycle_repeat_mode();
+        }
+
+        if ctx.input(|i| {
+            !i.modifiers.command
+                && !i.modifiers.ctrl
+                && !i.modifiers.alt
+                && !i.modifiers.shift
+                && i.key_pressed(Key::L)
+        }) {
+            self.toggle_playlist_drawer();
         }
 
         if ctx.input(|i| (i.modifiers.command || i.modifiers.ctrl) && i.key_pressed(Key::S))

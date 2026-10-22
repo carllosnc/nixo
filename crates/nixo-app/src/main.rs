@@ -11,6 +11,7 @@ mod lucide;
 mod osd;
 mod osd_bar;
 mod playlist;
+mod playlist_drawer;
 mod popovers;
 mod settings;
 mod theme;

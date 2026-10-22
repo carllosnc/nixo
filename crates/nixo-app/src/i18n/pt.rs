@@ -98,6 +98,9 @@ pub static PT: Translations = Translations {
     aspect_fit_enable_tooltip: "Ajustar janela na proporção do vídeo sem bordas pretas (Shift+A)",
     screenshot_tooltip: "Capturar tela (Ctrl+S / P)",
     home_tooltip: "Página inicial (Home)",
+    playlist_drawer_title: "Lista de Reprodução",
+    playlist_drawer_tooltip: "Lista de reprodução (L)",
+    playlist_item_playing: "Reproduzindo agora",
     subtitles_disable_tooltip: "Desativar legendas (V)",
     subtitles_enable_tooltip: "Ativar legendas (V)",
 

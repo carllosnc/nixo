@@ -48,6 +48,24 @@ impl NixoApp {
         }
     }
 
+    /// Executa a reprodução direta de um item da playlist pelo seu índice.
+    pub(crate) fn play_playlist_index(&mut self, index: usize) {
+        if let Some(file) = self.playlist.set_current_by_index(index) {
+            let file_name = file
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default()
+                .to_string();
+            self.dispatch(PlayerCommand::LoadFile(file));
+            self.show_toast(crate::toast::ToastIcon::Play, file_name);
+        }
+    }
+
+    /// Alterna a visibilidade do drawer lateral de playlist.
+    pub(crate) fn toggle_playlist_drawer(&mut self) {
+        self.playlist_drawer_open = !self.playlist_drawer_open;
+    }
+
     /// Alterna sequencialmente o modo de repetição (Off -> All -> One -> Off)
     /// e exibe notificação toast na interface.
     pub(crate) fn cycle_repeat_mode(&mut self) {

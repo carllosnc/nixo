@@ -5,7 +5,7 @@ use egui::{
 };
 use nixo_core::{PlaybackState, PlayerCommand, format_duration};
 
-use crate::app::NixoApp;
+use crate::app::{ACCENT_COLOR, NixoApp};
 use crate::icons::ControlIcon;
 
 const BTN_HEIGHT: f32 = 44.0;
@@ -259,36 +259,42 @@ impl NixoApp {
 
         let display_pos = Duration::from_secs_f64(current_secs);
         let time_text = if tier.show_total_duration() {
-            let mut text = format!(
+            format!(
                 "{} / {}",
                 format_duration(display_pos),
                 format_duration(self.status.duration)
-            );
-            if tier.show_playlist_counter() && self.playlist.len() > 1 {
-                let cur_idx = self.playlist.current_index().map(|i| i + 1).unwrap_or(1);
-                text.push_str(&format!("  •  {cur_idx} / {}", self.playlist.len()));
-            }
-            text
+            )
         } else {
             format_duration(display_pos)
         };
 
         let time_font_size = if tier == OsdTier::Mini { 12.0 } else { 13.5 };
-        let time_label = left_ui.label(
+        left_ui.label(
             RichText::new(time_text)
                 .font(FontId::monospace(time_font_size))
                 .color(Color32::from_gray(215)),
         );
 
-        if !tier.show_playlist_counter() && self.playlist.len() > 1 {
+        if self.playlist.len() > 1 && tier.show_playlist_counter() {
             let cur_idx = self.playlist.current_index().map(|i| i + 1).unwrap_or(1);
-            time_label.on_hover_text(format!(
-                "{} / {}\nPlaylist: {} / {}",
-                format_duration(display_pos),
-                format_duration(self.status.duration),
-                cur_idx,
-                self.playlist.len()
-            ));
+            let pill_text = format!("•  {cur_idx} / {}", self.playlist.len());
+            let color = if self.playlist_drawer_open {
+                ACCENT_COLOR
+            } else {
+                Color32::from_gray(185)
+            };
+            let pl_btn = left_ui.add(
+                egui::Button::new(
+                    RichText::new(pill_text)
+                        .font(FontId::monospace(13.0))
+                        .color(color),
+                )
+                .frame(false),
+            );
+            if pl_btn.clicked() {
+                self.toggle_playlist_drawer();
+            }
+            pl_btn.on_hover_text(self.t().playlist_drawer_tooltip);
         }
     }
 

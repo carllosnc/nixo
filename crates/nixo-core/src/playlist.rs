@@ -317,6 +317,17 @@ impl Playlist {
             self.current_index = Some(self.items.len() - 1);
         }
     }
+
+    /// Define o item ativo diretamente pelo seu índice ordinal na lista.
+    /// Retorna o caminho do item se o índice for válido, ou `None` caso contrário.
+    pub fn set_current_by_index(&mut self, index: usize) -> Option<PathBuf> {
+        if index < self.items.len() {
+            self.current_index = Some(index);
+            self.items.get(index).cloned()
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]
@@ -382,6 +393,28 @@ mod tests {
         assert!(pl.has_next());
         let wrapped = pl.advance_next();
         assert_eq!(wrapped, Some(PathBuf::from("a.mp4")));
+        assert_eq!(pl.current_index(), Some(0));
+    }
+
+    #[test]
+    fn test_playlist_set_current_by_index() {
+        let mut pl = Playlist {
+            items: vec![
+                PathBuf::from("ep01.mp4"),
+                PathBuf::from("ep02.mp4"),
+                PathBuf::from("ep03.mp4"),
+            ],
+            current_index: Some(0),
+            repeat_mode: RepeatMode::Off,
+        };
+
+        assert_eq!(pl.set_current_by_index(2), Some(PathBuf::from("ep03.mp4")));
+        assert_eq!(pl.current_index(), Some(2));
+
+        assert_eq!(pl.set_current_by_index(0), Some(PathBuf::from("ep01.mp4")));
+        assert_eq!(pl.current_index(), Some(0));
+
+        assert_eq!(pl.set_current_by_index(99), None);
         assert_eq!(pl.current_index(), Some(0));
     }
 }
