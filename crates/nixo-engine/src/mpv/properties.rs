@@ -428,6 +428,7 @@ impl MpvBackend {
             audio_delay,
             aspect_ratio: self.aspect_ratio,
             video_fit: self.video_fit,
+            video_equalizer: self.video_equalizer,
         };
         self.last_status_poll = Instant::now();
         self.status_dirty = false;
@@ -435,31 +436,28 @@ impl MpvBackend {
 
     pub(super) fn set_aspect_ratio(&mut self, aspect: VideoAspect) {
         self.aspect_ratio = aspect;
-        match aspect {
-            VideoAspect::Auto => {
-                self.set_property_string(c"video-aspect-override", c"-1");
-            }
-            VideoAspect::Ratio16_9 => {
-                self.set_property_string(c"video-aspect-override", c"16:9");
-            }
-            VideoAspect::Ratio4_3 => {
-                self.set_property_string(c"video-aspect-override", c"4:3");
-            }
-            VideoAspect::Ratio235_1 => {
-                self.set_property_string(c"video-aspect-override", c"2.35:1");
-            }
-        }
+        let val = match aspect {
+            VideoAspect::Auto => c"-1",
+            VideoAspect::Ratio16_9 => c"16:9",
+            VideoAspect::Ratio4_3 => c"4:3",
+            VideoAspect::Ratio235_1 => c"2.35:1",
+        };
+        self.set_property_string(c"video-aspect-override", val);
         self.first_frame_pending = true;
     }
 
     pub(super) fn set_video_fit(&mut self, fit: VideoFit) {
         self.video_fit = fit;
-        let panscan = match fit {
-            VideoFit::Fit => 0.0,
-            VideoFit::Fill => 1.0,
-        };
-        self.set_double(c"panscan", panscan);
+        self.set_double(c"panscan", if fit == VideoFit::Fill { 1.0 } else { 0.0 });
         self.first_frame_pending = true;
+    }
+
+    pub(super) fn set_video_equalizer(&mut self, eq: nixo_core::VideoEqualizer) {
+        self.video_equalizer = eq;
+        self.set_i64(c"brightness", eq.brightness as i64);
+        self.set_i64(c"contrast", eq.contrast as i64);
+        self.set_i64(c"saturation", eq.saturation as i64);
+        self.set_i64(c"gamma", eq.gamma as i64);
     }
 
     pub(super) fn take_screenshot(&self, path: &Path) {

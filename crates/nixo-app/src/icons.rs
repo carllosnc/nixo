@@ -16,6 +16,7 @@ pub(crate) enum ControlIcon {
     Home,
     Fullscreen { is_fullscreen: bool },
     AspectFit { active: bool },
+    Pip { active: bool },
     Screenshot,
 }
 
@@ -53,6 +54,7 @@ impl NixoApp {
             let is_active = match icon {
                 ControlIcon::Subtitles { active } => active,
                 ControlIcon::AspectFit { active } => active,
+                ControlIcon::Pip { active } => active,
                 ControlIcon::Repeat { mode } => mode != RepeatMode::Off,
                 _ => false,
             };
@@ -318,6 +320,16 @@ impl NixoApp {
                         painter.line_segment([p(17.5, 7.0), p(17.5, 17.0)], bar_st);
                     }
                 }
+                ControlIcon::Pip { active } => {
+                    let icon_color = if active { Color32::WHITE } else { fg };
+                    let st = Stroke::new(1.85_f32, icon_color);
+                    let outer = Rect::from_min_max(p(2.5, 4.5), p(21.5, 19.5));
+                    painter.rect_stroke(outer, CornerRadius::same(2), st, StrokeKind::Inside);
+
+                    let inner = Rect::from_min_max(p(11.5, 11.0), p(19.5, 17.5));
+                    let inner_fill = if active { Color32::WHITE } else { fg };
+                    painter.rect_filled(inner, CornerRadius::same(1), inner_fill);
+                }
                 ControlIcon::Screenshot => {
                     // Lucide 'camera': corpo canônico da câmera com visor superior e lente central
                     let body_pts = vec![
@@ -347,10 +359,7 @@ impl NixoApp {
         };
 
         if !tooltip.is_empty() {
-            let tt_id = response.id.with("yt_tooltip");
-            let is_hovered = response.hovered();
-            let tt_alpha = ui.ctx().animate_bool_with_time(tt_id, is_hovered, 0.12);
-            Self::render_player_tooltip(ui.ctx(), tt_id, rect, tooltip, tt_alpha);
+            crate::components::show_tooltip(ui.ctx(), &response, tooltip);
         }
 
         response

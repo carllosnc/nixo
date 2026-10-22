@@ -111,6 +111,19 @@ impl NixoApp {
         if let Some(aspect) = choice_list(ui, aspect_choices) {
             actions.send(PlayerCommand::SetAspectRatio(aspect));
         }
+
+        ui.add(MenuDivider);
+        let eq_summary = if self.status.video_equalizer.is_default() {
+            t.speed_normal
+        } else {
+            "✓"
+        };
+        if ui
+            .add(NavRow::new(t.video_equalizer_title, eq_summary))
+            .clicked()
+        {
+            actions.navigate(SettingsTab::VideoEqualizer);
+        }
     }
 
     pub(super) fn render_tab_audio(&self, ui: &mut Ui, actions: &mut MenuActions) {

@@ -64,6 +64,13 @@ impl NixoApp {
     /// Alterna a visibilidade do drawer lateral de playlist.
     pub(crate) fn toggle_playlist_drawer(&mut self) {
         self.playlist_drawer_open = !self.playlist_drawer_open;
+        if self.playlist_drawer_open {
+            self.playlist_focused_index = self.playlist.current_index().unwrap_or(0);
+            self.playlist_keyboard_nav_active = true;
+            self.playlist_scroll_to_index = self.playlist.current_index().or(Some(0));
+        } else {
+            self.playlist_keyboard_nav_active = false;
+        }
     }
 
     /// Alterna sequencialmente o modo de repetição (Off -> All -> One -> Off)

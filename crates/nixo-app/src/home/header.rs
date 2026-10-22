@@ -98,8 +98,8 @@ pub fn render_header(
                         .font(font_body())
                         .color(TEXT_SECONDARY),
                 )
-                .on_hover_cursor(CursorIcon::PointingHand)
-                .on_hover_text(t.header_home_tooltip);
+                .on_hover_cursor(CursorIcon::PointingHand);
+            crate::components::show_tooltip(ui.ctx(), &root_link, t.header_home_tooltip);
             if root_link.clicked() {
                 action = HomeAction::GoRoot;
             }

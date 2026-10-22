@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use egui::epaint::{Mesh, Vertex};
 use egui::{
-    Align2, Color32, ColorImage, Context, CornerRadius, FontId, Id, Margin, Pos2, Rect, RichText,
-    Sense, Stroke, TextureOptions, Ui, vec2,
+    Align2, Color32, ColorImage, Context, CornerRadius, FontId, Id, Pos2, Rect, RichText, Sense,
+    Stroke, TextureOptions, Ui, vec2,
 };
 use nixo_core::{PlaybackState, format_duration};
 
@@ -237,110 +237,6 @@ impl NixoApp {
                     FontId::monospace(13.0),
                     Color32::WHITE,
                 );
-            });
-    }
-
-    /// Renderiza um tooltip flutuante estilo YouTube (cápsula escura elegante, sem quebra de linha, posicionado com precisão).
-    pub(crate) fn render_player_tooltip(
-        ctx: &Context,
-        id: Id,
-        anchor_rect: Rect,
-        text: &str,
-        alpha: f32,
-    ) {
-        if alpha <= 0.05 || text.is_empty() {
-            return;
-        }
-
-        let font_id = FontId::proportional(12.0);
-        let text_w = ctx.fonts(|f| {
-            f.layout_no_wrap(text.to_string(), font_id.clone(), Color32::WHITE)
-                .size()
-                .x
-        });
-        let pill_w = text_w + 24.0; // Margem interna horizontal (10px de cada lado + 4px folga)
-        let half_w = pill_w * 0.5;
-
-        let screen = ctx.screen_rect();
-        let clamped_x = anchor_rect
-            .center()
-            .x
-            .clamp(screen.left() + half_w + 8.0, screen.right() - half_w - 8.0);
-        let anchor_pos = Pos2::new(
-            clamped_x,
-            (anchor_rect.top() - 8.0).max(screen.top() + 10.0),
-        );
-
-        egui::Area::new(id)
-            .pivot(Align2::CENTER_BOTTOM)
-            .fixed_pos(anchor_pos)
-            .order(egui::Order::Tooltip)
-            .interactable(false)
-            .show(ctx, |ui| {
-                ui.set_opacity(alpha);
-                ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-
-                // Estilo exato do YouTube: fundo cinza escuro translúcido com cantos 5px e borda hairline
-                egui::Frame::NONE
-                    .fill(Color32::from_rgba_premultiplied(28, 28, 28, 235))
-                    .stroke(Stroke::new(
-                        1.0_f32,
-                        Color32::from_rgba_unmultiplied(255, 255, 255, 24),
-                    ))
-                    .corner_radius(CornerRadius::same(5))
-                    .inner_margin(Margin::symmetric(10, 6))
-                    .show(ui, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 2.0;
-                            if let Some(pos) = text.find(" (") {
-                                let title = &text[..pos];
-                                let shortcut = &text[pos..];
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(title)
-                                            .font(font_id.clone())
-                                            .color(Color32::WHITE),
-                                    )
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                                );
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(shortcut)
-                                            .font(FontId::proportional(11.5))
-                                            .color(Color32::from_gray(165)),
-                                    )
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                                );
-                            } else if let Some(pos) = text.find(": ") {
-                                let prefix = &text[..=pos];
-                                let val = &text[pos + 1..];
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(prefix)
-                                            .font(font_id.clone())
-                                            .color(Color32::from_gray(185)),
-                                    )
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                                );
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(val)
-                                            .font(font_id)
-                                            .strong()
-                                            .color(Color32::WHITE),
-                                    )
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                                );
-                            } else {
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(text).font(font_id).color(Color32::WHITE),
-                                    )
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                                );
-                            }
-                        });
-                    });
             });
     }
 }

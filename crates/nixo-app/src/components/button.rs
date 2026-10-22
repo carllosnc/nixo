@@ -169,7 +169,9 @@ pub fn ghost(ui: &mut Ui, icon: Option<&str>, text: &str) -> Response {
 /// Botão de ícone circular padronizado com hover suave e tooltip.
 #[inline]
 pub fn icon_button(ui: &mut Ui, variant: ButtonVariant, icon: &str, tooltip: &str) -> Response {
-    render_button(ui, variant, Some(icon), "", 38.0).on_hover_text(tooltip)
+    let resp = render_button(ui, variant, Some(icon), "", 38.0);
+    super::tooltip::show_tooltip(ui.ctx(), &resp, tooltip);
+    resp
 }
 
 /// Atalho para botão de ícone primário (branco com contraste alto).

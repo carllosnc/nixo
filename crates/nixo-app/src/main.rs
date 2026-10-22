@@ -8,8 +8,11 @@ mod i18n;
 mod icons;
 mod input;
 mod lucide;
+mod mini_player;
 mod osd;
 mod osd_bar;
+#[cfg(test)]
+mod osd_bar_tests;
 mod playlist;
 mod playlist_drawer;
 mod popovers;
@@ -36,7 +39,7 @@ fn main() -> eframe::Result<()> {
     let mut viewport = egui::ViewportBuilder::default()
         .with_title("Nixo Media Player")
         .with_inner_size([1120.0, 680.0])
-        .with_min_inner_size([360.0, 240.0])
+        .with_min_inner_size([320.0, 180.0])
         .with_transparent(true)
         .with_drag_and_drop(true);
 

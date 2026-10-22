@@ -29,6 +29,7 @@ pub struct SyntheticBackend {
     audio_delay: f64,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
+    video_equalizer: nixo_core::VideoEqualizer,
     last_preview_sec: Option<u64>,
 }
 
@@ -85,6 +86,7 @@ impl SyntheticBackend {
             audio_delay: 0.0,
             aspect_ratio: VideoAspect::default(),
             video_fit: VideoFit::default(),
+            video_equalizer: nixo_core::VideoEqualizer::default(),
             last_preview_sec: None,
         }
     }
@@ -332,6 +334,9 @@ impl MediaBackend for SyntheticBackend {
             PlayerCommand::SetVideoFit(fit) => {
                 self.video_fit = fit;
             }
+            PlayerCommand::SetVideoEqualizer(eq) => {
+                self.video_equalizer = eq;
+            }
             PlayerCommand::TakeScreenshot(path) => {
                 if let Some(parent) = path.parent() {
                     let _ = std::fs::create_dir_all(parent);
@@ -370,6 +375,7 @@ impl MediaBackend for SyntheticBackend {
             audio_delay: self.audio_delay,
             aspect_ratio: self.aspect_ratio,
             video_fit: self.video_fit,
+            video_equalizer: self.video_equalizer,
         }
     }
 

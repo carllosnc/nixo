@@ -122,6 +122,12 @@ pub struct Translations {
     pub video_aspect_4_3: &'static str,
     pub video_aspect_235_1: &'static str,
     pub video_summary_fit_auto: &'static str,
+    pub video_equalizer_title: &'static str,
+    pub video_brightness: &'static str,
+    pub video_contrast: &'static str,
+    pub video_saturation: &'static str,
+    pub video_gamma: &'static str,
+    pub video_reset_eq: &'static str,
 
     // Aba de Velocidade
     pub speed_title: &'static str,
@@ -203,9 +209,12 @@ pub struct Translations {
     pub home_tooltip: &'static str,
     pub playlist_drawer_title: &'static str,
     pub playlist_drawer_tooltip: &'static str,
-    pub playlist_item_playing: &'static str,
+    pub playlist_close_tooltip: &'static str,
     pub subtitles_disable_tooltip: &'static str,
     pub subtitles_enable_tooltip: &'static str,
+    pub mini_player_tooltip: &'static str,
+    pub mini_player_restore: &'static str,
+    pub subtitle_open_video_first: &'static str,
 
     // Biblioteca / Home
     pub header_back: &'static str,
@@ -244,6 +253,16 @@ pub struct Translations {
 impl Translations {
     pub fn volume_level(&self, vol: f32) -> String {
         format!("Volume: {vol:.0}%")
+    }
+
+    pub fn subtitle_loaded(&self, filename: &str) -> String {
+        match self.menu_language {
+            "LANGUAGE" => format!("Subtitle loaded: {filename}"),
+            "IDIOMA" if self.settings_title == "CONFIGURAÇÕES" => {
+                format!("Legenda carregada: {filename}")
+            }
+            _ => format!("Subtítulo cargado: {filename}"),
+        }
     }
 
     pub fn settings_speed_tooltip(&self, speed: f32) -> String {

@@ -294,7 +294,16 @@ impl NixoApp {
             if pl_btn.clicked() {
                 self.toggle_playlist_drawer();
             }
-            pl_btn.on_hover_text(self.t().playlist_drawer_tooltip);
+            if pl_btn.hovered() {
+                left_ui
+                    .ctx()
+                    .set_cursor_icon(egui::CursorIcon::PointingHand);
+            }
+            crate::components::show_tooltip(
+                left_ui.ctx(),
+                &pl_btn,
+                self.t().playlist_drawer_tooltip,
+            );
         }
     }
 
@@ -357,7 +366,7 @@ impl NixoApp {
         } else {
             self.t().volume_level(self.status.volume)
         };
-        Self::render_player_tooltip(ctx, vol_tt_id, vol_resp.rect, &vol_text, vol_alpha);
+        crate::components::render_tooltip(ctx, vol_tt_id, vol_resp.rect, &vol_text, vol_alpha);
     }
 
     /// Renderiza os controles da direita filtrados pela prioridade do `OsdTier`.
@@ -389,17 +398,31 @@ impl NixoApp {
         }
 
         if tier.show_aspect_and_screenshot() {
+            if Self::render_ghost_icon_btn(
+                &mut right_ui,
+                vec2(40.0, BTN_HEIGHT),
+                ControlIcon::Pip {
+                    active: self.is_mini_player,
+                },
+                self.t().mini_player_tooltip,
+            )
+            .clicked()
+            {
+                self.toggle_mini_player(ctx);
+            }
+
             let fit_tooltip = if self.aspect_ratio_fit {
                 self.t().aspect_fit_disable_tooltip
             } else {
                 self.t().aspect_fit_enable_tooltip
             };
+            let fit_icon = ControlIcon::AspectFit {
+                active: self.aspect_ratio_fit,
+            };
             if Self::render_ghost_icon_btn(
                 &mut right_ui,
                 vec2(40.0, BTN_HEIGHT),
-                ControlIcon::AspectFit {
-                    active: self.aspect_ratio_fit,
-                },
+                fit_icon,
                 fit_tooltip,
             )
             .clicked()
@@ -425,12 +448,13 @@ impl NixoApp {
                 nixo_core::RepeatMode::All => self.t().repeat_all_tooltip,
                 nixo_core::RepeatMode::One => self.t().repeat_one_tooltip,
             };
+            let rep_icon = ControlIcon::Repeat {
+                mode: self.playlist.repeat_mode(),
+            };
             if Self::render_ghost_icon_btn(
                 &mut right_ui,
                 vec2(40.0, BTN_HEIGHT),
-                ControlIcon::Repeat {
-                    mode: self.playlist.repeat_mode(),
-                },
+                rep_icon,
                 rep_tooltip,
             )
             .clicked()
@@ -457,12 +481,13 @@ impl NixoApp {
             } else {
                 self.t().subtitles_enable_tooltip.to_string()
             };
+            let cc_icon = ControlIcon::Subtitles {
+                active: subs_active,
+            };
             let cc_resp = Self::render_ghost_icon_btn(
                 &mut right_ui,
                 vec2(40.0, BTN_HEIGHT),
-                ControlIcon::Subtitles {
-                    active: subs_active,
-                },
+                cc_icon,
                 &cc_tooltip,
             );
             if self.status.subtitle_health.is_warning() {
@@ -494,48 +519,5 @@ impl NixoApp {
         }
 
         self.render_settings_popup(ctx, &gear_resp);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::OsdTier;
-
-    #[test]
-    fn test_tier_from_width() {
-        assert_eq!(OsdTier::from_width(1920.0), OsdTier::Full);
-        assert_eq!(OsdTier::from_width(800.0), OsdTier::Full);
-        assert_eq!(OsdTier::from_width(780.0), OsdTier::Full);
-        assert_eq!(OsdTier::from_width(779.0), OsdTier::Medium);
-        assert_eq!(OsdTier::from_width(600.0), OsdTier::Medium);
-        assert_eq!(OsdTier::from_width(580.0), OsdTier::Medium);
-        assert_eq!(OsdTier::from_width(579.0), OsdTier::Compact);
-        assert_eq!(OsdTier::from_width(450.0), OsdTier::Compact);
-        assert_eq!(OsdTier::from_width(420.0), OsdTier::Compact);
-        assert_eq!(OsdTier::from_width(419.0), OsdTier::Mini);
-        assert_eq!(OsdTier::from_width(320.0), OsdTier::Mini);
-    }
-
-    #[test]
-    fn test_tier_right_button_counts() {
-        assert_eq!(OsdTier::Full.right_button_count(), 7);
-        assert_eq!(OsdTier::Medium.right_button_count(), 5);
-        assert_eq!(OsdTier::Compact.right_button_count(), 3);
-        assert_eq!(OsdTier::Mini.right_button_count(), 2);
-    }
-
-    #[test]
-    fn test_tier_feature_flags() {
-        assert!(OsdTier::Full.show_aspect_and_screenshot());
-        assert!(!OsdTier::Medium.show_aspect_and_screenshot());
-
-        assert!(OsdTier::Medium.show_repeat_and_home());
-        assert!(!OsdTier::Compact.show_repeat_and_home());
-
-        assert!(OsdTier::Compact.show_cc());
-        assert!(!OsdTier::Mini.show_cc());
-
-        assert!(OsdTier::Compact.show_track_navigation());
-        assert!(!OsdTier::Mini.show_track_navigation());
     }
 }

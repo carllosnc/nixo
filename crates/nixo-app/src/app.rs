@@ -53,6 +53,12 @@ pub struct NixoApp {
     pub(crate) last_history_record: Instant,
     pub(crate) settings_dirty: bool,
     pub(crate) playlist_drawer_open: bool,
+    pub(crate) playlist_focused_index: usize,
+    pub(crate) playlist_keyboard_nav_active: bool,
+    pub(crate) playlist_scroll_to_index: Option<usize>,
+    pub(crate) is_mini_player: bool,
+    pub(crate) saved_window_size: Option<Vec2>,
+    pub(crate) saved_always_on_top: bool,
 }
 
 impl NixoApp {
@@ -125,6 +131,12 @@ impl NixoApp {
             last_history_record: Instant::now(),
             settings_dirty: false,
             playlist_drawer_open: false,
+            playlist_focused_index: 0,
+            playlist_keyboard_nav_active: false,
+            playlist_scroll_to_index: None,
+            is_mini_player: false,
+            saved_window_size: None,
+            saved_always_on_top: settings.window.always_on_top,
         }
     }
 
@@ -461,10 +473,12 @@ impl eframe::App for NixoApp {
             });
 
         // 2. Elementos Flutuantes (OSD): Renderizados com animação de fade suave
-        self.render_floating_osd(ctx, osd_alpha);
-
-        // 3. Gaveta Lateral de Playlist (Drawer)
-        self.render_playlist_drawer(ctx);
+        if self.is_mini_player {
+            self.render_mini_player_overlay(ctx);
+        } else {
+            self.render_floating_osd(ctx, osd_alpha);
+            self.render_playlist_drawer(ctx);
+        }
 
         // C. Banner de Erro Flutuante (se houver)
         if let Some(err) = &self.error_banner {

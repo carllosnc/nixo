@@ -256,10 +256,16 @@ impl NixoApp {
     pub(crate) fn configure_theme(ctx: &Context) {
         let mut visuals = egui::Visuals::dark();
         visuals.panel_fill = Color32::TRANSPARENT;
-        visuals.window_fill = Color32::from_rgba_premultiplied(24, 24, 28, 248);
+        visuals.window_fill = Color32::from_rgba_unmultiplied(20, 22, 28, 248);
         visuals.window_stroke =
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, 25));
-        visuals.window_corner_radius = CornerRadius::same(12);
+            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, 22));
+        visuals.window_corner_radius = CornerRadius::same(99);
+        visuals.popup_shadow = egui::Shadow {
+            offset: [0, 4],
+            blur: 14,
+            spread: 0,
+            color: Color32::from_black_alpha(130),
+        };
         visuals.menu_corner_radius = CornerRadius::same(12);
         visuals.extreme_bg_color = BG_OLED_BLACK;
         visuals.selection.bg_fill = ACCENT_COLOR;

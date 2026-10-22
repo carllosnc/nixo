@@ -32,6 +32,7 @@ pub const VOLUME_2: &str = "\u{e1ab}";
 pub const MUSIC: &str = "\u{e122}";
 pub const GLOBE: &str = "\u{e0e8}";
 pub const LANGUAGES: &str = "\u{e0fe}";
+pub const SUBTITLES: &str = "\u{e16e}";
 
 /// Retorna a `FontId` dedicada para a fonte Lucide Icons.
 #[inline]

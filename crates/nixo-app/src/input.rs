@@ -62,6 +62,7 @@ impl NixoApp {
         self.aspect_ratio_fit = false;
         self.saved_aspect_ratio_fit = false;
         self.playlist_drawer_open = false;
+        self.playlist_keyboard_nav_active = false;
         self.home_state.go_root();
         self.dispatch(PlayerCommand::Stop);
         self.settings_store.observe(self.current_settings());
@@ -120,27 +121,50 @@ impl NixoApp {
         let scrolled = ctx.input(|i| {
             i.smooth_scroll_delta.length_sq() > 0.0 || i.raw_scroll_delta.length_sq() > 0.0
         });
-        if scrolled && self.home_state.keyboard_nav_active {
-            self.home_state.keyboard_nav_active = false;
+        if scrolled {
+            if self.home_state.keyboard_nav_active {
+                self.home_state.keyboard_nav_active = false;
+            }
+            if self.playlist_keyboard_nav_active {
+                self.playlist_keyboard_nav_active = false;
+            }
         }
 
-        // Suporte a Drag & Drop de arquivos de vídeo e pastas de mídia direto na janela
+        // Suporte a Drag & Drop de arquivos de vídeo, pastas e legendas direto na janela
         let has_dropped = ctx.input(|i| !i.raw.dropped_files.is_empty());
         if has_dropped {
             let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
             let mut added_folders = false;
             for file in dropped_files {
-                if let Some(path) = file.path {
-                    if path.is_dir() {
-                        if !self.media_folders.contains(&path) {
-                            self.media_folders.push(path.clone());
-                            self.home_state.scanner.invalidate(&path);
-                            added_folders = true;
-                        }
-                    } else {
-                        self.dispatch(PlayerCommand::LoadFile(path));
-                        break;
+                let Some(path) = file.path else { continue };
+                if path.is_dir() {
+                    if !self.media_folders.contains(&path) {
+                        self.media_folders.push(path.clone());
+                        self.home_state.scanner.invalidate(&path);
+                        added_folders = true;
                     }
+                } else if is_sub_ext(&path) {
+                    if self.status.state != nixo_core::PlaybackState::Stopped {
+                        let name = path
+                            .file_name()
+                            .map(|n| n.to_string_lossy())
+                            .unwrap_or_default();
+                        let msg = self.t().subtitle_loaded(&name);
+                        self.dispatch(PlayerCommand::LoadSubtitleFile(path));
+                        self.show_toast(
+                            crate::toast::ToastIcon::Lucide(crate::lucide::SUBTITLES),
+                            msg,
+                        );
+                    } else {
+                        self.show_toast(
+                            crate::toast::ToastIcon::Lucide(crate::lucide::SUBTITLES),
+                            self.t().subtitle_open_video_first,
+                        );
+                    }
+                    break;
+                } else {
+                    self.dispatch(PlayerCommand::LoadFile(path));
+                    break;
                 }
             }
             if added_folders {
@@ -168,9 +192,17 @@ impl NixoApp {
                 if self.home_state.keyboard_nav_active {
                     self.home_state.keyboard_nav_active = false;
                 }
+                if self.playlist_keyboard_nav_active {
+                    self.playlist_keyboard_nav_active = false;
+                }
             }
-            if any_down && self.home_state.keyboard_nav_active {
-                self.home_state.keyboard_nav_active = false;
+            if any_down {
+                if self.home_state.keyboard_nav_active {
+                    self.home_state.keyboard_nav_active = false;
+                }
+                if self.playlist_keyboard_nav_active {
+                    self.playlist_keyboard_nav_active = false;
+                }
             }
             self.last_pointer_pos = Some(pos);
 
@@ -265,6 +297,46 @@ impl NixoApp {
                     self.home_state.go_back();
                 }
             }
+        } else if self.playlist_drawer_open {
+            // Navegação vertical por teclado na gaveta lateral de playlist
+            let total = self.playlist.len();
+            if total > 0 {
+                let prev_focused = self.playlist_focused_index;
+                if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
+                    self.playlist_focused_index = self.playlist_focused_index.saturating_sub(1);
+                }
+                if ctx.input(|i| i.key_pressed(Key::ArrowDown))
+                    && self.playlist_focused_index + 1 < total
+                {
+                    self.playlist_focused_index += 1;
+                }
+                if ctx.input(|i| i.key_pressed(Key::Home)) {
+                    self.playlist_focused_index = 0;
+                }
+                if ctx.input(|i| i.key_pressed(Key::End)) {
+                    self.playlist_focused_index = total - 1;
+                }
+                if ctx.input(|i| i.key_pressed(Key::PageUp)) {
+                    self.playlist_focused_index = self.playlist_focused_index.saturating_sub(5);
+                }
+                if ctx.input(|i| i.key_pressed(Key::PageDown)) {
+                    self.playlist_focused_index = (self.playlist_focused_index + 5).min(total - 1);
+                }
+                if self.playlist_focused_index != prev_focused {
+                    self.playlist_keyboard_nav_active = true;
+                    self.playlist_scroll_to_index = Some(self.playlist_focused_index);
+                }
+                if ctx.input(|i| i.key_pressed(Key::Enter)) {
+                    self.play_playlist_index(self.playlist_focused_index);
+                }
+            }
+            if ctx.input(|i| i.key_pressed(Key::Space)) {
+                self.dispatch(PlayerCommand::TogglePlayPause);
+            }
+            if ctx.input(|i| i.key_pressed(Key::Escape)) && !any_popup_open {
+                self.playlist_drawer_open = false;
+                self.playlist_keyboard_nav_active = false;
+            }
         } else {
             // Controles de reprodução de vídeo quando há mídia em execução
             if ctx.input(|i| i.key_pressed(Key::Space)) {
@@ -285,10 +357,10 @@ impl NixoApp {
                 self.dispatch(PlayerCommand::SetVolume(next_vol));
             }
             if ctx.input(|i| i.key_pressed(Key::Escape)) && !any_popup_open {
-                if self.playlist_drawer_open {
-                    self.playlist_drawer_open = false;
-                } else if self.is_fullscreen {
+                if self.is_fullscreen {
                     self.toggle_fullscreen(ctx);
+                } else if self.is_mini_player {
+                    self.toggle_mini_player(ctx);
                 } else {
                     self.home_state.keyboard_nav_active = true;
                     self.dispatch(PlayerCommand::Stop);
@@ -301,6 +373,9 @@ impl NixoApp {
         }
         if ctx.input(|i| i.key_pressed(Key::V)) {
             self.dispatch(PlayerCommand::ToggleSubtitleVisibility);
+        }
+        if ctx.input(|i| !i.modifiers.command && !i.modifiers.ctrl && i.key_pressed(Key::I)) {
+            self.toggle_mini_player(ctx);
         }
         if ctx
             .input(|i| (i.modifiers.shift && i.key_pressed(Key::N)) || i.key_pressed(Key::PageDown))
@@ -320,7 +395,6 @@ impl NixoApp {
         }) {
             self.cycle_repeat_mode();
         }
-
         if ctx.input(|i| {
             !i.modifiers.command
                 && !i.modifiers.ctrl
@@ -330,7 +404,6 @@ impl NixoApp {
         }) {
             self.toggle_playlist_drawer();
         }
-
         if ctx.input(|i| (i.modifiers.command || i.modifiers.ctrl) && i.key_pressed(Key::S))
             || ctx.input(|i| {
                 !i.modifiers.command
@@ -392,46 +465,15 @@ impl NixoApp {
             self.open_file_dialog();
         }
     }
+}
 
-    pub(crate) fn active_video_aspect(&self) -> f32 {
-        self.status
-            .aspect_ratio
-            .ratio_f64()
-            .map(|r| r as f32)
-            .unwrap_or_else(|| {
-                if let Some(tex) = &self.video_texture {
-                    let sz = tex.size_vec2();
-                    (sz.x / sz.y.max(1.0)).max(0.1)
-                } else {
-                    16.0 / 9.0
-                }
-            })
-            .clamp(0.2, 5.0)
-    }
-
-    pub(crate) fn snap_window_to_aspect(&mut self, ctx: &Context) {
-        if self.is_fullscreen {
-            return;
-        }
-        let current_size = ctx.screen_rect().size();
-        if current_size.x <= 100.0 || current_size.y <= 100.0 {
-            return;
-        }
-        let aspect = self.active_video_aspect();
-        let target_h = (current_size.x / aspect).round().max(180.0);
-        let target_size = egui::Vec2::new(current_size.x, target_h);
-        self.last_window_size = target_size;
-        ctx.send_viewport_cmd(ViewportCommand::InnerSize(target_size));
-    }
-
-    pub(crate) fn toggle_aspect_ratio_fit(&mut self, ctx: &Context) {
-        if self.status.state == nixo_core::PlaybackState::Stopped {
-            return;
-        }
-        self.aspect_ratio_fit = !self.aspect_ratio_fit;
-        self.saved_aspect_ratio_fit = self.aspect_ratio_fit;
-        if self.aspect_ratio_fit {
-            self.snap_window_to_aspect(ctx);
-        }
-    }
+fn is_sub_ext(path: &std::path::Path) -> bool {
+    path.extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|ext| {
+            matches!(
+                ext.to_ascii_lowercase().as_str(),
+                "srt" | "ass" | "ssa" | "vtt" | "sub"
+            )
+        })
 }

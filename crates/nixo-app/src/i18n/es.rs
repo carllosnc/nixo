@@ -20,6 +20,12 @@ pub static ES: Translations = Translations {
     video_aspect_4_3: "4:3 Clásico",
     video_aspect_235_1: "2.35:1 Cine",
     video_summary_fit_auto: "Ajustar (Auto)",
+    video_equalizer_title: "AJUSTES DE IMAGEN",
+    video_brightness: "BRILLO",
+    video_contrast: "CONTRASTE",
+    video_saturation: "SATURACIÓN",
+    video_gamma: "GAMA",
+    video_reset_eq: "Restablecer valores",
 
     // Pestaña de Velocidad
     speed_title: "VELOCIDAD",
@@ -100,9 +106,12 @@ pub static ES: Translations = Translations {
     home_tooltip: "Biblioteca inicial (Home)",
     playlist_drawer_title: "Lista de Reproducción",
     playlist_drawer_tooltip: "Lista de reproducción (L)",
-    playlist_item_playing: "Reproduciendo ahora",
+    playlist_close_tooltip: "Cerrar lista de reproducción (Esc)",
     subtitles_disable_tooltip: "Desactivar subtítulos (V)",
     subtitles_enable_tooltip: "Activar subtítulos (V)",
+    mini_player_tooltip: "Mini-Player (PiP) (I)",
+    mini_player_restore: "Restaurar ventana (I)",
+    subtitle_open_video_first: "Abra un video primero para cargar el subtítulo",
 
     // Biblioteca / Home
     header_back: "Volver",

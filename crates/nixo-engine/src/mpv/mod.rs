@@ -48,6 +48,7 @@ pub struct MpvBackend {
     sub_cues_seen: u32,
     aspect_ratio: VideoAspect,
     video_fit: VideoFit,
+    video_equalizer: nixo_core::VideoEqualizer,
     cached_audio_tracks: Arc<[nixo_core::TrackInfo]>,
     cached_subtitle_tracks: Arc<[nixo_core::TrackInfo]>,
     cached_selected_sub_image_codec: Option<String>,
@@ -160,6 +161,7 @@ impl MpvBackend {
                 sub_cues_seen: 0,
                 aspect_ratio: VideoAspect::default(),
                 video_fit: VideoFit::default(),
+                video_equalizer: nixo_core::VideoEqualizer::default(),
                 cached_audio_tracks: Arc::from([]),
                 cached_subtitle_tracks: Arc::from([]),
                 cached_selected_sub_image_codec: None,
@@ -357,6 +359,7 @@ impl MediaBackend for MpvBackend {
             PlayerCommand::SetAudioDelay(delay) => self.set_double(c"audio-delay", delay),
             PlayerCommand::SetAspectRatio(aspect) => self.set_aspect_ratio(aspect),
             PlayerCommand::SetVideoFit(fit) => self.set_video_fit(fit),
+            PlayerCommand::SetVideoEqualizer(eq) => self.set_video_equalizer(eq),
             PlayerCommand::TakeScreenshot(path) => self.take_screenshot(&path),
         }
         self.status_dirty = true;

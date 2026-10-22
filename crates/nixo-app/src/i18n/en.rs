@@ -20,6 +20,12 @@ pub static EN: Translations = Translations {
     video_aspect_4_3: "4:3 Classic",
     video_aspect_235_1: "2.35:1 Cinema",
     video_summary_fit_auto: "Fit (Auto)",
+    video_equalizer_title: "IMAGE ADJUSTMENTS",
+    video_brightness: "BRIGHTNESS",
+    video_contrast: "CONTRAST",
+    video_saturation: "SATURATION",
+    video_gamma: "GAMMA",
+    video_reset_eq: "Reset to default",
 
     // Speed Tab
     speed_title: "SPEED",
@@ -100,9 +106,12 @@ pub static EN: Translations = Translations {
     home_tooltip: "Home library (Home)",
     playlist_drawer_title: "Playlist",
     playlist_drawer_tooltip: "Playlist (L)",
-    playlist_item_playing: "Now playing",
+    playlist_close_tooltip: "Close playlist (Esc)",
     subtitles_disable_tooltip: "Disable subtitles (V)",
     subtitles_enable_tooltip: "Enable subtitles (V)",
+    mini_player_tooltip: "Mini-Player (PiP) (I)",
+    mini_player_restore: "Restore window (I)",
+    subtitle_open_video_first: "Open a video first to load subtitles",
 
     // Library / Home
     header_back: "Back",

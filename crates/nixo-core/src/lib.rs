@@ -264,7 +264,27 @@ pub enum PlayerCommand {
     SetAudioDelay(f64),
     SetAspectRatio(VideoAspect),
     SetVideoFit(VideoFit),
+    SetVideoEqualizer(VideoEqualizer),
     TakeScreenshot(PathBuf),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+pub struct VideoEqualizer {
+    /// Ajuste de brilho (-100 a 100, padrão: 0).
+    pub brightness: i32,
+    /// Ajuste de contraste (-100 a 100, padrão: 0).
+    pub contrast: i32,
+    /// Ajuste de saturação (-100 a 100, padrão: 0).
+    pub saturation: i32,
+    /// Ajuste de gama (-100 a 100, padrão: 0).
+    pub gamma: i32,
+}
+
+impl VideoEqualizer {
+    pub fn is_default(&self) -> bool {
+        self.brightness == 0 && self.contrast == 0 && self.saturation == 0 && self.gamma == 0
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -287,6 +307,7 @@ pub struct PlayerStatus {
     pub audio_delay: f64,
     pub aspect_ratio: VideoAspect,
     pub video_fit: VideoFit,
+    pub video_equalizer: VideoEqualizer,
 }
 
 impl Default for PlayerStatus {
@@ -309,6 +330,7 @@ impl Default for PlayerStatus {
             audio_delay: 0.0,
             aspect_ratio: VideoAspect::default(),
             video_fit: VideoFit::default(),
+            video_equalizer: VideoEqualizer::default(),
         }
     }
 }

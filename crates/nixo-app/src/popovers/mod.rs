@@ -9,6 +9,7 @@ mod components;
 mod style;
 mod subtitle_style;
 mod tabs;
+mod video_equalizer;
 
 use egui::{Align2, Context, Id, Key, Pos2, Rect, Ui};
 use nixo_core::PlayerCommand;
@@ -22,6 +23,7 @@ pub enum SettingsTab {
     #[default]
     Main,
     Video,
+    VideoEqualizer,
     Speed,
     Audio,
     Subtitles,
@@ -155,6 +157,7 @@ impl NixoApp {
         match self.settings_tab {
             SettingsTab::Main => self.render_tab_main(ui, actions),
             SettingsTab::Video => self.render_tab_video(ui, actions),
+            SettingsTab::VideoEqualizer => self.render_tab_video_equalizer(ui, actions),
             SettingsTab::Speed => self.render_tab_speed(ui, actions),
             SettingsTab::Audio => self.render_tab_audio(ui, actions),
             SettingsTab::Subtitles => self.render_tab_subtitles(ui, actions),
