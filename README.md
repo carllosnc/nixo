@@ -17,12 +17,20 @@
 
 ## Features
 
-- **100% Native GUI (Zero Webview)**: Direct GPU rendering via Vulkan, DirectX 12, and Metal through `wgpu` and `egui`. Lightweight memory footprint and instantaneous startup.
+- **100% Native GUI (Zero Webview)**: Direct GPU rendering via Vulkan, DirectX 12, and Metal through `wgpu` and `egui`. Lightweight memory footprint, no Electron/CEF, and instantaneous startup.
 - **Hardware-Accelerated Video Playback**: Backed by `libmpv` with automatic hardware decoding (`D3D11VA`, `NVDEC`, `VAAPI`, `VideoToolbox`) and pristine A/V synchronization.
-- **Fallback Synthetic Engine**: Includes a built-in 60 FPS GPU test signal engine, allowing the full UI, texture pipeline, and seekbar to be tested even without dynamic libraries installed.
-- **Decoupled Architecture**: Engine abstraction via the `MediaBackend` trait, enabling modular backends (MPV, GStreamer, Symphonia).
-- **Native OS Dialogs & Drag-and-Drop**: Seamless file loading via native Explorer/Finder/GTK file dialogs (`rfd`) and drag-and-drop video file support.
-- **Responsive On-Screen Display (OSD)**: Interactive playback bar, volume control, playback speed selector (0.5x - 2.0x), and auto-hiding controls in fullscreen mode.
+- **Picture-in-Picture (PiP / Mini-Player)**: Toggle a compact floating window (`I` or OSD button) with `Always on Top`, free-form window dragging, double-click to restore, and hover controls.
+- **Video Equalizer & Image Adjustments**: Fine-tune Brightness, Contrast, Saturation, and Gamma in real-time with smooth sliders and an instant reset button.
+- **External Subtitle Drag-and-Drop & Customization**: Drag and drop `.srt`, `.ass`, `.ssa`, `.vtt`, or `.sub` files directly onto playing videos. Full customization for fonts, weights, colors, outlines, shadows, background boxes, and vertical positioning.
+- **Animated Virtualized Playlist Drawer**: Smooth slide-out playlist drawer (`L`) featuring $O(1)$ virtualized rendering (`ScrollArea::show_rows`), auto-scroll to the currently playing item, natural alphanumeric sorting, repeat modes (Off, All, One), and continuous autoplay.
+- **Interactive Timeline Hover Preview**: Real-time seekbar thumbnail scrubbing powered by an asynchronous background worker with disk caching and proactive black frame detection.
+- **Audio & Subtitle Sync Delay**: Adjust A/V synchronization in real-time with +/-0.1s delay steppers (`Z`/`X` for subtitles, `J`/`K` for audio).
+- **Responsive On-Screen Display (OSD)**: 4-tier anti-collision control bar, YouTube-style scrim gradient, volume slider, playback speed selector (0.25x - 2.0x), and auto-hiding controls.
+- **Native OS Dialogs & Drag-and-Drop**: Load videos, folders, and subtitle files via system file dialogs (`rfd`) or seamless drag-and-drop.
+- **Library & Watch History**: Persistent watch progress indicators, automatic resume playback from where you left off, and multi-folder media scanning.
+- **Lossless Screenshots**: One-click frame capture saved as PNG and automatically copied to the system clipboard (`P` or `Ctrl + S`).
+- **Internationalization (i18n)**: Built-in support for English, Portuguese, and Spanish with procedural GPU vector flags and system locale auto-detection.
+- **Fallback Synthetic Engine**: Ships with a built-in 60 FPS GPU test signal generator (`SyntheticBackend`), allowing UI and pipeline development without external dependencies.
 
 ---
 
@@ -37,7 +45,23 @@ nixo/
 ├── crates/
 │   ├── nixo-core/             # Decoupled domain models, playback states, commands, and MediaBackend trait
 │   ├── nixo-engine/           # Dynamic libmpv integration & synthetic 60 FPS GPU preview engine
+│   │   └── src/
+│   │       ├── lib.rs         # Backend factory & fallback orchestration
+│   │       ├── synthetic.rs   # 60 FPS GPU synthetic test generator
+│   │       └── mpv/           # Dynamic libmpv bindings, properties, preview worker & thumbnail cache
 │   └── nixo-app/              # Native GUI application (wgpu/egui window, OSD controls, shortcuts)
+│       └── src/
+│           ├── main.rs        # Application entry point & window configuration
+│           ├── app.rs         # NixoApp state, lifecycle, and central video canvas
+│           ├── mini_player.rs # Picture-in-Picture window management & overlay
+│           ├── playlist_drawer.rs # Animated virtualized playlist drawer
+│           ├── osd_bar.rs     # Responsive 4-tier bottom playback control bar
+│           ├── input.rs       # Keyboard navigation, mouse hover state machine, and drag-and-drop
+│           ├── popovers/      # Settings menu, video equalizer, audio, speed & subtitle styling
+│           ├── components/    # Reusable widgets (dark capsule tooltips, buttons, empty states)
+│           ├── home/          # Media library browser, folder scanner & thumbnail pipeline
+│           ├── i18n/          # Compile-time typed translations (EN, PT, ES)
+│           └── theme.rs       # Visuals, custom fonts, and Windows 11 black titlebar
 └── scripts/
     ├── setup-mpv.ps1          # Automatic libmpv setup script for Windows
     ├── package.ps1            # Standalone redistributable bundler (.zip + SHA256)
@@ -106,18 +130,40 @@ The output zip file and its SHA256 checksum will be generated inside the `dist/`
 
 ## Keyboard Shortcuts
 
+### Playback & Navigation
 | Shortcut | Action |
 | :--- | :--- |
 | `Space` | Play / Pause |
 | `Right Arrow` / `Left Arrow` | Seek Forward / Backward 5 seconds |
 | `Up Arrow` / `Down Arrow` | Volume Up / Down 5% |
 | `M` | Toggle Mute |
+| `L` | Toggle Playlist Drawer |
+| `Shift + N` / `Page Down` | Next Track in Playlist |
+| `Shift + P` / `Page Up` | Previous Track in Playlist |
+| `R` | Cycle Repeat Mode (Off / All / One) |
+| `Home` | Return to Home Library |
+| `Ctrl + O` | Open file with native dialog |
+
+### Subtitles & Audio
+| Shortcut | Action |
+| :--- | :--- |
 | `V` | Toggle Subtitles On / Off |
 | `S` | Cycle Subtitle Track |
 | `B` | Cycle Audio Track |
+| `Z` / `X` | Subtitle Delay -0.1s / +0.1s |
+| `J` / `K` | Audio Delay -0.1s / +0.1s |
+
+### Window & Display
+| Shortcut | Action |
+| :--- | :--- |
+| `I` | Toggle Picture-in-Picture (Mini-Player) |
 | `F` / `F11` / `Double Click` | Toggle Fullscreen |
-| `Esc` | Exit Fullscreen |
-| `Ctrl + O` | Open file with native dialog |
+| `Esc` | Exit Fullscreen / Restore Mini-Player / Close Playlist |
+| `T` | Toggle Always on Top |
+| `A` | Toggle Video Fit / Fill screen |
+| `Shift + A` | Snap & Lock window to Video Aspect Ratio |
+| `P` / `Ctrl + S` | Take Lossless Screenshot (PNG to clipboard & disk) |
+| `Delete` | Remove selected folder or watch history entry (on Home) |
 
 ---
 
