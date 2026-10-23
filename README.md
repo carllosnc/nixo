@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/icon-1024.png" alt="Nixo Media Player" width="150" height="150" />
+
 # Nixo Media Player
 
 <p>
