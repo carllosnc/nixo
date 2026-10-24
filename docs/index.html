@@ -207,15 +207,8 @@
               </span>
 </div>
 </div>
-<!-- Video Canvas Stage with Ambient Image -->
-<div class="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden group">
-<img class="w-full h-full object-cover opacity-85 group-hover:scale-102 transition-transform duration-700" data-alt="A cinematic 4K science fiction visual of a glowing blue and purple nebula deep in outer space with high dynamic range lighting, crisp stellar dust formations, and a distant sleek spacecraft. The frame shows surgical contrast, deep pitch blacks, and vibrant luminous cyan gradients, expressing high fidelity media playback." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCg2XTGBplV2l1UJgwFismWFcEBkp8-h8A9hqoldb1AXaLeppkptG8O8GQrtgpDo7EfR0dtsZa5INStkraeTQCVdVke-ji2ilNIeWXzW-ZwqKiTfWgtR2W3CJFvrQw49Qg6rZkZeav3C8qGdR9uHgSPCYHZUycVPugl2FyDzB871yb5II0ozqH0vefGmQ4yyQp1rCtwYKBx9h4IqqMnsEHB9puFn76xR6Zj6l5F1HMKBn-AYwnXqBofMQ"/>
-<!-- Subtitle Overlay Simulation -->
-<div class="absolute bottom-20 left-1/2 -translate-x-1/2 text-center pointer-events-none px-4">
-<span class="px-3 py-1 rounded bg-black/80 backdrop-blur-sm text-forest-green-100 font-body-base text-sm md:text-base tracking-wide border border-forest-green-500/30 shadow-lg">
-                [Transmissão de telemetria recebida: Propulsão em 100%]
-              </span>
-</div>
+<!-- Video Canvas Stage (Placeholder) -->
+<div class="relative w-full aspect-video bg-surface-container-lowest flex items-center justify-center overflow-hidden group">
 <!-- Floating Centered Play/Pause Button Pill -->
 <div class="absolute inset-0 flex items-center justify-center">
 <button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-forest-green-950/80 hover:bg-forest-green-900/90 backdrop-blur-xl border border-forest-green-400/50 flex items-center justify-center text-forest-green-300 shadow-[0_0_30px_rgba(64,194,37,0.35)] transition-all scale-95 hover:scale-105 active:scale-90">
@@ -365,8 +358,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 <!-- Item A: Picture-in-Picture (Mini-Player) -->
 <div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sophisticated mini player window floating over a dark desktop screen showing a vivid documentary scene of an Arctic fjord with floating icebergs under midnight twilight. The mini player has translucent rounded glass borders, floating playback buttons, and minimal aesthetic controls." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUoTbEoPOT27Dh6SjUBS-58KvSLJa7fb8qjf1okD1Qf0HMxyAA3QemKLHh_eapvqL0Hw1B84cWuz1h9vIhtT90MXobhKYN1-FjzcyjxkpnrbLLOK5OxK2NY9Z6OPY14gUFnd3kstu0gBo15gD2RroE6q7NfW38kX_4TsH4yOa2oLiW-WprvEhmuv17pSxulLrmVYDR--lu4k-OalqD4TzXaj4CDv4_z2JUl_0aGNuq4qtwpLETbtoUmg"/>
+<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
 <div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
             Mini-Player [I]
           </div>
@@ -386,8 +378,7 @@
 </div>
 <!-- Item B: Virtualized Playlist Drawer O(1) -->
 <div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sleek dark-mode media library user interface depicting a smoothly sliding vertical playlist drawer with thumbnail cards, episode durations, and high contrast active track indicators on an OLED deep charcoal background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwlTR7rC3HMVW-pKGXdv4JLrpZDC9um5IIu0GpaTLf6bfosaILoVaDI4VBHUrJTfzFKp7QiAq0gKMUdjL6DZ0ER7Kt-449au-oi-Xwhpetprq-ZcYlKPEjRUceYrRjJcueNWmw-ey7o5XLNxAXNefqoGxq1u-VR4xOHxgR5oEr-R9gAZcLodqy7KoZ1OPtUhhz-LPvKG3P7p_6h2f_j6Ldt5wTzC7m1TIsJG-ZeqPM8a01tY2n7qSdnQ"/>
+<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
 <div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
             ScrollArea O(1) [L]
           </div>
@@ -407,8 +398,7 @@
 </div>
 <!-- Item C: Video Equalizer & Real-time Tuning -->
 <div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An audio and video tuning control interface floating over a cinematic scene, displaying precise slider controls for brightness, contrast, saturation, and gamma with fine-grained numeric readouts on a dark glass pane." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1EiMH_ZDQilq4Ou2DEm7I1SXBFtP6z5aoPrh_lrUk6mLQOfxb17PcvcBYgtCjr1dXHBgMxYZfGaK6acKnO0rlIbNmwWpCFgNsRNE1omJYmfsDkGthgQ6nmJsk-plFksayX4SlaVSRJ8WFHJayZerlgfDR-DKyAz0XGgxmV1sVG6IMONOP1-36IVCN8aMWGQRNZBGBDEDtccjKlHk7l4KnbB9l0ec67r_5NeX7RYSM4fL6ZU6LV87rZQ"/>
+<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
 <div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
             GPU Shaders
           </div>
@@ -428,8 +418,7 @@
 </div>
 <!-- Item D: Advanced Subtitles Drag-and-Drop -->
 <div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high precision media player showing stylish subtitle typography rendered cleanly with drop shadows and customizable outline styling over an action movie still frame, with file drag and drop indicator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu9P_IkpwjPlwT29_IX7-4gROCvKJwEEPSOB_wwNUh6gr1486uEUvos6YOdesTmSHdee6ptotL9BzEhs3J3-SW2NxjabeWPpOwAPL_YR6vvxxmmBZoDfQgA17ybx01ZbFv1IvBS7KAXM2OtIzlwu8JBpYe707683dwpqGndojRS9A1BL0ooPabOsh_o2JSsumMwyB2I7DALjhhD19fqfzHSuEhsjjwDH31jZ8HdffBJHfYjX2tQ-yvtQ"/>
+<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
 <div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
             .srt / .ass / .vtt
           </div>
@@ -449,8 +438,7 @@
 </div>
 <!-- Item E: Lossless Screenshot Capture -->
 <div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden">
-<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A clean screenshot flash effect over a vibrant nature landscape video, showcasing an on-screen confirmation badge indicating lossless PNG captured to clipboard with precise timecode." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7Z4znRG6fWTR3Tbx3s282q6FbOxiFnDr5ZIaXjwJ8BIadZZHrB7xfkMU-gR4eLdjKuX67wedOze3qCklu_XPte_BWCEZ0qLGThqncBsgvflEnC7vJSJ6rHmS0Rx1BjBdZmZWPDagdj3zmJewtYjXriFx9gUzvJo-ltiKMONY2WRXZHhyMnUOhyE83qWYvbBDfgIGVNtVynZlc2CczX5kaZUiUVTMnpKY0tfmdi7TfkbzZAnca3pPuqg"/>
+<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
 <div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
             Lossless PNG [P]
           </div>
@@ -803,6 +791,7 @@
     }
   </script>
 </body></html>
+
 
 
 
