@@ -29,10 +29,11 @@
         extend: {
           colors: {
             brand: {
-              300: "#86efac",
-              400: "#4ade30",
-              500: "#32b31a",
-              600: "#259312"
+              300: "#8cf774",
+              400: "#55f51e",
+              500: "#2fe50b",
+              600: "#24ba08",
+              700: "#1b8f06"
             },
             surface: {
               base: "#090b0a",
@@ -139,7 +140,7 @@
     <div class="text-center max-w-4xl mx-auto">
       <!-- Main Heading with High Contrast Shadow Drop -->
       <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-[1.12] drop-shadow-md">
-        Reprodutor de mídia nativo e ultra-rápido em <span class="text-brand-300">Rust</span>
+        Reprodutor de mídia nativo e ultra-rápido em <span class="text-brand-400">Rust</span>
       </h1>
 
       <!-- Technical Subtitle with enhanced breathing room -->
@@ -842,12 +843,11 @@
       '  col = mix(col, g3, smoothstep(0.5, 0.9, wX));',
 
       '  // Wave crest illumination highlights with color5',
-      '  float crest = smoothstep(0.38, 0.85, wY) * smoothstep(0.25, 0.85, sin(wX * PI * 2.5 + t * 0.6));',
-      '  col = mix(col, u_color5, crest * 0.40);',
+      '  float crest = smoothstep(0.35, 0.82, wY) * smoothstep(0.25, 0.85, sin(wX * PI * 2.5 + t * 0.6));',
+      '  col = mix(col, u_color5, crest * 0.42);',
 
-      '  // Smooth gamma mapping without crushing dark folds into black shadows',
-      '  col = pow(clamp(col, 0.0, 1.0), vec3(0.92));',
-      '  return col;',
+      '  // Direct clamp preserves pure saturation and vibrant #2fe50b color spectrum',
+      '  return clamp(col, 0.0, 1.0);',
       '}',
 
       'void main() {',
@@ -905,17 +905,17 @@
     var col4Loc  = gl.getUniformLocation(program, 'u_color4');
     var col5Loc  = gl.getUniformLocation(program, 'u_color5');
 
-    // Rich 5-Tier Forest Green Palette (No absolute black)
-    // 1. Rich Forest green (#184228 - clean deep tone, no black shadows)
-    // 2. Woodland emerald (#246237)
-    // 3. Vibrant Emerald wave (#2ea14c)
-    // 4. Bright Foliage green (#45b95c)
-    // 5. Luminous Mint silk highlight (#7de892)
-    var c1 = [24 / 255, 66 / 255, 40 / 255];
-    var c2 = [36 / 255, 98 / 255, 55 / 255];
-    var c3 = [46 / 255, 161 / 255, 76 / 255];
-    var c4 = [69 / 255, 185 / 255, 92 / 255];
-    var c5 = [125 / 255, 232 / 255, 146 / 255];
+    // High-Vibrancy Electric Green Spectrum anchored on brand identity #2fe50b
+    // 1. Deep Cyber Shadow (#0b3d07 - deep pure saturated green base, zero muddy gray)
+    // 2. Pure Mid-Tone Green (#198f09)
+    // 3. Core Brand Identity (#2fe50b - official Nixo electric green)
+    // 4. Luminous Lime Highlight (#5cf823)
+    // 5. Specular Silk Crest (#a7ff66)
+    var c1 = [11 / 255, 61 / 255, 7 / 255];
+    var c2 = [25 / 255, 143 / 255, 9 / 255];
+    var c3 = [47 / 255, 229 / 255, 11 / 255];
+    var c4 = [92 / 255, 248 / 255, 35 / 255];
+    var c5 = [167 / 255, 255 / 255, 102 / 255];
 
     gl.uniform3fv(col1Loc, c1);
     gl.uniform3fv(col2Loc, c2);
@@ -924,7 +924,7 @@
     gl.uniform3fv(col5Loc, c5);
     gl.uniform1f(speedLoc, 0.48); // Smooth expressive organic wave motion
     gl.uniform1f(scaleLoc, 1.05); // Crisp ribbon folds
-    gl.uniform1f(noiseLoc, 0.04); // Film grain texture
+    gl.uniform1f(noiseLoc, 0.015); // Ultra-fine anti-banding grain without gray film
 
     // Zero-overhead GPU Pause when scrolled out of view
     var isVisible = true;
