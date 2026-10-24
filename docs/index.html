@@ -91,7 +91,7 @@
 <body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-black">
 
 <!-- ==================== TOP NAVIGATION BAR ==================== -->
-<header class="sticky top-0 z-50 w-full bg-surface-base/90 backdrop-blur-md">
+<header class="sticky top-0 z-50 w-full bg-surface-base/90 backdrop-blur-md border-b border-surface-elevated/50">
   <div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
     <!-- Brand Logo -->
     <a class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group" href="#">
@@ -119,8 +119,12 @@
 </header>
 
 <!-- ==================== HERO SECTION ==================== -->
-<section class="pt-12 pb-20 md:pt-20 md:pb-28 px-6 md:px-12 max-w-7xl mx-auto w-full">
-  <div class="text-center max-w-4xl mx-auto space-y-6">
+<section class="relative pt-12 pb-20 md:pt-20 md:pb-28 px-6 md:px-12 max-w-7xl mx-auto w-full">
+  <!-- WebGL Animated Gradient Background -->
+  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <canvas id="hero-gradient" class="w-full h-full block opacity-40"></canvas>
+  </div>
+  <div class="text-center max-w-4xl mx-auto space-y-6 relative z-10">
     <!-- Main Heading -->
     <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
       O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-400">Rust</span>
@@ -260,9 +264,9 @@
     </div>
 
     <!-- Solid High-Contrast Bento Grid of 4 Key Benchmarks -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 align-start">
       <!-- Metric Card 1 -->
-      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group h-full min-h-[240px]">
         <div class="flex items-center justify-between text-zinc-400 mb-6">
           <span class="material-symbols-outlined text-2xl text-zinc-200">speed</span>
           <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">Frame Sync</span>
@@ -276,7 +280,7 @@
       </div>
 
       <!-- Metric Card 2 -->
-      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group h-full min-h-[240px]">
         <div class="flex items-center justify-between text-zinc-400 mb-6">
           <span class="material-symbols-outlined text-2xl text-zinc-200">memory</span>
           <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">RAM Footprint</span>
@@ -290,7 +294,7 @@
       </div>
 
       <!-- Metric Card 3 -->
-      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group h-full min-h-[240px]">
         <div class="flex items-center justify-between text-zinc-400 mb-6">
           <span class="material-symbols-outlined text-2xl text-zinc-200">sports_esports</span>
           <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">Render Backend</span>
@@ -304,7 +308,7 @@
       </div>
 
       <!-- Metric Card 4 -->
-      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group h-full min-h-[240px]">
         <div class="flex items-center justify-between text-zinc-400 mb-6">
           <span class="material-symbols-outlined text-2xl text-zinc-200">developer_board</span>
           <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">HW Accel</span>
@@ -332,9 +336,9 @@
   </div>
 
   <!-- Bento Grid Gallery of Features -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 align-start">
     <!-- Item A: Picture-in-Picture -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -347,7 +351,7 @@
     </div>
 
     <!-- Item B: Virtualized Playlist Drawer O(1) -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -360,7 +364,7 @@
     </div>
 
     <!-- Item C: Video Equalizer & Real-time Tuning -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -373,7 +377,7 @@
     </div>
 
     <!-- Item D: Advanced Subtitles Drag-and-Drop -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -386,7 +390,7 @@
     </div>
 
     <!-- Item E: Lossless Screenshot Capture -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -399,7 +403,7 @@
     </div>
 
     <!-- Item F: Synthetic Engine Fallback -->
-    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors h-full min-h-[340px]">
       <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
       <div class="p-6 flex-1 flex flex-col justify-between">
         <div>
@@ -416,9 +420,9 @@
 <!-- ==================== ARCHITECTURE & SHORTCUTS ==================== -->
 <section class="py-20 bg-surface-subtle" id="docs">
   <div class="max-w-7xl mx-auto px-6 md:px-12">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 align-start">
       <!-- Modular Architecture -->
-      <div class="lg:col-span-6 space-y-6">
+      <div class="lg:col-span-6">
         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-card text-xs font-mono-timestamp text-zinc-300">
           Cargo Workspace
         </div>
@@ -429,8 +433,8 @@
           O projeto é desacoplado em crates reutilizáveis, garantindo isolamento estrito entre o backend de mídia, os drivers de GPU e o loop de renderização do egui.
         </p>
 
-        <div class="space-y-3 font-mono-timestamp text-xs">
-          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+        <div class="grid grid-cols-1 gap-6 font-mono-timestamp text-xs">
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors min-h-[120px]">
             <span class="material-symbols-outlined text-zinc-400 text-lg">folder_open</span>
             <div>
               <span class="text-white font-bold text-sm">nixo-core</span>
@@ -440,7 +444,7 @@
             </div>
           </div>
 
-          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors min-h-[120px]">
             <span class="material-symbols-outlined text-zinc-400 text-lg">settings_input_component</span>
             <div>
               <span class="text-white font-bold text-sm">nixo-engine</span>
@@ -450,7 +454,7 @@
             </div>
           </div>
 
-          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors min-h-[120px]">
             <span class="material-symbols-outlined text-zinc-400 text-lg">desktop_windows</span>
             <div>
               <span class="text-white font-bold text-sm">nixo-app</span>
@@ -463,7 +467,7 @@
       </div>
 
       <!-- Visual Keyboard Shortcuts Grid -->
-      <div class="lg:col-span-6 space-y-6">
+      <div class="lg:col-span-6">
         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-card text-xs font-mono-timestamp text-zinc-300">
           Controle Tátil
         </div>
@@ -475,35 +479,35 @@
         </p>
 
         <div class="grid grid-cols-2 gap-3">
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Play / Pausar</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Space</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Avançar / Voltar 5s</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">← / →</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Mini-Player (PiP)</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">I</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Tela Cheia</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">F</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Delay Legenda +/-0.1s</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Z / X</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Gaveta Playlist</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">L</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Captura Lossless PNG</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">P</kbd>
           </div>
-          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors min-h-[64px]">
             <span class="text-sm font-body-base text-zinc-300">Abrir Arquivo</span>
             <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Ctrl + O</kbd>
           </div>
@@ -605,8 +609,8 @@
   </div>
 
   <!-- Download Options Matrix -->
-  <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+  <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 align-start">
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group h-full min-h-[110px]" href="https://github.com/carllosnc/nixo/releases">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">window</span>
         <div>
@@ -617,7 +621,7 @@
       <span class="material-symbols-outlined text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
     </a>
 
-    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group h-full min-h-[110px]" href="https://github.com/carllosnc/nixo/releases">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">terminal</span>
         <div>
@@ -628,7 +632,7 @@
       <span class="material-symbols-outlined text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
     </a>
 
-    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group h-full min-h-[110px]" href="https://github.com/carllosnc/nixo/releases">
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">laptop_mac</span>
         <div>
@@ -744,6 +748,106 @@
     });
   }
 </script>
+
+  <!-- WebGL Animated Gradient for Hero Section -->
+  <script>
+    (function() {
+      var canvas = document.getElementById('hero-gradient');
+      if (!canvas) return;
+
+      var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+
+      function resize() {
+        var rect = canvas.parentElement.getBoundingClientRect();
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+
+      var vertexSource = [
+        'attribute vec2 position;',
+        'void main() {',
+        '  gl_Position = vec4(position, 0.0, 1.0);',
+        '}'
+      ].join('\n');
+
+      var fragmentSource = [
+        'precision mediump float;',
+        'uniform vec2 u_resolution;',
+        'uniform float u_time;',
+        'void main() {',
+        '  vec2 st = gl_FragCoord.xy / u_resolution.xy;',
+        '  vec3 color1 = vec3(0.04, 0.07, 0.05);',
+        '  vec3 color2 = vec3(0.01, 0.03, 0.02);',
+        '  vec3 color3 = vec3(0.08, 0.18, 0.10);',
+
+        '  vec2 center = vec2(0.5 + 0.25 * sin(u_time * 0.15), 0.5 + 0.2 * cos(u_time * 0.1));',
+        '  float dist = distance(st, center);',
+
+        '  vec3 base = mix(color1, color2, st.y);',
+        '  float glow = exp(-dist * 2.5);',
+        '  base += color3 * glow * 0.4;',
+
+        '  vec2 center2 = vec2(0.5 + 0.3 * cos(u_time * 0.08), 0.5 + 0.25 * sin(u_time * 0.12));',
+        '  float dist2 = distance(st, center2);',
+        '  float glow2 = exp(-dist2 * 3.0);',
+        '  base += color1 * glow2 * 0.2;',
+
+        '  gl_FragColor = vec4(base, 1.0);',
+        '}'
+      ].join('\n');
+
+      function createShader(type, source) {
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+      }
+
+      var program = gl.createProgram();
+      gl.attachShader(program, createShader(gl.VERTEX_SHADER, vertexSource));
+      gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fragmentSource));
+      gl.linkProgram(program);
+      gl.useProgram(program);
+
+      var buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1
+      ]), gl.STATIC_DRAW);
+
+      var positionLoc = gl.getAttribLocation(program, 'position');
+      gl.enableVertexAttribArray(positionLoc);
+      gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+      var resolutionLoc = gl.getUniformLocation(program, 'u_resolution');
+      var timeLoc = gl.getUniformLocation(program, 'u_time');
+      var startTime = Date.now();
+
+      function render() {
+        var time = (Date.now() - startTime) * 0.001;
+        gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
+        gl.uniform1f(timeLoc, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(render);
+      }
+
+      render();
+    })();
+  </script>
+
 
 </body>
 </html>
