@@ -55,6 +55,10 @@
   </script>
 
   <style>
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 5rem;
+    }
     body {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -92,7 +96,7 @@
 <body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-black">
 
 <!-- ==================== TOP NAVIGATION BAR ==================== -->
-<header class="sticky top-0 z-50 w-full bg-surface-base/85 backdrop-blur-md border-b border-white/[0.04]">
+<header class="fixed top-0 left-0 right-0 z-50 w-full bg-[#090b0a]/30 backdrop-blur-md border-b border-white/[0.06]">
   <div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
     <!-- Brand Logo -->
     <a class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group" href="#">
@@ -101,16 +105,16 @@
     </a>
 
     <!-- Clean Navigation Links -->
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-      <a class="text-zinc-400 hover:text-white transition-colors" href="#showcase">Recursos</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="#benchmarks">Performance</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="#docs">Arquitetura</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="#install">Instalação</a>
+    <nav class="hidden md:flex items-center gap-9 text-sm font-medium">
+      <a class="text-zinc-300 hover:text-white transition-colors" href="#showcase">Recursos</a>
+      <a class="text-zinc-300 hover:text-white transition-colors" href="#benchmarks">Performance</a>
+      <a class="text-zinc-300 hover:text-white transition-colors" href="#docs">Arquitetura</a>
+      <a class="text-zinc-300 hover:text-white transition-colors" href="#install">Instalação</a>
     </nav>
 
     <!-- Actions: GitHub Icon only -->
     <div class="flex items-center">
-      <a aria-label="Ver código fonte no GitHub" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-surface-elevated transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
+      <a aria-label="Ver código fonte no GitHub" class="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
         <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
           <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
         </svg>
@@ -119,44 +123,45 @@
   </div>
 </header>
 
-<!-- ==================== HERO SECTION (FULL SCREEN / RICH GREEN GRADIENT) ==================== -->
-<section id="hero" class="relative w-full min-h-[92vh] flex flex-col justify-center overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
-  <!-- Full Screen Stripe-like Gradient WebGL Canvas -->
-  <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" style="mask-image: linear-gradient(to bottom, black 80%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);">
+<!-- ==================== HERO SECTION ==================== -->
+<section id="hero" class="relative w-full overflow-hidden">
+  <!-- Full Screen Stripe-like Gradient WebGL Canvas extending under topbar to top:0 -->
+  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none" style="mask-image: linear-gradient(to bottom, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);">
     <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-100"></canvas>
   </div>
 
-  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full">
-    <div class="text-center max-w-4xl mx-auto space-y-6">
+  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full pt-32 sm:pt-36 md:pt-40 pb-16 md:pb-24">
+    <div class="text-center max-w-4xl mx-auto">
       <!-- Main Heading with High Contrast Shadow Drop -->
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12] drop-shadow-md">
-        O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-300">Rust</span>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-[1.12] drop-shadow-md">
+        Reprodutor de mídia nativo e ultra-rápido em <span class="text-brand-300">Rust</span>
       </h1>
 
-      <!-- Technical Subtitle -->
-      <p class="text-base md:text-lg font-body-base text-zinc-100 max-w-2xl mx-auto leading-relaxed drop-shadow-sm font-medium">
-        Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-white font-semibold">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-white font-semibold">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
+      <!-- Technical Subtitle with enhanced breathing room -->
+      <p class="mt-5 sm:mt-6 text-sm sm:text-base md:text-lg font-body-base text-zinc-100/90 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
+        Interface 100% acelerada por GPU (wgpu/egui) via libmpv. Zero Electron, início instantâneo e pouco consumo de memória.
       </p>
 
-      <!-- Primary CTA Actions -->
-      <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
-        <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2 shadow-xl" href="#install">
+      <!-- Primary CTA Actions with generous spacing -->
+      <div class="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3.5">
+        <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-xs sm:text-sm md:text-base hover:bg-brand-400 transition-all flex items-center gap-2 shadow-xl hover:shadow-2xl" href="#install">
           <span class="material-symbols-outlined text-lg">download</span>
           <span>Download Gratuito</span>
         </a>
-        <a class="px-6 py-3 rounded-lg bg-surface-card/90 backdrop-blur-md text-zinc-100 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2 border border-white/10 shadow-lg" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
+        <a class="px-6 py-3 rounded-lg bg-surface-card/90 backdrop-blur-md text-zinc-100 font-medium text-xs sm:text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-all flex items-center gap-2 border border-white/10 shadow-lg" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
           <span class="material-symbols-outlined text-lg text-zinc-300">code</span>
           <span>Ver no GitHub</span>
         </a>
       </div>
 
-      <p class="text-xs font-mono-timestamp text-zinc-300 drop-shadow-sm">
-        Disponível para Windows 10/11 (x86_64), Linux (Wayland &amp; X11) e macOS (Apple Silicon &amp; Intel)
+      <!-- Platform Compatibility Hint -->
+      <p class="mt-4 sm:mt-5 text-xs font-mono-timestamp text-zinc-300/80 drop-shadow-sm tracking-wide">
+        Windows, Linux e macOS
       </p>
     </div>
 
     <!-- HERO PLAYER SHOWCASE -->
-    <div class="mt-14 max-w-5xl mx-auto">
+    <div class="mt-14 sm:mt-16 md:mt-20 max-w-5xl mx-auto">
       <!-- Clean Solid Window Container with Backdrop Blur -->
       <div class="bg-surface-card/95 backdrop-blur-xl rounded-xl overflow-hidden flex flex-col shadow-2xl border border-white/[0.08]">
         <!-- Native OS Window Titlebar -->
