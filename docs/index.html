@@ -13,7 +13,7 @@
   <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Stack+Sans+Notch:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 
   <!-- Material Symbols Outlined -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -44,7 +44,7 @@
             }
           },
           fontFamily: {
-            "display-lg": ["'Plus Jakarta Sans'", "sans-serif"],
+            "display-lg": ["'Stack Sans Notch'", "'Plus Jakarta Sans'", "sans-serif"],
             "card-title": ["'Plus Jakarta Sans'", "sans-serif"],
             "body-base": ["'Inter'", "sans-serif"],
             "mono-timestamp": ["'JetBrains Mono'", "monospace"]
@@ -66,8 +66,13 @@
       font-feature-settings: "cv02", "cv03", "cv04", "cv11";
       background-color: #090b0a;
     }
-    h1, h2, h3, .font-display-lg {
-      letter-spacing: -0.03em;
+    h1, h2, .font-display-lg {
+      font-family: 'Stack Sans Notch', 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
+    }
+    h3, .font-card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.02em;
     }
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
