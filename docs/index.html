@@ -91,7 +91,7 @@
 <body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-black">
 
 <!-- ==================== TOP NAVIGATION BAR ==================== -->
-<header class="sticky top-0 z-50 w-full bg-surface-base/90 backdrop-blur-md">
+<header class="sticky top-0 z-50 w-full bg-surface-base/85 backdrop-blur-md border-b border-white/[0.04]">
   <div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
     <!-- Brand Logo -->
     <a class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group" href="#">
@@ -118,127 +118,129 @@
   </div>
 </header>
 
-<!-- ==================== HERO SECTION ==================== -->
-<section id="hero" class="relative pt-12 pb-20 md:pt-20 md:pb-28 px-6 md:px-12 max-w-7xl mx-auto w-full">
-  <!-- WebGL Animated Audio Spectrum Mesh -->
-  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none" style="mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, black 35%, transparent 85%); -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 35%, black 35%, transparent 85%);">
-    <canvas id="hero-spectrum-canvas" class="w-full h-full block opacity-75"></canvas>
+<!-- ==================== HERO SECTION (FULL SCREEN / FULL BLEED WEBGL) ==================== -->
+<section id="hero" class="relative w-full min-h-[92vh] flex flex-col justify-center overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
+  <!-- Full Screen Stripe-like Gradient WebGL Canvas -->
+  <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" style="mask-image: linear-gradient(to bottom, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);">
+    <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-60"></canvas>
   </div>
 
-  <div class="text-center max-w-4xl mx-auto space-y-6 relative z-10">
-    <!-- Main Heading -->
-    <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
-      O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-400">Rust</span>
-    </h1>
+  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full">
+    <div class="text-center max-w-4xl mx-auto space-y-6">
+      <!-- Main Heading -->
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
+        O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-400">Rust</span>
+      </h1>
 
-    <!-- Technical Subtitle -->
-    <p class="text-base md:text-lg font-body-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-      Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-zinc-200">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-zinc-200">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
-    </p>
+      <!-- Technical Subtitle -->
+      <p class="text-base md:text-lg font-body-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+        Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-zinc-100">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-zinc-100">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
+      </p>
 
-    <!-- Primary CTA Actions -->
-    <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
-      <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2" href="#install">
-        <span class="material-symbols-outlined text-lg">download</span>
-        <span>Download Gratuito</span>
-      </a>
-      <a class="px-6 py-3 rounded-lg bg-surface-subtle text-zinc-200 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
-        <span class="material-symbols-outlined text-lg text-zinc-400">code</span>
-        <span>Ver no GitHub</span>
-      </a>
-    </div>
-
-    <p class="text-xs font-mono-timestamp text-zinc-500">
-      Disponível para Windows 10/11 (x86_64), Linux (Wayland &amp; X11) e macOS (Apple Silicon &amp; Intel)
-    </p>
-  </div>
-
-  <!-- HERO PLAYER SHOWCASE -->
-  <div class="mt-14 max-w-5xl mx-auto relative z-10">
-    <!-- Clean Solid Window Container without glowing borders -->
-    <div class="bg-surface-card rounded-xl overflow-hidden flex flex-col">
-      <!-- Native OS Window Titlebar -->
-      <div class="h-10 bg-surface-subtle px-4 flex items-center justify-between select-none">
-        <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
-          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
-          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
-          <span class="ml-3 font-mono-timestamp text-xs text-zinc-400 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-xs text-zinc-400">movie</span>
-            <span>Nixo Player — Cosmos_Discovery_Episode4_4K.mkv</span>
-          </span>
-        </div>
-
-        <!-- Technical Chip HUD -->
-        <div class="hidden sm:flex items-center gap-2">
-          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300">
-            4K 60FPS HDR
-          </span>
-          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300 font-semibold">
-            HEVC / NVDEC
-          </span>
-          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-400">
-            wgpu [Vulkan]
-          </span>
-        </div>
+      <!-- Primary CTA Actions -->
+      <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
+        <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2" href="#install">
+          <span class="material-symbols-outlined text-lg">download</span>
+          <span>Download Gratuito</span>
+        </a>
+        <a class="px-6 py-3 rounded-lg bg-surface-card/80 backdrop-blur-md text-zinc-200 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
+          <span class="material-symbols-outlined text-lg text-zinc-400">code</span>
+          <span>Ver no GitHub</span>
+        </a>
       </div>
 
-      <!-- Video Canvas Stage (Placeholder for real player preview) -->
-      <div class="relative w-full aspect-video bg-surface-deep flex items-center justify-center overflow-hidden group">
-        <!-- Floating Centered Play/Pause Button -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-card/90 hover:bg-surface-elevated pointer-events-auto flex items-center justify-center text-white transition-colors">
-            <span class="material-symbols-outlined text-3xl md:text-4xl">play_arrow</span>
-          </button>
-        </div>
+      <p class="text-xs font-mono-timestamp text-zinc-400">
+        Disponível para Windows 10/11 (x86_64), Linux (Wayland &amp; X11) e macOS (Apple Silicon &amp; Intel)
+      </p>
+    </div>
 
-        <!-- On-Screen Display (OSD) Bar Container -->
-        <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/90 to-transparent flex flex-col gap-2">
-          <!-- Seekbar Timeline Rail -->
-          <div class="relative w-full h-2 flex items-center cursor-pointer group/rail">
-            <div class="w-full h-1 bg-surface-elevated rounded-full overflow-hidden">
-              <div class="h-full bg-brand-500 rounded-full" style="width: 42%;"></div>
-            </div>
-            <!-- Playhead Knob -->
-            <div class="absolute left-[42%] w-3 h-3 rounded-full bg-white -translate-x-1/2 scale-100 group-hover/rail:scale-125 transition-transform"></div>
+    <!-- HERO PLAYER SHOWCASE -->
+    <div class="mt-14 max-w-5xl mx-auto">
+      <!-- Clean Solid Window Container -->
+      <div class="bg-surface-card/95 backdrop-blur-xl rounded-xl overflow-hidden flex flex-col shadow-2xl">
+        <!-- Native OS Window Titlebar -->
+        <div class="h-10 bg-surface-subtle px-4 flex items-center justify-between select-none">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+            <span class="ml-3 font-mono-timestamp text-xs text-zinc-400 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs text-zinc-400">movie</span>
+              <span>Nixo Player — Cosmos_Discovery_Episode4_4K.mkv</span>
+            </span>
           </div>
 
-          <!-- OSD Controls Row -->
-          <div class="flex items-center justify-between text-zinc-300 text-sm pt-1">
-            <div class="flex items-center gap-3">
-              <button class="hover:text-white transition-colors flex items-center">
-                <span class="material-symbols-outlined text-xl">play_arrow</span>
-              </button>
-              <button class="hover:text-white transition-colors flex items-center">
-                <span class="material-symbols-outlined text-xl">skip_next</span>
-              </button>
-              <div class="flex items-center gap-1.5 text-zinc-400 hover:text-white">
-                <span class="material-symbols-outlined text-lg">volume_up</span>
-                <div class="w-16 h-1 bg-surface-elevated rounded-full overflow-hidden hidden sm:block">
-                  <div class="h-full bg-zinc-300" style="width: 80%;"></div>
-                </div>
+          <!-- Technical Chip HUD -->
+          <div class="hidden sm:flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300">
+              4K 60FPS HDR
+            </span>
+            <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300 font-semibold">
+              HEVC / NVDEC
+            </span>
+            <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-400">
+              wgpu [Vulkan]
+            </span>
+          </div>
+        </div>
+
+        <!-- Video Canvas Stage (Placeholder for real player preview) -->
+        <div class="relative w-full aspect-video bg-surface-deep flex items-center justify-center overflow-hidden group">
+          <!-- Floating Centered Play/Pause Button -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-card/90 hover:bg-surface-elevated pointer-events-auto flex items-center justify-center text-white transition-colors">
+              <span class="material-symbols-outlined text-3xl md:text-4xl">play_arrow</span>
+            </button>
+          </div>
+
+          <!-- On-Screen Display (OSD) Bar Container -->
+          <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/90 to-transparent flex flex-col gap-2">
+            <!-- Seekbar Timeline Rail -->
+            <div class="relative w-full h-2 flex items-center cursor-pointer group/rail">
+              <div class="w-full h-1 bg-surface-elevated rounded-full overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 42%;"></div>
               </div>
-              <span class="font-mono-timestamp text-xs text-zinc-400">
-                00:42:18 / 01:45:00
-              </span>
+              <!-- Playhead Knob -->
+              <div class="absolute left-[42%] w-3 h-3 rounded-full bg-white -translate-x-1/2 scale-100 group-hover/rail:scale-125 transition-transform"></div>
             </div>
 
-            <div class="flex items-center gap-3">
-              <span class="px-1.5 py-0.5 rounded bg-surface-elevated text-xs font-mono-timestamp text-zinc-300">
-                1.0x
-              </span>
-              <button class="hover:text-white transition-colors flex items-center" title="Legendas (V)">
-                <span class="material-symbols-outlined text-lg">subtitles</span>
-              </button>
-              <button class="hover:text-white transition-colors flex items-center" title="Equalizador">
-                <span class="material-symbols-outlined text-lg">tune</span>
-              </button>
-              <button class="hover:text-white transition-colors flex items-center" title="Picture-in-Picture (I)">
-                <span class="material-symbols-outlined text-lg">picture_in_picture_alt</span>
-              </button>
-              <button class="hover:text-white transition-colors flex items-center" title="Tela Cheia (F)">
-                <span class="material-symbols-outlined text-lg">fullscreen</span>
-              </button>
+            <!-- OSD Controls Row -->
+            <div class="flex items-center justify-between text-zinc-300 text-sm pt-1">
+              <div class="flex items-center gap-3">
+                <button class="hover:text-white transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-xl">play_arrow</span>
+                </button>
+                <button class="hover:text-white transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-xl">skip_next</span>
+                </button>
+                <div class="flex items-center gap-1.5 text-zinc-400 hover:text-white">
+                  <span class="material-symbols-outlined text-lg">volume_up</span>
+                  <div class="w-16 h-1 bg-surface-elevated rounded-full overflow-hidden hidden sm:block">
+                    <div class="h-full bg-zinc-300" style="width: 80%;"></div>
+                  </div>
+                </div>
+                <span class="font-mono-timestamp text-xs text-zinc-400">
+                  00:42:18 / 01:45:00
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <span class="px-1.5 py-0.5 rounded bg-surface-elevated text-xs font-mono-timestamp text-zinc-300">
+                  1.0x
+                </span>
+                <button class="hover:text-white transition-colors flex items-center" title="Legendas (V)">
+                  <span class="material-symbols-outlined text-lg">subtitles</span>
+                </button>
+                <button class="hover:text-white transition-colors flex items-center" title="Equalizador">
+                  <span class="material-symbols-outlined text-lg">tune</span>
+                </button>
+                <button class="hover:text-white transition-colors flex items-center" title="Picture-in-Picture (I)">
+                  <span class="material-symbols-outlined text-lg">picture_in_picture_alt</span>
+                </button>
+                <button class="hover:text-white transition-colors flex items-center" title="Tela Cheia (F)">
+                  <span class="material-symbols-outlined text-lg">fullscreen</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -750,85 +752,93 @@
   }
 </script>
 
-<!-- ==================== WEBGL AUDIO & SPECTRUM MESH ENGINE ==================== -->
+<!-- ==================== STRIPE-LIKE FLUID GRADIENT WEBGL ENGINE ==================== -->
 <script>
-  (function initSpectrumMesh() {
-    var canvas = document.getElementById('hero-spectrum-canvas');
+  (function initStripeGradient() {
+    var canvas = document.getElementById('hero-gradient-canvas');
     var heroSection = document.getElementById('hero');
     if (!canvas || !heroSection) return;
 
-    var gl = canvas.getContext('webgl', { alpha: true, antialias: true, powerPreference: 'high-performance' });
+    var gl = canvas.getContext('webgl', { alpha: false, antialias: false, powerPreference: 'high-performance' })
+          || canvas.getContext('experimental-webgl');
     if (!gl) return;
 
-    // Enable alpha blending for clean depth fade
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
     function resize() {
       var rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
+      var w = Math.floor(rect.width);
+      var h = Math.floor(rect.height);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
     }
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     resize();
 
-    // GLSL Shaders: 3D perspective terrain mesh oscillating like audio spectrum harmonics
+    // Vertex Shader: Fullscreen quad
     var vsSource = [
-      'attribute vec2 a_grid;',
-      'uniform float u_time;',
-      'uniform vec2 u_mouse;',
-      'varying float v_elevation;',
-      'varying float v_depth;',
-      'varying float v_fade;',
-
+      'attribute vec2 position;',
+      'varying vec2 vUv;',
       'void main() {',
-      '  float x = a_grid.x;',
-      '  float row = a_grid.y;',
-      '  v_depth = row;',
-
-      '  float envelope = exp(-x * x * 2.3);',
-      '  v_fade = envelope * smoothstep(0.0, 0.12, row) * smoothstep(1.0, 0.85, row);',
-
-      '  float bass = sin(x * 3.4 + u_time * 0.85 + row * 2.8) * 0.55;',
-      '  float mid  = sin(x * 8.8 - u_time * 1.25 + row * 5.6) * 0.28;',
-      '  float treble = sin(x * 20.0 + u_time * 2.0 + row * 11.0) * 0.12;',
-      '  float h = (bass + mid + treble) * envelope * (0.10 + row * 0.25);',
-
-      '  vec2 pWorld = vec2(x * 1.15, (row - 0.5) * 1.35);',
-      '  float mDist = distance(pWorld, u_mouse);',
-      '  float mWave = exp(-mDist * 4.2) * sin(mDist * 16.0 - u_time * 4.5) * 0.12;',
-      '  h += mWave;',
-
-      '  v_elevation = h;',
-
-      '  float projX = x * (1.12 + (1.0 - row) * 0.38);',
-      '  float projY = (row - 0.5) * 1.22 + h * 0.95 - 0.05;',
-
-      '  gl_Position = vec4(projX, projY, 0.0, 1.0);',
+      '  vUv = position * 0.5 + 0.5;',
+      '  gl_Position = vec4(position, 0.0, 1.0);',
       '}'
     ].join('\n');
 
+    // Fragment Shader: Stripe-like warped fluid gradient with subtle film grain
     var fsSource = [
-      'precision mediump float;',
-      'varying float v_elevation;',
-      'varying float v_depth;',
-      'varying float v_fade;',
+      '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+      '  precision highp float;',
+      '#else',
+      '  precision mediump float;',
+      '#endif',
+
+      'uniform vec2 u_resolution;',
+      'uniform float u_time;',
+      'uniform float u_speed;',
+      'uniform float u_scale;',
+      'uniform float u_noise;',
+      'uniform vec3 u_color1;',
+      'uniform vec3 u_color2;',
+      'uniform vec3 u_color3;',
+      'uniform vec2 u_mouse;',
+      'varying vec2 vUv;',
+
+      '#define PI 3.14159265359',
+
+      'float noise(vec2 st) {',
+      '  return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453);',
+      '}',
+
+      'vec3 stripeGradient(vec2 uv, float time) {',
+      '  vec2 p = ((uv * u_resolution * 2.0 - u_resolution.xy) / (u_resolution.x + u_resolution.y) * 2.0) * u_scale;',
+      '  p += (u_mouse - 0.5) * 0.12;',
+      '  float t = time * 0.7;',
+      '  float a = 4.0 * p.y - sin(-p.x * 3.0 + p.y - t);',
+      '  a = smoothstep(cos(a) * 0.7, sin(a) * 0.7 + 1.0, cos(a - 4.0 * p.y) - sin(a + 3.0 * p.x));',
+      '  vec2 warped = (cos(a) * p + sin(a) * vec2(-p.y, p.x)) * 0.5 + 0.5;',
+      '  vec3 color = mix(u_color1, u_color2, warped.x);',
+      '  color = mix(color, u_color3, warped.y);',
+      '  color *= color + 0.6 * sqrt(color);',
+      '  return clamp(color, 0.0, 1.0);',
+      '}',
 
       'void main() {',
-      '  vec3 deepGrid = vec3(0.09, 0.14, 0.10);',
-      '  vec3 crestColor = vec3(0.29, 0.87, 0.19);',
+      '  vec2 uv = vUv;',
+      '  float time = u_time * u_speed;',
+      '  vec3 color = stripeGradient(uv, time);',
 
-      '  float crest = smoothstep(0.015, 0.15, v_elevation);',
-      '  vec3 col = mix(deepGrid, crestColor, crest);',
+      '  if (u_noise > 0.001) {',
+      '    float grain = noise(uv * 200.0 + time * 0.1);',
+      '    color *= (1.0 - u_noise * 0.4 + u_noise * grain * 0.4);',
+      '  }',
 
-      '  float alpha = v_fade * mix(0.12, 0.70, v_depth) * (0.35 + crest * 0.65);',
-      '  gl_FragColor = vec4(col, alpha);',
+      '  gl_FragColor = vec4(color, 1.0);',
       '}'
     ].join('\n');
 
-    function compileShader(type, src) {
+    function createShader(type, src) {
       var s = gl.createShader(type);
       gl.shaderSource(s, src);
       gl.compileShader(s);
@@ -836,67 +846,69 @@
     }
 
     var program = gl.createProgram();
-    gl.attachShader(program, compileShader(gl.VERTEX_SHADER, vsSource));
-    gl.attachShader(program, compileShader(gl.FRAGMENT_SHADER, fsSource));
+    gl.attachShader(program, createShader(gl.VERTEX_SHADER, vsSource));
+    gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fsSource));
     gl.linkProgram(program);
     gl.useProgram(program);
 
-    // Build the 3D Spectrum Mesh Geometry
-    var ROWS = 34;
-    var COLS = 76;
-    var vertices = [];
+    // Fullscreen Quad Geometry (2 Triangles)
+    var quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,
+       1, -1,
+      -1,  1,
+      -1,  1,
+       1, -1,
+       1,  1
+    ]), gl.STATIC_DRAW);
 
-    // 1. Horizontal waveform contour lines
-    for (var r = 0; r < ROWS; r++) {
-      var rowNorm = r / (ROWS - 1);
-      for (var c = 0; c < COLS - 1; c++) {
-        var x1 = -1.0 + (c / (COLS - 1)) * 2.0;
-        var x2 = -1.0 + ((c + 1) / (COLS - 1)) * 2.0;
-        vertices.push(x1, rowNorm, x2, rowNorm);
-      }
-    }
+    var posAttr = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(posAttr);
+    gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
 
-    // 2. Longitudinal cross-lines for subtle 3D wireframe depth
-    var LONG_STEP = 3;
-    for (var col = 0; col < COLS; col += LONG_STEP) {
-      var xNorm = -1.0 + (col / (COLS - 1)) * 2.0;
-      for (var row = 0; row < ROWS - 1; row++) {
-        var r1 = row / (ROWS - 1);
-        var r2 = (row + 1) / (ROWS - 1);
-        vertices.push(xNorm, r1, xNorm, r2);
-      }
-    }
+    // Uniform Locations
+    var resLoc    = gl.getUniformLocation(program, 'u_resolution');
+    var timeLoc   = gl.getUniformLocation(program, 'u_time');
+    var speedLoc  = gl.getUniformLocation(program, 'u_speed');
+    var scaleLoc  = gl.getUniformLocation(program, 'u_scale');
+    var noiseLoc  = gl.getUniformLocation(program, 'u_noise');
+    var mouseLoc  = gl.getUniformLocation(program, 'u_mouse');
+    var col1Loc   = gl.getUniformLocation(program, 'u_color1');
+    var col2Loc   = gl.getUniformLocation(program, 'u_color2');
+    var col3Loc   = gl.getUniformLocation(program, 'u_color3');
 
-    var vertexCount = vertices.length / 2;
-    var vbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    // Nixo Forest Dark Palette (Ultra-Smooth Background Contrast)
+    // color1: Deep dark charcoal green foundation (#090c0a)
+    // color2: Velvet forest emerald (#102417)
+    // color3: Subtle glowing moss highlight (#1c4627)
+    var c1 = [9 / 255, 12 / 255, 10 / 255];
+    var c2 = [16 / 255, 36 / 255, 23 / 255];
+    var c3 = [28 / 255, 70 / 255, 39 / 255];
 
-    var gridLoc = gl.getAttribLocation(program, 'a_grid');
-    gl.enableVertexAttribArray(gridLoc);
-    gl.vertexAttribPointer(gridLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform3fv(col1Loc, c1);
+    gl.uniform3fv(col2Loc, c2);
+    gl.uniform3fv(col3Loc, c3);
+    gl.uniform1f(speedLoc, 0.22); // Slow, soothing and cinematic
+    gl.uniform1f(scaleLoc, 1.15); // Broad gentle curves
+    gl.uniform1f(noiseLoc, 0.05); // Micro-grain film texture
 
-    var timeLoc = gl.getUniformLocation(program, 'u_time');
-    var mouseLoc = gl.getUniformLocation(program, 'u_mouse');
-
-    // Smooth Mouse Coordinates Interpolation (LERP)
-    var mouse = { x: 0.0, y: -2.0 };
-    var targetMouse = { x: 0.0, y: -2.0 };
+    // Mouse Parallax Interaction (Smooth LERP)
+    var mouse = { x: 0.5, y: 0.5 };
+    var targetMouse = { x: 0.5, y: 0.5 };
 
     heroSection.addEventListener('mousemove', function(e) {
       var rect = heroSection.getBoundingClientRect();
-      var nx = ((e.clientX - rect.left) / rect.width) * 2.0 - 1.0;
-      var ny = -(((e.clientY - rect.top) / rect.height) * 2.0 - 1.0);
-      targetMouse.x = nx;
-      targetMouse.y = ny;
-    });
+      targetMouse.x = (e.clientX - rect.left) / rect.width;
+      targetMouse.y = (e.clientY - rect.top) / rect.height;
+    }, { passive: true });
 
     heroSection.addEventListener('mouseleave', function() {
-      targetMouse.x = 0.0;
-      targetMouse.y = -2.0;
-    });
+      targetMouse.x = 0.5;
+      targetMouse.y = 0.5;
+    }, { passive: true });
 
-    // Zero-overhead GPU Pause when Hero section is out of viewport
+    // Zero-overhead GPU Pause when scrolled out of view
     var isVisible = true;
     var animId = null;
     var startTime = performance.now();
@@ -911,23 +923,21 @@
           animId = null;
         }
       });
-    }, { threshold: 0.05 });
+    }, { threshold: 0.02 });
     observer.observe(heroSection);
 
     function render(now) {
       if (!isVisible) return;
 
       var t = (now - startTime) * 0.001;
-      mouse.x += (targetMouse.x - mouse.x) * 0.06;
-      mouse.y += (targetMouse.y - mouse.y) * 0.06;
+      mouse.x += (targetMouse.x - mouse.x) * 0.05;
+      mouse.y += (targetMouse.y - mouse.y) * 0.05;
 
-      gl.clearColor(0.0, 0.0, 0.0, 0.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-
+      gl.uniform2f(resLoc, canvas.width, canvas.height);
       gl.uniform1f(timeLoc, t);
       gl.uniform2f(mouseLoc, mouse.x, mouse.y);
 
-      gl.drawArrays(gl.LINES, 0, vertexCount);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       animId = requestAnimationFrame(render);
     }
