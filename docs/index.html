@@ -8,10 +8,10 @@
 <link rel="icon" type="image/x-icon" href="assets/icon.ico"/>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icon.png"/>
 <link rel="apple-touch-icon" href="assets/logo-1024.png"/>
-<!-- Google Fonts: Space Grotesk, Geist & JetBrains Mono -->
+<!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <!-- Material Symbols Outlined -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <!-- Tailwind CSS with Forms and Container Queries -->
@@ -55,18 +55,27 @@
             "error": "#ffb4ab"
           },
           fontFamily: {
-            "display-lg": ["Space Grotesk", "sans-serif"],
-            "card-title": ["Space Grotesk", "sans-serif"],
-            "body-base": ["Geist", "sans-serif"],
-            "mono-timestamp": ["JetBrains Mono", "monospace"],
-            "label-xs-bold": ["JetBrains Mono", "monospace"],
-            "headline-md": ["Space Grotesk", "sans-serif"]
+            "display-lg": ["'Plus Jakarta Sans'", "sans-serif"],
+            "card-title": ["'Plus Jakarta Sans'", "sans-serif"],
+            "body-base": ["'Inter'", "sans-serif"],
+            "mono-timestamp": ["'JetBrains Mono'", "monospace"],
+            "label-xs-bold": ["'JetBrains Mono'", "monospace"],
+            "headline-md": ["'Plus Jakarta Sans'", "sans-serif"]
           }
         }
       }
     };
   </script>
 <style>
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    h1, h2, h3, .font-display-lg {
+      letter-spacing: -0.03em;
+    }
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       display: inline-block;
@@ -794,3 +803,6 @@
     }
   </script>
 </body></html>
+
+
+
