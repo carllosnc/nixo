@@ -844,9 +844,10 @@
 
       '  // Wave crest illumination highlights with color5',
       '  float crest = smoothstep(0.35, 0.82, wY) * smoothstep(0.25, 0.85, sin(wX * PI * 2.5 + t * 0.6));',
-      '  col = mix(col, u_color5, crest * 0.42);',
+      '  col = mix(col, u_color5, crest * 0.36);',
 
-      '  // Direct clamp preserves pure saturation and vibrant #2fe50b color spectrum',
+      '  // Soft darkening to enhance white text readability and contrast while preserving vibrant #2fe50b identity',
+      '  col *= 0.68;',
       '  return clamp(col, 0.0, 1.0);',
       '}',
 
