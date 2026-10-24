@@ -117,15 +117,12 @@
 <a class="text-on-surface-variant hover:text-white transition-colors" href="#install">Instalação</a>
 </nav>
 
-<!-- Actions: Minimalist GitHub Icon + Clean Download CTA -->
-<div class="flex items-center gap-3">
+<!-- Actions: GitHub Icon only -->
+<div class="flex items-center">
 <a aria-label="Ver código fonte no GitHub" class="p-2 rounded-lg text-on-surface-variant hover:text-white hover:bg-white/5 transition-all" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
 <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
 </svg>
-</a>
-<a class="px-4 py-2 rounded-full bg-forest-green-500 hover:bg-forest-green-400 text-forest-green-950 font-semibold text-xs tracking-wide uppercase transition-all shadow-sm" href="#install">
-Baixar v1.2
 </a>
 </div>
 </div>
@@ -136,12 +133,7 @@ Baixar v1.2
 <div class="absolute top-10 left-1/2 -translate-x-1/2 w-[720px] h-[380px] bg-forest-green-500/15 blur-[140px] rounded-full pointer-events-none -z-10"></div>
 <div class="absolute top-48 left-1/3 -translate-x-1/2 w-[440px] h-[240px] bg-forest-green-400/10 blur-[110px] rounded-full pointer-events-none -z-10"></div>
 <div class="text-center max-w-4xl mx-auto space-y-6">
-<!-- Top Architecture Tag -->
-<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-green-950/60 border border-forest-green-500/30 text-xs font-mono-timestamp text-forest-green-300 backdrop-blur-md">
-<span class="font-semibold text-forest-green-400">wgpu + egui + libmpv</span>
-<span class="text-forest-green-600">•</span>
-<span class="text-on-surface-variant">Zero Electron / Zero CEF</span>
-</div>
+
 <!-- Main Heading -->
 <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
         O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-forest-green-400 drop-shadow-[0_0_25px_rgba(64,194,37,0.35)]">Rust</span>
@@ -331,9 +323,7 @@ Baixar v1.2
 <!-- ==================== SHOWCASE & FEATURE GALLERY ==================== -->
 <section class="py-20 px-6 md:px-12 max-w-7xl mx-auto w-full" id="showcase">
 <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
-<span class="text-xs font-mono-timestamp text-forest-green-400 uppercase tracking-wider font-semibold">
-        Funcionalidades de Estúdio
-      </span>
+
 <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
         Projetado para controle total da sua mídia
       </h2>
@@ -343,125 +333,75 @@ Baixar v1.2
 </div>
 <!-- Bento Grid Gallery of Features -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<!-- Item A: Picture-in-Picture (Mini-Player) -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
-<div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-            Mini-Player [I]
-          </div>
-</div>
+<!-- Item A: Picture-in-Picture -->
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Modo Picture-in-Picture (Mini-Player)</h3>
+<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Modo Picture-in-Picture</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Janela flutuante leve com opção <span class="font-mono-timestamp text-forest-green-400">Always on Top</span>, arrasto livre por toda a tela e restauração rápida com duplo clique.
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Atalho: Tecla [I]</span>
-<span class="text-forest-green-400 font-medium">Drag &amp; Drop Livre</span>
+Janela flutuante com opção Always on Top, arrasto livre por toda a tela e restauração rápida com duplo clique.
+</p>
 </div>
 </div>
 </div>
 <!-- Item B: Virtualized Playlist Drawer O(1) -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
-<div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-            ScrollArea O(1) [L]
-          </div>
-</div>
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Gaveta de Playlist Virtualizada O(1)</h3>
+<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Playlist Virtualizada O(1)</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Painel lateral com animação fluida capaz de carregar mais de 10.000 itens sem perda de quadros, ordenação alfanumérica inteligente e reprodução contínua.
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Atalho: Tecla [L]</span>
-<span class="text-forest-green-400 font-medium">Zero Lag com 10k itens</span>
+Painel lateral com animação fluida capaz de carregar mais de 10.000 itens sem perda de quadros e ordenação alfanumérica inteligente.
+</p>
 </div>
 </div>
 </div>
 <!-- Item C: Video Equalizer & Real-time Tuning -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
-<div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-            GPU Shaders
-          </div>
-</div>
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Equalizador de Vídeo &amp; Ajuste de Imagem</h3>
+<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Equalizador de Vídeo</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Ajuste em tempo real de Brilho, Contraste, Saturação e Gama através de shaders dedicados, com botão de restauração instantânea.
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Sliders GPU em tempo real</span>
-<span class="text-forest-green-400 font-medium">Reset com 1 Clique</span>
+Ajuste em tempo real de Brilho, Contraste, Saturação e Gama através de shaders dedicados acelerados por GPU.
+</p>
 </div>
 </div>
 </div>
 <!-- Item D: Advanced Subtitles Drag-and-Drop -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
-<div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-            .srt / .ass / .vtt
-          </div>
-</div>
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Legendas Avançadas com Drag-and-Drop</h3>
+<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Legendas com Drag &amp; Drop</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Arraste arquivos de legenda diretamente para o player. Personalize fonte, peso, cor de contorno, caixas de fundo e atraso de sincronização (+/-0.1s).
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Sincronia: Teclas [Z] e [X]</span>
-<span class="text-forest-green-400 font-medium">Offset +/-0.1s</span>
+Arraste arquivos de legenda (.srt, .ass, .vtt) diretamente para o player com personalização de tipografia e sincronia milimétrica.
+</p>
 </div>
 </div>
 </div>
 <!-- Item E: Lossless Screenshot Capture -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest/80 border-b border-forest-green-500/20 overflow-hidden flex items-center justify-center">
-<div class="absolute top-3 left-3 px-2 py-1 rounded bg-forest-green-950/90 backdrop-blur-md border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-            Lossless PNG [P]
-          </div>
-</div>
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
 <h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Captura de Tela Sem Perdas</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Gere capturas do quadro exato em resolução nativa sem compressão com o atalho <span class="font-mono-timestamp text-forest-green-400">P</span> ou <span class="font-mono-timestamp text-forest-green-400">Ctrl+S</span>, salvando no disco e transferindo para o clipboard.
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Atalho: [P] ou [Ctrl+S]</span>
-<span class="text-forest-green-400 font-medium">Para Área de Transferência</span>
+Gere capturas do quadro exato em resolução nativa sem compressão, copiando diretamente para a área de transferência.
+</p>
 </div>
 </div>
 </div>
 <!-- Item F: Synthetic Engine Fallback -->
-<div class="rounded-xl bg-surface-container border border-forest-green-500/25 overflow-hidden flex flex-col group hover:border-forest-green-400/60 hover:shadow-[0_0_30px_rgba(64,194,37,0.15)] transition-all">
-<div class="relative w-full h-52 bg-surface-container-lowest overflow-hidden flex items-center justify-center p-4">
-<div class="w-full h-full rounded border border-forest-green-500/30 bg-forest-green-950/40 flex flex-col items-center justify-center text-center p-4">
-<span class="material-symbols-outlined text-4xl text-forest-green-400 mb-2">grain</span>
-<span class="font-mono-timestamp text-xs text-forest-green-200 font-semibold">SyntheticBackend 60 FPS</span>
-<span class="text-xs text-on-surface-variant mt-1 font-body-base">Gerador procedural de sinal de teste sem dependências externas</span>
-</div>
-</div>
+<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
+<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
 <div class="p-6 flex-1 flex flex-col justify-between">
 <div>
 <h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Motor Sintético Integrado</h3>
 <p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Desenvolva e teste a interface sem precisar ter arquivos de vídeo ou codecs instalados: o Nixo conta com gerador de padrões de teste acelerado por shader.
-            </p>
-</div>
-<div class="mt-4 pt-4 border-t border-forest-green-500/20 flex items-center justify-between font-mono-timestamp text-xs text-on-surface-variant">
-<span>Fallback Automático</span>
-<span class="text-forest-green-400 font-medium">Zero Falhas em CI/CD</span>
+Gerador procedural de sinal de teste a 60 FPS acelerado por shader, permitindo testar toda a interface sem codecs externos.
+</p>
 </div>
 </div>
 </div>
@@ -778,6 +718,7 @@ Baixar v1.2
     }
   </script>
 </body></html>
+
 
 
 
