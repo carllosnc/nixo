@@ -121,30 +121,30 @@
 <!-- ==================== HERO SECTION (FULL SCREEN / FULL BLEED WEBGL) ==================== -->
 <section id="hero" class="relative w-full min-h-[92vh] flex flex-col justify-center overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
   <!-- Full Screen Stripe-like Gradient WebGL Canvas -->
-  <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" style="mask-image: linear-gradient(to bottom, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);">
-    <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-60"></canvas>
+  <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" style="mask-image: linear-gradient(to bottom, black 75%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);">
+    <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-90"></canvas>
   </div>
 
   <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full">
     <div class="text-center max-w-4xl mx-auto space-y-6">
-      <!-- Main Heading -->
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
+      <!-- Main Heading with High Contrast Shadow Drop -->
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12] drop-shadow-sm">
         O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-400">Rust</span>
       </h1>
 
       <!-- Technical Subtitle -->
-      <p class="text-base md:text-lg font-body-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-        Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-zinc-100">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-zinc-100">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
+      <p class="text-base md:text-lg font-body-base text-zinc-200 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
+        Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-white font-medium">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-white font-medium">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
       </p>
 
       <!-- Primary CTA Actions -->
       <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
-        <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2" href="#install">
+        <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2 shadow-lg" href="#install">
           <span class="material-symbols-outlined text-lg">download</span>
           <span>Download Gratuito</span>
         </a>
-        <a class="px-6 py-3 rounded-lg bg-surface-card/80 backdrop-blur-md text-zinc-200 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
-          <span class="material-symbols-outlined text-lg text-zinc-400">code</span>
+        <a class="px-6 py-3 rounded-lg bg-surface-card/90 backdrop-blur-md text-zinc-100 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2 border border-white/5" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
+          <span class="material-symbols-outlined text-lg text-zinc-300">code</span>
           <span>Ver no GitHub</span>
         </a>
       </div>
@@ -156,8 +156,8 @@
 
     <!-- HERO PLAYER SHOWCASE -->
     <div class="mt-14 max-w-5xl mx-auto">
-      <!-- Clean Solid Window Container -->
-      <div class="bg-surface-card/95 backdrop-blur-xl rounded-xl overflow-hidden flex flex-col shadow-2xl">
+      <!-- Clean Solid Window Container with Backdrop Blur -->
+      <div class="bg-surface-card/95 backdrop-blur-xl rounded-xl overflow-hidden flex flex-col shadow-2xl border border-white/[0.04]">
         <!-- Native OS Window Titlebar -->
         <div class="h-10 bg-surface-subtle px-4 flex items-center justify-between select-none">
           <div class="flex items-center gap-2">
@@ -786,7 +786,7 @@
       '}'
     ].join('\n');
 
-    // Fragment Shader: Stripe-like warped fluid gradient with subtle film grain
+    // Fragment Shader: Stripe-like warped fluid gradient with enhanced wave contrast
     var fsSource = [
       '#ifdef GL_FRAGMENT_PRECISION_HIGH',
       '  precision highp float;',
@@ -813,14 +813,14 @@
 
       'vec3 stripeGradient(vec2 uv, float time) {',
       '  vec2 p = ((uv * u_resolution * 2.0 - u_resolution.xy) / (u_resolution.x + u_resolution.y) * 2.0) * u_scale;',
-      '  p += (u_mouse - 0.5) * 0.12;',
-      '  float t = time * 0.7;',
-      '  float a = 4.0 * p.y - sin(-p.x * 3.0 + p.y - t);',
-      '  a = smoothstep(cos(a) * 0.7, sin(a) * 0.7 + 1.0, cos(a - 4.0 * p.y) - sin(a + 3.0 * p.x));',
-      '  vec2 warped = (cos(a) * p + sin(a) * vec2(-p.y, p.x)) * 0.5 + 0.5;',
+      '  p += (u_mouse - 0.5) * 0.25;',
+      '  float t = time * 0.95;',
+      '  float a = 4.2 * p.y - sin(-p.x * 3.2 + p.y * 1.4 - t);',
+      '  a = smoothstep(cos(a) * 0.65, sin(a) * 0.65 + 1.0, cos(a - 4.0 * p.y) - sin(a + 3.2 * p.x));',
+      '  vec2 warped = (cos(a) * p + sin(a) * vec2(-p.y, p.x)) * 0.52 + 0.5;',
       '  vec3 color = mix(u_color1, u_color2, warped.x);',
       '  color = mix(color, u_color3, warped.y);',
-      '  color *= color + 0.6 * sqrt(color);',
+      '  color *= color + 0.75 * sqrt(color);',
       '  return clamp(color, 0.0, 1.0);',
       '}',
 
@@ -830,8 +830,8 @@
       '  vec3 color = stripeGradient(uv, time);',
 
       '  if (u_noise > 0.001) {',
-      '    float grain = noise(uv * 200.0 + time * 0.1);',
-      '    color *= (1.0 - u_noise * 0.4 + u_noise * grain * 0.4);',
+      '    float grain = noise(uv * 180.0 + time * 0.15);',
+      '    color *= (1.0 - u_noise * 0.35 + u_noise * grain * 0.35);',
       '  }',
 
       '  gl_FragColor = vec4(color, 1.0);',
@@ -878,20 +878,20 @@
     var col2Loc   = gl.getUniformLocation(program, 'u_color2');
     var col3Loc   = gl.getUniformLocation(program, 'u_color3');
 
-    // Nixo Forest Dark Palette (Ultra-Smooth Background Contrast)
-    // color1: Deep dark charcoal green foundation (#090c0a)
-    // color2: Velvet forest emerald (#102417)
-    // color3: Subtle glowing moss highlight (#1c4627)
-    var c1 = [9 / 255, 12 / 255, 10 / 255];
-    var c2 = [16 / 255, 36 / 255, 23 / 255];
-    var c3 = [28 / 255, 70 / 255, 39 / 255];
+    // Nixo Forest Vibrant Wave Palette
+    // Color 1: Deep obsidian forest base (#07130b)
+    // Color 2: Rich luminous emerald wave crest (#228a39)
+    // Color 3: Deep shadow green valley (#0c2e17)
+    var c1 = [7 / 255, 19 / 255, 11 / 255];
+    var c2 = [34 / 255, 138 / 255, 57 / 255];
+    var c3 = [12 / 255, 46 / 255, 23 / 255];
 
     gl.uniform3fv(col1Loc, c1);
     gl.uniform3fv(col2Loc, c2);
     gl.uniform3fv(col3Loc, c3);
-    gl.uniform1f(speedLoc, 0.22); // Slow, soothing and cinematic
-    gl.uniform1f(scaleLoc, 1.15); // Broad gentle curves
-    gl.uniform1f(noiseLoc, 0.05); // Micro-grain film texture
+    gl.uniform1f(speedLoc, 0.45); // Fluid, expressive motion like reference
+    gl.uniform1f(scaleLoc, 1.05); // Crisp ribbon folds
+    gl.uniform1f(noiseLoc, 0.04); // Film grain texture
 
     // Mouse Parallax Interaction (Smooth LERP)
     var mouse = { x: 0.5, y: 0.5 };
