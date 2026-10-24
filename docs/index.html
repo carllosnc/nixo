@@ -1,77 +1,65 @@
 <!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Nixo — Reprodutor de Mídia Nativo Acelerado por GPU em Rust</title>
 
-<html class="dark" lang="pt-BR"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Nixo — Reprodutor de Mídia Nativo Acelerado por GPU em Rust</title>
-<!-- Favicon & Touch Icons -->
-<link rel="icon" type="image/x-icon" href="assets/icon.ico"/>
-<link rel="icon" type="image/png" sizes="32x32" href="assets/icon.png"/>
-<link rel="apple-touch-icon" href="assets/logo-1024.png"/>
-<!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<!-- Material Symbols Outlined -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Tailwind CSS with Forms and Container Queries -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Tailwind Configuration with Forest Green Shades -->
-<script id="tailwind-config">
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/x-icon" href="assets/icon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icon.png"/>
+  <link rel="apple-touch-icon" href="assets/logo-1024.png"/>
+
+  <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind CSS with Forms and Container Queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Tailwind Configuration: Clean Solid Contrast System -->
+  <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
       theme: {
         extend: {
           colors: {
-            "forest-green": {
-              50: "#f3fdf0",
-              100: "#e3fbdd",
-              200: "#c7f6bc",
-              300: "#9aed88",
-              400: "#66db4d",
-              500: "#40c225", // Primary accent
-              600: "#2d9617",
-              700: "#287e17",
-              800: "#236417",
-              900: "#1e5215",
-              950: "#0b2d06"
+            brand: {
+              400: "#4ade30",
+              500: "#32b31a",
+              600: "#259312"
             },
-            "surface-container-lowest": "#080c07",
-            "surface-dim": "#0c110b",
-            "surface": "#10160f",
-            "surface-container-low": "#131a12",
-            "surface-container": "#182216",
-            "surface-container-high": "#1f2c1d",
-            "surface-container-highest": "#283925",
-            "outline-variant": "#22351f",
-            "outline": "#395534",
-            "on-surface": "#e4ebe2",
-            "on-surface-variant": "#a7bda4",
-            "primary": "#40c225",
-            "primary-fixed": "#66db4d",
-            "primary-fixed-dim": "#2d9617",
-            "on-primary": "#042100",
-            "error-container": "#93000a",
-            "error": "#ffb4ab"
+            surface: {
+              base: "#090b0a",
+              card: "#121614",
+              subtle: "#161b18",
+              elevated: "#1c231f",
+              hover: "#222a25",
+              deep: "#050706"
+            }
           },
           fontFamily: {
             "display-lg": ["'Plus Jakarta Sans'", "sans-serif"],
             "card-title": ["'Plus Jakarta Sans'", "sans-serif"],
             "body-base": ["'Inter'", "sans-serif"],
-            "mono-timestamp": ["'JetBrains Mono'", "monospace"],
-            "label-xs-bold": ["'JetBrains Mono'", "monospace"],
-            "headline-md": ["'Plus Jakarta Sans'", "sans-serif"]
+            "mono-timestamp": ["'JetBrains Mono'", "monospace"]
           }
         }
       }
     };
   </script>
-<style>
+
+  <style>
     body {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
       font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      background-color: #090b0a;
     }
     h1, h2, h3, .font-display-lg {
       letter-spacing: -0.03em;
@@ -82,645 +70,680 @@
       vertical-align: middle;
       line-height: 1;
     }
-    /* Forest-green themed custom scrollbar */
+    /* Minimalist dark scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #080c07;
+      background: #090b0a;
     }
     ::-webkit-scrollbar-thumb {
-      background: #1f2c1d;
+      background: #1c231f;
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #40c225;
+      background: #2a352f;
     }
   </style>
 </head>
-<body class="bg-surface-container-lowest text-on-surface antialiased selection:bg-forest-green-500 selection:text-forest-green-950 font-body-base min-h-screen flex flex-col overflow-x-hidden">
+
+<body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-black">
+
 <!-- ==================== TOP NAVIGATION BAR ==================== -->
-<header class="sticky top-0 z-50 w-full bg-surface-container-lowest/80 backdrop-blur-xl border-b border-white/5">
-<div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
-<!-- Brand Logo -->
-<a class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group" href="#">
-<img alt="Nixo" class="w-7 h-7 rounded-md transition-transform group-hover:scale-105" src="assets/icon.png"/>
-<span class="font-display-lg font-bold group-hover:text-forest-green-300 transition-colors">Nixo</span>
-</a>
+<header class="sticky top-0 z-50 w-full bg-surface-base/90 backdrop-blur-md">
+  <div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
+    <!-- Brand Logo -->
+    <a class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group" href="#">
+      <img alt="Nixo" class="w-7 h-7 rounded-md transition-transform group-hover:scale-105" src="assets/icon.png"/>
+      <span class="font-display-lg font-bold group-hover:text-zinc-300 transition-colors">Nixo</span>
+    </a>
 
-<!-- Clean Navigation Links -->
-<nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-<a class="text-on-surface-variant hover:text-white transition-colors" href="#showcase">Recursos</a>
-<a class="text-on-surface-variant hover:text-white transition-colors" href="#benchmarks">Performance</a>
-<a class="text-on-surface-variant hover:text-white transition-colors" href="#docs">Arquitetura</a>
-<a class="text-on-surface-variant hover:text-white transition-colors" href="#install">Instalação</a>
-</nav>
+    <!-- Clean Navigation Links -->
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#showcase">Recursos</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#benchmarks">Performance</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#docs">Arquitetura</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#install">Instalação</a>
+    </nav>
 
-<!-- Actions: GitHub Icon only -->
-<div class="flex items-center">
-<a aria-label="Ver código fonte no GitHub" class="p-2 rounded-lg text-on-surface-variant hover:text-white hover:bg-white/5 transition-all" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
-<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
-</svg>
-</a>
-</div>
-</div>
+    <!-- Actions: GitHub Icon only -->
+    <div class="flex items-center">
+      <a aria-label="Ver código fonte no GitHub" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-surface-elevated transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
 </header>
-<!-- ==================== HERO SECTION ==================== -->
-<section class="relative pt-12 pb-20 md:pt-20 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto w-full">
-<!-- Ambient Forest Glow Backdrops -->
-<div class="absolute top-10 left-1/2 -translate-x-1/2 w-[720px] h-[380px] bg-forest-green-500/15 blur-[140px] rounded-full pointer-events-none -z-10"></div>
-<div class="absolute top-48 left-1/3 -translate-x-1/2 w-[440px] h-[240px] bg-forest-green-400/10 blur-[110px] rounded-full pointer-events-none -z-10"></div>
-<div class="text-center max-w-4xl mx-auto space-y-6">
 
-<!-- Main Heading -->
-<h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
-        O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-forest-green-400 drop-shadow-[0_0_25px_rgba(64,194,37,0.35)]">Rust</span>
-</h1>
-<!-- Technical Subtitle -->
-<p class="text-base md:text-lg font-body-base text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
-        Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-forest-green-300">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-forest-green-300">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
-      </p>
-<!-- Primary CTA Actions -->
-<div class="pt-4 flex flex-wrap items-center justify-center gap-4">
-<a class="px-6 py-3.5 rounded-full bg-forest-green-500 text-forest-green-950 font-bold text-sm md:text-base shadow-[0_0_25px_rgba(64,194,37,0.4)] hover:bg-forest-green-400 hover:shadow-[0_0_30px_rgba(102,219,77,0.55)] transition-all scale-95 active:scale-90 duration-75 flex items-center gap-2" href="#install">
-<span class="material-symbols-outlined text-lg">download</span>
-<span>Download Gratuito (.zip / instalador)</span>
-</a>
-<a class="px-6 py-3.5 rounded-full bg-surface-container border border-forest-green-500/30 text-on-surface font-body-base font-medium hover:border-forest-green-400 hover:text-white hover:bg-forest-green-950/40 transition-all scale-95 active:scale-90 duration-75 flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
-<span class="material-symbols-outlined text-lg text-forest-green-400">code</span>
-<span>Ver no GitHub</span>
-</a>
-</div>
-<p class="text-xs font-mono-timestamp text-on-surface-variant/70">
-        Disponível para Windows 10/11 (x86_64), Linux (Wayland &amp; X11) e macOS (Apple Silicon &amp; Intel)
-      </p>
-</div>
-<!-- HERO PLAYER SHOWCASE -->
-<div class="mt-14 relative max-w-5xl mx-auto">
-<!-- Glow Rim Border Container -->
-<div class="rounded-xl p-1 bg-gradient-to-b from-forest-green-500/40 via-forest-green-500/15 to-transparent shadow-[0_0_50px_rgba(11,45,6,0.6)] backdrop-blur-2xl">
-<div class="bg-surface-container-lowest rounded-lg overflow-hidden border border-forest-green-500/30 flex flex-col shadow-2xl">
-<!-- Native OS Window Titlebar -->
-<div class="h-10 bg-surface-container-low px-4 flex items-center justify-between border-b border-forest-green-500/20 select-none">
-<div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-red-500/70 border border-red-400/30 inline-block"></span>
-<span class="w-3 h-3 rounded-full bg-forest-green-700 border border-forest-green-500/30 inline-block"></span>
-<span class="w-3 h-3 rounded-full bg-forest-green-900 border border-forest-green-500/30 inline-block"></span>
-<span class="ml-3 font-mono-timestamp text-xs text-on-surface-variant flex items-center gap-1.5">
-<span class="material-symbols-outlined text-xs text-forest-green-400">movie</span>
-<span>Nixo Player — Cosmos_Discovery_Episode4_4K.mkv</span>
-</span>
-</div>
-<!-- Technical Chip HUD -->
-<div class="hidden sm:flex items-center gap-2">
-<span class="px-2 py-0.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-300">
-                4K 60FPS HDR
-              </span>
-<span class="px-2 py-0.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 font-mono-timestamp text-xs text-forest-green-400 font-semibold">
-                HEVC / NVDEC
-              </span>
-<span class="px-2 py-0.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 font-mono-timestamp text-xs text-on-surface-variant">
-                wgpu [Vulkan]
-              </span>
-</div>
-</div>
-<!-- Video Canvas Stage (Placeholder) -->
-<div class="relative w-full aspect-video bg-surface-container-lowest flex items-center justify-center overflow-hidden group">
-<!-- Floating Centered Play/Pause Button Pill -->
-<div class="absolute inset-0 flex items-center justify-center">
-<button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-forest-green-950/80 hover:bg-forest-green-900/90 backdrop-blur-xl border border-forest-green-400/50 flex items-center justify-center text-forest-green-300 shadow-[0_0_30px_rgba(64,194,37,0.35)] transition-all scale-95 hover:scale-105 active:scale-90">
-<span class="material-symbols-outlined text-3xl md:text-4xl text-forest-green-400">play_arrow</span>
-</button>
-</div>
-<!-- On-Screen Display (OSD) Bar Container -->
-<div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/60 to-transparent flex flex-col gap-2">
-<!-- Seekbar Timeline Rail -->
-<div class="relative w-full h-2 flex items-center cursor-pointer group/rail">
-<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
-<div class="h-full bg-forest-green-500 rounded-full shadow-[0_0_8px_#40c225]" style="width: 42%;"></div>
-</div>
-<!-- Playhead Knob -->
-<div class="absolute left-[42%] w-3.5 h-3.5 rounded-full bg-forest-green-300 shadow-[0_0_10px_#40c225] ring-2 ring-forest-green-500/50 -translate-x-1/2 scale-100 group-hover/rail:scale-125 transition-transform"></div>
-</div>
-<!-- OSD Controls Row -->
-<div class="flex items-center justify-between text-on-surface text-sm pt-1">
-<div class="flex items-center gap-3">
-<button class="hover:text-forest-green-400 transition-colors flex items-center">
-<span class="material-symbols-outlined text-xl">play_arrow</span>
-</button>
-<button class="hover:text-forest-green-400 transition-colors flex items-center">
-<span class="material-symbols-outlined text-xl">skip_next</span>
-</button>
-<div class="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface">
-<span class="material-symbols-outlined text-lg">volume_up</span>
-<div class="w-16 h-1 bg-surface-container-highest rounded-full overflow-hidden hidden sm:block">
-<div class="h-full bg-forest-green-400" style="width: 80%;"></div>
-</div>
-</div>
-<span class="font-mono-timestamp text-xs text-on-surface-variant">
-                    00:42:18 / 01:45:00
-                  </span>
-</div>
-<div class="flex items-center gap-3">
-<button class="px-2 py-0.5 rounded bg-forest-green-950/80 text-xs font-mono-timestamp border border-forest-green-500/30 text-forest-green-300 hover:border-forest-green-400 transition-colors">
-                    1.0x
-                  </button>
-<button class="hover:text-forest-green-400 transition-colors flex items-center" title="Legendas (V)">
-<span class="material-symbols-outlined text-lg">subtitles</span>
-</button>
-<button class="hover:text-forest-green-400 transition-colors flex items-center" title="Equalizador">
-<span class="material-symbols-outlined text-lg">tune</span>
-</button>
-<button class="hover:text-forest-green-400 transition-colors flex items-center" title="Picture-in-Picture (I)">
-<span class="material-symbols-outlined text-lg">picture_in_picture_alt</span>
-</button>
-<button class="hover:text-forest-green-400 transition-colors flex items-center" title="Tela Cheia (F)">
-<span class="material-symbols-outlined text-lg">fullscreen</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- ==================== REAL-TIME PERFORMANCE METRICS ==================== -->
-<section class="py-16 bg-surface-container-low border-y border-forest-green-500/20" id="benchmarks">
-<div class="max-w-7xl mx-auto px-6 md:px-12">
-<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-<div>
-<span class="text-xs font-mono-timestamp text-forest-green-400 uppercase tracking-wider font-semibold">
-            Engenharia de Alta Performance
+<!-- ==================== HERO SECTION ==================== -->
+<section class="pt-12 pb-20 md:pt-20 md:pb-28 px-6 md:px-12 max-w-7xl mx-auto w-full">
+  <div class="text-center max-w-4xl mx-auto space-y-6">
+    <!-- Main Heading -->
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-extrabold max-w-3xl mx-auto leading-tight md:leading-[1.12]">
+      O reprodutor de mídia nativo e ultra-rápido construído em <span class="text-brand-400">Rust</span>
+    </h1>
+
+    <!-- Technical Subtitle -->
+    <p class="text-base md:text-lg font-body-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+      Interface 100% acelerada por GPU (<span class="font-mono-timestamp text-zinc-200">wgpu/egui</span>) com decodificação de hardware impecável via <span class="font-mono-timestamp text-zinc-200">libmpv</span>. Zero Electron, inicialização instantânea e consumo mínimo de memória.
+    </p>
+
+    <!-- Primary CTA Actions -->
+    <div class="pt-3 flex flex-wrap items-center justify-center gap-3">
+      <a class="px-6 py-3 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2" href="#install">
+        <span class="material-symbols-outlined text-lg">download</span>
+        <span>Download Gratuito</span>
+      </a>
+      <a class="px-6 py-3 rounded-lg bg-surface-subtle text-zinc-200 font-medium text-sm md:text-base hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
+        <span class="material-symbols-outlined text-lg text-zinc-400">code</span>
+        <span>Ver no GitHub</span>
+      </a>
+    </div>
+
+    <p class="text-xs font-mono-timestamp text-zinc-500">
+      Disponível para Windows 10/11 (x86_64), Linux (Wayland &amp; X11) e macOS (Apple Silicon &amp; Intel)
+    </p>
+  </div>
+
+  <!-- HERO PLAYER SHOWCASE -->
+  <div class="mt-14 max-w-5xl mx-auto">
+    <!-- Clean Solid Window Container without glowing borders -->
+    <div class="bg-surface-card rounded-xl overflow-hidden flex flex-col">
+      <!-- Native OS Window Titlebar -->
+      <div class="h-10 bg-surface-subtle px-4 flex items-center justify-between select-none">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+          <span class="w-3 h-3 rounded-full bg-zinc-700 inline-block"></span>
+          <span class="ml-3 font-mono-timestamp text-xs text-zinc-400 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-xs text-zinc-400">movie</span>
+            <span>Nixo Player — Cosmos_Discovery_Episode4_4K.mkv</span>
           </span>
-<h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-bold">
-            Métricas em Tempo Real
-          </h2>
-</div>
-<p class="text-sm font-body-base text-on-surface-variant max-w-md">
-          Compilado diretamente em código de máquina via LLVM. Sem virtual DOM, sem overhead de interpretador JavaScript, apenas poder bruto de GPU.
-        </p>
-</div>
-<!-- Bento Grid of 4 Key Benchmarks -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-<!-- Metric Card 1 -->
-<div class="p-6 rounded-xl bg-forest-green-950/30 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:shadow-[0_0_20px_rgba(64,194,37,0.15)] transition-all flex flex-col justify-between group">
-<div class="flex items-center justify-between text-on-surface-variant mb-4">
-<span class="material-symbols-outlined text-2xl text-forest-green-400 group-hover:scale-110 transition-transform">speed</span>
-<span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-forest-green-950 border border-forest-green-500/30 text-forest-green-300">Frame Sync</span>
-</div>
-<div>
-<div class="font-mono-timestamp text-3xl font-bold text-forest-green-300 tracking-tight">0ms / 60 FPS</div>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Zero latência de apresentação de interface com buffer swap duplo sincronizado ao refresh nativo.
-            </p>
-</div>
-</div>
-<!-- Metric Card 2 -->
-<div class="p-6 rounded-xl bg-forest-green-950/30 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:shadow-[0_0_20px_rgba(64,194,37,0.15)] transition-all flex flex-col justify-between group">
-<div class="flex items-center justify-between text-on-surface-variant mb-4">
-<span class="material-symbols-outlined text-2xl text-forest-green-400 group-hover:scale-110 transition-transform">memory</span>
-<span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-forest-green-950 border border-forest-green-500/30 text-forest-green-300">RAM Footprint</span>
-</div>
-<div>
-<div class="font-mono-timestamp text-3xl font-bold text-forest-green-300 tracking-tight">&lt; 35 MB</div>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Consumo de memória cirúrgico. Sem Chromium embutido consumindo gigabytes em segundo plano.
-            </p>
-</div>
-</div>
-<!-- Metric Card 3 -->
-<div class="p-6 rounded-xl bg-forest-green-950/30 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:shadow-[0_0_20px_rgba(64,194,37,0.15)] transition-all flex flex-col justify-between group">
-<div class="flex items-center justify-between text-on-surface-variant mb-4">
-<span class="material-symbols-outlined text-2xl text-forest-green-400 group-hover:scale-110 transition-transform">sports_esports</span>
-<span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-forest-green-950 border border-forest-green-500/30 text-forest-green-300">Render Backend</span>
-</div>
-<div>
-<div class="font-mono-timestamp text-3xl font-bold text-forest-green-300 tracking-tight">100% GPU</div>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Pipeline de desenho nativo com DirectX 12 no Windows, Metal no macOS e Vulkan no Linux.
-            </p>
-</div>
-</div>
-<!-- Metric Card 4 -->
-<div class="p-6 rounded-xl bg-forest-green-950/30 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:shadow-[0_0_20px_rgba(64,194,37,0.15)] transition-all flex flex-col justify-between group">
-<div class="flex items-center justify-between text-on-surface-variant mb-4">
-<span class="material-symbols-outlined text-2xl text-forest-green-400 group-hover:scale-110 transition-transform">developer_board</span>
-<span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-forest-green-950 border border-forest-green-500/30 text-forest-green-300">HW Accel</span>
-</div>
-<div>
-<div class="font-mono-timestamp text-3xl font-bold text-forest-green-300 tracking-tight">D3D11 / NVDEC</div>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-              Decodificação por hardware zero-copy com VAAPI no Linux e VideoToolbox nos Macs Apple Silicon.
-            </p>
-</div>
-</div>
-</div>
-</div>
+        </div>
+
+        <!-- Technical Chip HUD -->
+        <div class="hidden sm:flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300">
+            4K 60FPS HDR
+          </span>
+          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-300 font-semibold">
+            HEVC / NVDEC
+          </span>
+          <span class="px-2 py-0.5 rounded bg-surface-base font-mono-timestamp text-xs text-zinc-400">
+            wgpu [Vulkan]
+          </span>
+        </div>
+      </div>
+
+      <!-- Video Canvas Stage (Placeholder for real player preview) -->
+      <div class="relative w-full aspect-video bg-surface-deep flex items-center justify-center overflow-hidden group">
+        <!-- Floating Centered Play/Pause Button -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <button class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-card/90 hover:bg-surface-elevated pointer-events-auto flex items-center justify-center text-white transition-colors">
+            <span class="material-symbols-outlined text-3xl md:text-4xl">play_arrow</span>
+          </button>
+        </div>
+
+        <!-- On-Screen Display (OSD) Bar Container -->
+        <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/90 to-transparent flex flex-col gap-2">
+          <!-- Seekbar Timeline Rail -->
+          <div class="relative w-full h-2 flex items-center cursor-pointer group/rail">
+            <div class="w-full h-1 bg-surface-elevated rounded-full overflow-hidden">
+              <div class="h-full bg-brand-500 rounded-full" style="width: 42%;"></div>
+            </div>
+            <!-- Playhead Knob -->
+            <div class="absolute left-[42%] w-3 h-3 rounded-full bg-white -translate-x-1/2 scale-100 group-hover/rail:scale-125 transition-transform"></div>
+          </div>
+
+          <!-- OSD Controls Row -->
+          <div class="flex items-center justify-between text-zinc-300 text-sm pt-1">
+            <div class="flex items-center gap-3">
+              <button class="hover:text-white transition-colors flex items-center">
+                <span class="material-symbols-outlined text-xl">play_arrow</span>
+              </button>
+              <button class="hover:text-white transition-colors flex items-center">
+                <span class="material-symbols-outlined text-xl">skip_next</span>
+              </button>
+              <div class="flex items-center gap-1.5 text-zinc-400 hover:text-white">
+                <span class="material-symbols-outlined text-lg">volume_up</span>
+                <div class="w-16 h-1 bg-surface-elevated rounded-full overflow-hidden hidden sm:block">
+                  <div class="h-full bg-zinc-300" style="width: 80%;"></div>
+                </div>
+              </div>
+              <span class="font-mono-timestamp text-xs text-zinc-400">
+                00:42:18 / 01:45:00
+              </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="px-1.5 py-0.5 rounded bg-surface-elevated text-xs font-mono-timestamp text-zinc-300">
+                1.0x
+              </span>
+              <button class="hover:text-white transition-colors flex items-center" title="Legendas (V)">
+                <span class="material-symbols-outlined text-lg">subtitles</span>
+              </button>
+              <button class="hover:text-white transition-colors flex items-center" title="Equalizador">
+                <span class="material-symbols-outlined text-lg">tune</span>
+              </button>
+              <button class="hover:text-white transition-colors flex items-center" title="Picture-in-Picture (I)">
+                <span class="material-symbols-outlined text-lg">picture_in_picture_alt</span>
+              </button>
+              <button class="hover:text-white transition-colors flex items-center" title="Tela Cheia (F)">
+                <span class="material-symbols-outlined text-lg">fullscreen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
+
+<!-- ==================== REAL-TIME PERFORMANCE METRICS ==================== -->
+<section class="py-16 bg-surface-subtle" id="benchmarks">
+  <div class="max-w-7xl mx-auto px-6 md:px-12">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+      <div>
+        <span class="text-xs font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
+          Engenharia de Alta Performance
+        </span>
+        <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-bold">
+          Métricas em Tempo Real
+        </h2>
+      </div>
+      <p class="text-sm font-body-base text-zinc-400 max-w-md">
+        Compilado diretamente em código de máquina via LLVM. Sem virtual DOM, sem overhead de interpretador JavaScript, apenas poder bruto de GPU.
+      </p>
+    </div>
+
+    <!-- Solid High-Contrast Bento Grid of 4 Key Benchmarks -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Metric Card 1 -->
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+        <div class="flex items-center justify-between text-zinc-400 mb-6">
+          <span class="material-symbols-outlined text-2xl text-zinc-200">speed</span>
+          <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">Frame Sync</span>
+        </div>
+        <div>
+          <div class="font-mono-timestamp text-3xl font-bold text-white tracking-tight">0ms / 60 FPS</div>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Zero latência de apresentação de interface com buffer swap duplo sincronizado ao refresh nativo.
+          </p>
+        </div>
+      </div>
+
+      <!-- Metric Card 2 -->
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+        <div class="flex items-center justify-between text-zinc-400 mb-6">
+          <span class="material-symbols-outlined text-2xl text-zinc-200">memory</span>
+          <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">RAM Footprint</span>
+        </div>
+        <div>
+          <div class="font-mono-timestamp text-3xl font-bold text-white tracking-tight">&lt; 35 MB</div>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Consumo de memória cirúrgico. Sem Chromium embutido consumindo gigabytes em segundo plano.
+          </p>
+        </div>
+      </div>
+
+      <!-- Metric Card 3 -->
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+        <div class="flex items-center justify-between text-zinc-400 mb-6">
+          <span class="material-symbols-outlined text-2xl text-zinc-200">sports_esports</span>
+          <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">Render Backend</span>
+        </div>
+        <div>
+          <div class="font-mono-timestamp text-3xl font-bold text-white tracking-tight">100% GPU</div>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Pipeline de desenho nativo com DirectX 12 no Windows, Metal no macOS e Vulkan no Linux.
+          </p>
+        </div>
+      </div>
+
+      <!-- Metric Card 4 -->
+      <div class="p-6 rounded-xl bg-surface-card hover:bg-surface-elevated transition-colors flex flex-col justify-between group">
+        <div class="flex items-center justify-between text-zinc-400 mb-6">
+          <span class="material-symbols-outlined text-2xl text-zinc-200">developer_board</span>
+          <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-subtle text-zinc-300">HW Accel</span>
+        </div>
+        <div>
+          <div class="font-mono-timestamp text-3xl font-bold text-white tracking-tight">D3D11 / NVDEC</div>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Decodificação por hardware zero-copy com VAAPI no Linux e VideoToolbox nos Macs Apple Silicon.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ==================== SHOWCASE & FEATURE GALLERY ==================== -->
 <section class="py-20 px-6 md:px-12 max-w-7xl mx-auto w-full" id="showcase">
-<div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+  <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+    <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
+      Projetado para controle total da sua mídia
+    </h2>
+    <p class="text-base font-body-base text-zinc-400">
+      Cada detalhe do Nixo foi idealizado para entusiastas de áudio e vídeo que não toleram lentidão e desejam precisão milimétrica.
+    </p>
+  </div>
 
-<h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
-        Projetado para controle total da sua mídia
-      </h2>
-<p class="text-base font-body-base text-on-surface-variant">
-        Cada detalhe do Nixo foi idealizado para entusiastas de áudio e vídeo que não toleram lentidão e desejam precisão milimétrica.
-      </p>
-</div>
-<!-- Bento Grid Gallery of Features -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<!-- Item A: Picture-in-Picture -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Modo Picture-in-Picture</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Janela flutuante com opção Always on Top, arrasto livre por toda a tela e restauração rápida com duplo clique.
-</p>
-</div>
-</div>
-</div>
-<!-- Item B: Virtualized Playlist Drawer O(1) -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Playlist Virtualizada O(1)</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Painel lateral com animação fluida capaz de carregar mais de 10.000 itens sem perda de quadros e ordenação alfanumérica inteligente.
-</p>
-</div>
-</div>
-</div>
-<!-- Item C: Video Equalizer & Real-time Tuning -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Equalizador de Vídeo</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Ajuste em tempo real de Brilho, Contraste, Saturação e Gama através de shaders dedicados acelerados por GPU.
-</p>
-</div>
-</div>
-</div>
-<!-- Item D: Advanced Subtitles Drag-and-Drop -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Legendas com Drag &amp; Drop</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Arraste arquivos de legenda (.srt, .ass, .vtt) diretamente para o player com personalização de tipografia e sincronia milimétrica.
-</p>
-</div>
-</div>
-</div>
-<!-- Item E: Lossless Screenshot Capture -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Captura de Tela Sem Perdas</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Gere capturas do quadro exato em resolução nativa sem compressão, copiando diretamente para a área de transferência.
-</p>
-</div>
-</div>
-</div>
-<!-- Item F: Synthetic Engine Fallback -->
-<div class="rounded-xl bg-surface-container/70 border border-white/5 hover:border-forest-green-500/30 overflow-hidden flex flex-col group transition-all">
-<div class="relative w-full h-48 bg-surface-container-lowest/60 border-b border-white/5 overflow-hidden flex items-center justify-center"></div>
-<div class="p-6 flex-1 flex flex-col justify-between">
-<div>
-<h3 class="text-lg font-card-title text-white font-bold group-hover:text-forest-green-300 transition-colors">Motor Sintético Integrado</h3>
-<p class="text-sm font-body-base text-on-surface-variant mt-2 leading-relaxed">
-Gerador procedural de sinal de teste a 60 FPS acelerado por shader, permitindo testar toda a interface sem codecs externos.
-</p>
-</div>
-</div>
-</div>
-</div>
+  <!-- Bento Grid Gallery of Features -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Item A: Picture-in-Picture -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Modo Picture-in-Picture</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Janela flutuante com opção Always on Top, arrasto livre por toda a tela e restauração rápida com duplo clique.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item B: Virtualized Playlist Drawer O(1) -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Playlist Virtualizada O(1)</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Painel lateral com animação fluida capaz de carregar mais de 10.000 itens sem perda de quadros e ordenação alfanumérica inteligente.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item C: Video Equalizer & Real-time Tuning -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Equalizador de Vídeo</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Ajuste em tempo real de Brilho, Contraste, Saturação e Gama através de shaders dedicados acelerados por GPU.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item D: Advanced Subtitles Drag-and-Drop -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Legendas com Drag &amp; Drop</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Arraste arquivos de legenda (.srt, .ass, .vtt) diretamente para o player com personalização de tipografia e sincronia milimétrica.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item E: Lossless Screenshot Capture -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Captura de Tela Sem Perdas</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Gere capturas do quadro exato em resolução nativa sem compressão, copiando diretamente para a área de transferência.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item F: Synthetic Engine Fallback -->
+    <div class="rounded-xl bg-surface-card hover:bg-surface-subtle overflow-hidden flex flex-col group transition-colors">
+      <div class="relative w-full h-48 bg-surface-deep flex items-center justify-center"></div>
+      <div class="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-card-title text-white font-bold group-hover:text-zinc-200 transition-colors">Motor Sintético Integrado</h3>
+          <p class="text-sm font-body-base text-zinc-400 mt-2 leading-relaxed">
+            Gerador procedural de sinal de teste a 60 FPS acelerado por shader, permitindo testar toda a interface sem codecs externos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
+
 <!-- ==================== ARCHITECTURE & SHORTCUTS ==================== -->
-<section class="py-20 bg-surface-container-low border-t border-forest-green-500/20" id="docs">
-<div class="max-w-7xl mx-auto px-6 md:px-12">
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-<!-- Modular Architecture Diagram -->
-<div class="lg:col-span-6 space-y-6">
-<div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 text-xs font-mono-timestamp text-forest-green-300">
-            Cargo Workspace
+<section class="py-20 bg-surface-subtle" id="docs">
+  <div class="max-w-7xl mx-auto px-6 md:px-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <!-- Modular Architecture -->
+      <div class="lg:col-span-6 space-y-6">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-card text-xs font-mono-timestamp text-zinc-300">
+          Cargo Workspace
+        </div>
+        <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
+          Arquitetura Modular em Rust
+        </h2>
+        <p class="text-base font-body-base text-zinc-400 leading-relaxed">
+          O projeto é desacoplado em crates reutilizáveis, garantindo isolamento estrito entre o backend de mídia, os drivers de GPU e o loop de renderização do egui.
+        </p>
+
+        <div class="space-y-3 font-mono-timestamp text-xs">
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+            <span class="material-symbols-outlined text-zinc-400 text-lg">folder_open</span>
+            <div>
+              <span class="text-white font-bold text-sm">nixo-core</span>
+              <p class="text-zinc-400 font-body-base text-xs mt-1 leading-relaxed">
+                Modelos de domínio puros, máquina de estados de reprodução (<span class="font-mono-timestamp text-zinc-300">Playing, Paused, Idle</span>), fila de comandos e abstração <span class="font-mono-timestamp text-zinc-300">MediaBackend</span>.
+              </p>
+            </div>
           </div>
-<h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
-            Arquitetura Modular em Rust
-          </h2>
-<p class="text-base font-body-base text-on-surface-variant leading-relaxed">
-            O projeto é desacoplado em crates reutilizáveis, garantindo isolamento estrito entre o backend de mídia, os drivers de GPU e o loop de renderização do egui.
-          </p>
-<div class="space-y-3 font-mono-timestamp text-xs">
-<div class="p-4 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-start gap-3 hover:border-forest-green-400/40 transition-colors">
-<span class="material-symbols-outlined text-forest-green-400 text-lg">folder_open</span>
-<div>
-<span class="text-forest-green-300 font-bold text-sm">nixo-core</span>
-<p class="text-on-surface-variant font-body-base text-xs mt-1 leading-relaxed">
-                  Modelos de domínio puros, máquina de estados de reprodução (<span class="font-mono-timestamp text-forest-green-400">Playing, Paused, Idle</span>), fila de comandos e abstração <span class="font-mono-timestamp text-forest-green-400">MediaBackend</span>.
-                </p>
-</div>
-</div>
-<div class="p-4 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-start gap-3 hover:border-forest-green-400/40 transition-colors">
-<span class="material-symbols-outlined text-forest-green-400 text-lg">settings_input_component</span>
-<div>
-<span class="text-forest-green-300 font-bold text-sm">nixo-engine</span>
-<p class="text-on-surface-variant font-body-base text-xs mt-1 leading-relaxed">
-                  Integração dinâmica com <span class="font-mono-timestamp text-forest-green-400">libmpv</span> em tempo de execução sem requerer headers C no build. Worker de thumbnails com cache local em disco.
-                </p>
-</div>
-</div>
-<div class="p-4 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-start gap-3 hover:border-forest-green-400/40 transition-colors">
-<span class="material-symbols-outlined text-forest-green-400 text-lg">desktop_windows</span>
-<div>
-<span class="text-forest-green-300 font-bold text-sm">nixo-app</span>
-<p class="text-on-surface-variant font-body-base text-xs mt-1 leading-relaxed">
-                  Interface GUI nativa compilada com egui + wgpu. Barra OSD anti-colisão responsiva em 4 níveis e internacionalização nativa (i18n).
-                </p>
-</div>
-</div>
-</div>
-</div>
-<!-- Visual Keyboard Shortcuts Grid -->
-<div class="lg:col-span-6 space-y-6">
-<div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 text-xs font-mono-timestamp text-forest-green-300">
-            Controle Tátil
+
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+            <span class="material-symbols-outlined text-zinc-400 text-lg">settings_input_component</span>
+            <div>
+              <span class="text-white font-bold text-sm">nixo-engine</span>
+              <p class="text-zinc-400 font-body-base text-xs mt-1 leading-relaxed">
+                Integração dinâmica com <span class="font-mono-timestamp text-zinc-300">libmpv</span> em tempo de execução sem requerer headers C no build. Worker de thumbnails com cache local em disco.
+              </p>
+            </div>
           </div>
-<h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
-            Atalhos de Teclado Profissionais
-          </h2>
-<p class="text-base font-body-base text-on-surface-variant leading-relaxed">
-            Navegue por toda a experiência sem tocar no mouse. O Nixo foi desenhado com atalhos intuitivos no estilo workstation.
-          </p>
-<div class="grid grid-cols-2 gap-3">
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Play / Pausar</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">Space</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Avançar / Voltar 5s</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">← / →</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Mini-Player (PiP)</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">I</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Tela Cheia</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">F</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Delay Legenda +/-0.1s</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">Z / X</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Gaveta Playlist</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">L</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Captura Lossless PNG</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">P</kbd>
-</div>
-<div class="p-3.5 rounded-lg bg-surface-container border border-forest-green-500/25 flex items-center justify-between hover:border-forest-green-400/30 transition-colors">
-<span class="text-sm font-body-base text-on-surface">Abrir Arquivo</span>
-<kbd class="px-2.5 py-1 rounded bg-forest-green-950/90 border border-forest-green-500/40 font-mono-timestamp text-xs font-bold text-forest-green-300 shadow-sm">Ctrl + O</kbd>
-</div>
-</div>
-</div>
-</div>
-</div>
+
+          <div class="p-4 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-start gap-3 transition-colors">
+            <span class="material-symbols-outlined text-zinc-400 text-lg">desktop_windows</span>
+            <div>
+              <span class="text-white font-bold text-sm">nixo-app</span>
+              <p class="text-zinc-400 font-body-base text-xs mt-1 leading-relaxed">
+                Interface GUI nativa compilada com egui + wgpu. Barra OSD anti-colisão responsiva em 4 níveis e internacionalização nativa (i18n).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Keyboard Shortcuts Grid -->
+      <div class="lg:col-span-6 space-y-6">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-surface-card text-xs font-mono-timestamp text-zinc-300">
+          Controle Tátil
+        </div>
+        <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
+          Atalhos de Teclado Profissionais
+        </h2>
+        <p class="text-base font-body-base text-zinc-400 leading-relaxed">
+          Navegue por toda a experiência sem tocar no mouse. O Nixo foi desenhado com atalhos intuitivos no estilo workstation.
+        </p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Play / Pausar</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Space</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Avançar / Voltar 5s</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">← / →</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Mini-Player (PiP)</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">I</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Tela Cheia</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">F</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Delay Legenda +/-0.1s</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Z / X</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Gaveta Playlist</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">L</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Captura Lossless PNG</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">P</kbd>
+          </div>
+          <div class="p-3.5 rounded-lg bg-surface-card hover:bg-surface-elevated flex items-center justify-between transition-colors">
+            <span class="text-sm font-body-base text-zinc-300">Abrir Arquivo</span>
+            <kbd class="px-2 py-0.5 rounded bg-surface-elevated font-mono-timestamp text-xs text-zinc-200">Ctrl + O</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
+
 <!-- ==================== QUICKSTART TERMINAL SECTION ==================== -->
 <section class="py-20 px-6 md:px-12 max-w-5xl mx-auto w-full" id="install">
-<div class="text-center mb-12 space-y-3">
-<span class="text-xs font-mono-timestamp text-forest-green-400 uppercase tracking-wider font-semibold">
-        Instalação sem Complicações
-      </span>
-<h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
-        Execute em Menos de 30 Segundos
-      </h2>
-<p class="text-base font-body-base text-on-surface-variant max-w-xl mx-auto leading-relaxed">
-        Como o Nixo carrega a <span class="font-mono-timestamp text-forest-green-400">libmpv</span> dinamicamente, você não precisa de SDKs de C, compilações demoradas ou configurações de ambiente complexas.
-      </p>
-</div>
-<!-- Terminal Box Container -->
-<div class="rounded-xl border border-forest-green-500/30 bg-surface-container-lowest shadow-[0_0_40px_rgba(11,45,6,0.6)] overflow-hidden">
-<!-- Terminal Header / OS Tabs -->
-<div class="bg-surface-container-low px-4 py-2.5 border-b border-forest-green-500/20 flex flex-wrap items-center justify-between gap-3">
-<div class="flex items-center gap-2">
-<span class="w-2.5 h-2.5 rounded-full bg-red-500/70 inline-block"></span>
-<span class="w-2.5 h-2.5 rounded-full bg-forest-green-700 inline-block"></span>
-<span class="w-2.5 h-2.5 rounded-full bg-forest-green-500 inline-block"></span>
-<span class="ml-2 font-mono-timestamp text-xs text-on-surface-variant">nixo-setup-terminal</span>
-</div>
-<div class="flex items-center gap-1 bg-surface-container-lowest p-0.5 rounded-full border border-forest-green-500/25 text-xs font-mono-timestamp">
-<button class="px-3 py-1 rounded-full bg-forest-green-500 text-forest-green-950 font-bold transition-all shadow-sm" id="tab-win" onclick="switchTab('win')">
-            Windows (PowerShell)
-          </button>
-<button class="px-3 py-1 rounded-full text-on-surface-variant hover:text-forest-green-300 transition-all" id="tab-linux" onclick="switchTab('linux')">
-            Linux (Debian/Ubuntu)
-          </button>
-<button class="px-3 py-1 rounded-full text-on-surface-variant hover:text-forest-green-300 transition-all" id="tab-mac" onclick="switchTab('mac')">
-            macOS (Homebrew)
-          </button>
-</div>
-</div>
-<!-- Terminal Body Content -->
-<div class="p-6 font-mono-timestamp text-sm overflow-x-auto relative group">
-<!-- Windows View -->
-<div class="space-y-4" id="content-win">
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 1. Clone o repositório oficial do Nixo</span><br/>
-<span class="text-forest-green-400 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git<br/>
-<span class="text-forest-green-400 font-semibold">cd</span> nixo
-          </div>
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 2. Baixe automaticamente a libmpv-2.dll para vendor/mpv/</span><br/>
-<span class="text-forest-green-300 font-semibold">.\scripts\setup-mpv.ps1</span>
-</div>
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 3. Compile e rode o player nativo em modo release</span><br/>
-<span class="text-forest-green-400 font-semibold">cargo</span> run --release -p nixo-app
-          </div>
-</div>
-<!-- Linux View (Hidden by default) -->
-<div class="space-y-4 hidden" id="content-linux">
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 1. Instale dependências gráficas e libmpv-dev</span><br/>
-<span class="text-forest-green-300 font-semibold">sudo apt-get install</span> libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev libmpv-dev
-          </div>
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 2. Clone e execute o player</span><br/>
-<span class="text-forest-green-400 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git &amp;&amp; <span class="text-forest-green-400 font-semibold">cd</span> nixo<br/>
-<span class="text-forest-green-400 font-semibold">cargo</span> run --release -p nixo-app
-          </div>
-</div>
-<!-- macOS View (Hidden by default) -->
-<div class="space-y-4 hidden" id="content-mac">
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 1. Instale o mpv via Homebrew</span><br/>
-<span class="text-forest-green-300 font-semibold">brew install</span> mpv
-          </div>
-<div class="text-on-surface-variant">
-<span class="text-forest-green-700"># 2. Execute via Cargo com Metal backend</span><br/>
-<span class="text-forest-green-400 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git &amp;&amp; <span class="text-forest-green-400 font-semibold">cd</span> nixo<br/>
-<span class="text-forest-green-400 font-semibold">cargo</span> run --release -p nixo-app
-          </div>
-</div>
-<!-- Copy Button Micro-Interaction -->
-<button class="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-forest-green-950/80 border border-forest-green-500/40 text-xs font-mono-timestamp text-forest-green-300 hover:text-white hover:border-forest-green-400 hover:bg-forest-green-900 transition-all flex items-center gap-1.5 backdrop-blur-md" onclick="copySnippet()">
-<span class="material-symbols-outlined text-sm text-forest-green-400" id="copy-icon">content_copy</span>
-<span id="copy-text">Copiar</span>
-</button>
-</div>
-</div>
-<!-- Download Options Matrix -->
-<div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-<a class="p-4 rounded-xl bg-surface-container/60 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:bg-forest-green-950/40 transition-all flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-forest-green-400 transition-colors">window</span>
-<div>
-<div class="font-bold text-sm text-white group-hover:text-forest-green-300 transition-colors">Windows 64-bit</div>
-<div class="text-xs text-on-surface-variant font-mono-timestamp">nixo-v1.2-win64.zip</div>
-</div>
-</div>
-<span class="material-symbols-outlined text-forest-green-400 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</a>
-<a class="p-4 rounded-xl bg-surface-container/60 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:bg-forest-green-950/40 transition-all flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-forest-green-400 transition-colors">terminal</span>
-<div>
-<div class="font-bold text-sm text-white group-hover:text-forest-green-300 transition-colors">Linux Tarball</div>
-<div class="text-xs text-on-surface-variant font-mono-timestamp">nixo-v1.2-linux-x86_64.tar.gz</div>
-</div>
-</div>
-<span class="material-symbols-outlined text-forest-green-400 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</a>
-<a class="p-4 rounded-xl bg-surface-container/60 border border-forest-green-500/20 hover:border-forest-green-400/50 hover:bg-forest-green-950/40 transition-all flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-forest-green-400 transition-colors">laptop_mac</span>
-<div>
-<div class="font-bold text-sm text-white group-hover:text-forest-green-300 transition-colors">macOS Universal</div>
-<div class="text-xs text-on-surface-variant font-mono-timestamp">nixo-v1.2-darwin.dmg</div>
-</div>
-</div>
-<span class="material-symbols-outlined text-forest-green-400 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</a>
-</div>
+  <div class="text-center mb-12 space-y-3">
+    <span class="text-xs font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
+      Instalação sem Complicações
+    </span>
+    <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight font-bold">
+      Execute em Menos de 30 Segundos
+    </h2>
+    <p class="text-base font-body-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
+      Como o Nixo carrega a <span class="font-mono-timestamp text-zinc-200">libmpv</span> dinamicamente, você não precisa de SDKs de C, compilações demoradas ou configurações de ambiente complexas.
+    </p>
+  </div>
+
+  <!-- Terminal Box Container: Solid & Clean -->
+  <div class="rounded-xl bg-surface-card overflow-hidden">
+    <!-- Terminal Header / OS Tabs -->
+    <div class="bg-surface-subtle px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block"></span>
+        <span class="ml-2 font-mono-timestamp text-xs text-zinc-400">nixo-setup</span>
+      </div>
+
+      <div class="flex items-center gap-1 bg-surface-base p-0.5 rounded-lg text-xs font-mono-timestamp">
+        <button class="px-3 py-1 rounded bg-brand-500 text-black font-semibold transition-colors" id="tab-win" onclick="switchTab('win')">
+          Windows (PowerShell)
+        </button>
+        <button class="px-3 py-1 rounded text-zinc-400 hover:text-white transition-colors" id="tab-linux" onclick="switchTab('linux')">
+          Linux (Debian/Ubuntu)
+        </button>
+        <button class="px-3 py-1 rounded text-zinc-400 hover:text-white transition-colors" id="tab-mac" onclick="switchTab('mac')">
+          macOS (Homebrew)
+        </button>
+      </div>
+    </div>
+
+    <!-- Terminal Body Content -->
+    <div class="p-6 font-mono-timestamp text-sm overflow-x-auto relative group bg-surface-card">
+      <!-- Windows View -->
+      <div class="space-y-4" id="content-win">
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 1. Clone o repositório oficial do Nixo</span><br/>
+          <span class="text-zinc-100 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git<br/>
+          <span class="text-zinc-100 font-semibold">cd</span> nixo
+        </div>
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 2. Baixe automaticamente a libmpv-2.dll para vendor/mpv/</span><br/>
+          <span class="text-brand-400 font-semibold">.\scripts\setup-mpv.ps1</span>
+        </div>
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 3. Compile e rode o player nativo em modo release</span><br/>
+          <span class="text-zinc-100 font-semibold">cargo</span> run --release -p nixo-app
+        </div>
+      </div>
+
+      <!-- Linux View (Hidden by default) -->
+      <div class="space-y-4 hidden" id="content-linux">
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 1. Instale dependências gráficas e libmpv-dev</span><br/>
+          <span class="text-brand-400 font-semibold">sudo apt-get install</span> libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev libmpv-dev
+        </div>
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 2. Clone e execute o player</span><br/>
+          <span class="text-zinc-100 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git &amp;&amp; <span class="text-zinc-100 font-semibold">cd</span> nixo<br/>
+          <span class="text-zinc-100 font-semibold">cargo</span> run --release -p nixo-app
+        </div>
+      </div>
+
+      <!-- macOS View (Hidden by default) -->
+      <div class="space-y-4 hidden" id="content-mac">
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 1. Instale o mpv via Homebrew</span><br/>
+          <span class="text-brand-400 font-semibold">brew install</span> mpv
+        </div>
+        <div class="text-zinc-300">
+          <span class="text-zinc-500"># 2. Execute via Cargo com Metal backend</span><br/>
+          <span class="text-zinc-100 font-semibold">git</span> clone https://github.com/carllosnc/nixo.git &amp;&amp; <span class="text-zinc-100 font-semibold">cd</span> nixo<br/>
+          <span class="text-zinc-100 font-semibold">cargo</span> run --release -p nixo-app
+        </div>
+      </div>
+
+      <!-- Copy Button Micro-Interaction -->
+      <button class="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-surface-subtle text-xs font-mono-timestamp text-zinc-300 hover:text-white hover:bg-surface-elevated transition-colors flex items-center gap-1.5" onclick="copySnippet()">
+        <span class="material-symbols-outlined text-sm text-zinc-400" id="copy-icon">content_copy</span>
+        <span id="copy-text">Copiar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Download Options Matrix -->
+  <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">window</span>
+        <div>
+          <div class="font-bold text-sm text-white group-hover:text-zinc-200 transition-colors">Windows 64-bit</div>
+          <div class="text-xs text-zinc-500 font-mono-timestamp">nixo-v1.2-win64.zip</div>
+        </div>
+      </div>
+      <span class="material-symbols-outlined text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
+    </a>
+
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">terminal</span>
+        <div>
+          <div class="font-bold text-sm text-white group-hover:text-zinc-200 transition-colors">Linux Tarball</div>
+          <div class="text-xs text-zinc-500 font-mono-timestamp">nixo-v1.2-linux-x86_64.tar.gz</div>
+        </div>
+      </div>
+      <span class="material-symbols-outlined text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
+    </a>
+
+    <a class="p-4 rounded-xl bg-surface-card hover:bg-surface-subtle transition-colors flex items-center justify-between group" href="https://github.com/carllosnc/nixo/releases">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl text-zinc-400 group-hover:text-white transition-colors">laptop_mac</span>
+        <div>
+          <div class="font-bold text-sm text-white group-hover:text-zinc-200 transition-colors">macOS Universal</div>
+          <div class="text-xs text-zinc-500 font-mono-timestamp">nixo-v1.2-darwin.dmg</div>
+        </div>
+      </div>
+      <span class="material-symbols-outlined text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
+    </a>
+  </div>
 </section>
+
 <!-- ==================== FINAL CALL TO ACTION ==================== -->
-<section class="py-20 px-6 md:px-12 relative overflow-hidden bg-surface-container-low border-t border-forest-green-500/20">
-<!-- Background Radial Forest Accent -->
-<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[650px] h-[320px] bg-forest-green-500/15 blur-[130px] rounded-full pointer-events-none"></div>
-<div class="max-w-4xl mx-auto text-center space-y-6 relative z-10">
-<div class="w-12 h-12 rounded-full bg-forest-green-950 border border-forest-green-500/40 flex items-center justify-center mx-auto text-forest-green-400 shadow-[0_0_20px_rgba(64,194,37,0.3)]">
-<span class="material-symbols-outlined text-2xl">bolt</span>
-</div>
-<h2 class="text-3xl md:text-4xl font-display-lg tracking-tight text-white font-bold">
-        Experimente uma nova era de reprodução multimídia sem travamentos.
-      </h2>
-<p class="text-base font-body-base text-on-surface-variant max-w-xl mx-auto leading-relaxed">
-        Junte-se à comunidade open-source. Sem anúncios, sem telemetria embutida, sem navegadores camuflados.
-      </p>
-<div class="pt-4 flex flex-wrap items-center justify-center gap-4">
-<a class="px-8 py-3.5 rounded-full bg-forest-green-500 text-forest-green-950 font-bold text-sm md:text-base shadow-[0_0_25px_rgba(64,194,37,0.45)] hover:bg-forest-green-400 hover:shadow-[0_0_35px_rgba(102,219,77,0.6)] transition-all scale-95 active:scale-90 duration-75 flex items-center gap-2" href="#install">
-<span class="material-symbols-outlined text-lg">download</span>
-<span>Baixar Nixo v1.2</span>
-</a>
-<a class="px-8 py-3.5 rounded-full bg-surface-container border border-forest-green-500/30 text-on-surface font-body-base font-medium hover:border-forest-green-400 hover:text-white hover:bg-forest-green-950/40 transition-all scale-95 active:scale-90 duration-75 flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
-<span class="material-symbols-outlined text-lg text-forest-green-400">star</span>
-<span>Dar uma Estrela no GitHub</span>
-</a>
-</div>
-</div>
+<section class="py-20 px-6 md:px-12 bg-surface-subtle">
+  <div class="max-w-4xl mx-auto text-center space-y-6">
+    <div class="w-12 h-12 rounded-xl bg-surface-card flex items-center justify-center mx-auto text-zinc-300">
+      <span class="material-symbols-outlined text-2xl">bolt</span>
+    </div>
+
+    <h2 class="text-3xl md:text-4xl font-display-lg tracking-tight text-white font-bold">
+      Experimente uma nova era de reprodução multimídia sem travamentos.
+    </h2>
+
+    <p class="text-base font-body-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
+      Junte-se à comunidade open-source. Sem anúncios, sem telemetria embutida, sem navegadores camuflados.
+    </p>
+
+    <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+      <a class="px-8 py-3.5 rounded-lg bg-brand-500 text-black font-semibold text-sm md:text-base hover:bg-brand-400 transition-colors flex items-center gap-2" href="#install">
+        <span class="material-symbols-outlined text-lg">download</span>
+        <span>Baixar Nixo v1.2</span>
+      </a>
+      <a class="px-8 py-3.5 rounded-lg bg-surface-card text-zinc-200 font-medium hover:bg-surface-elevated hover:text-white transition-colors flex items-center gap-2" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">
+        <span class="material-symbols-outlined text-lg text-zinc-400">star</span>
+        <span>Dar uma Estrela no GitHub</span>
+      </a>
+    </div>
+  </div>
 </section>
+
 <!-- ==================== FOOTER ==================== -->
-<footer class="w-full bg-surface-container-lowest border-t border-forest-green-500/20">
-<div class="flex flex-col md:flex-row justify-between items-center w-full px-6 md:px-12 py-10 max-w-7xl mx-auto gap-6">
-<!-- Left Branding & Copyright -->
-<div class="flex flex-col items-center md:items-start gap-2">
-<div class="flex items-center gap-2.5">
-<img src="assets/icon.png" alt="Nixo Logo" class="w-6 h-6 rounded-md"/>
-<span class="text-xl font-bold font-display-lg text-white">Nixo</span>
-<span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-forest-green-950/80 border border-forest-green-500/30 text-forest-green-300">v1.2</span>
-</div>
-<p class="text-xs font-body-base text-on-surface-variant text-center md:text-left">
-          © 2025 Nixo Media Engine. Released under MIT &amp; Apache 2.0. Built with Rust &amp; libmpv.
-        </p>
-<p class="text-xs font-body-base text-on-surface-variant/70">
-          Criado e mantido por <a class="text-forest-green-400 hover:underline" href="https://github.com/carllosnc" rel="noopener noreferrer" target="_blank">@carllosnc</a>
-</p>
-</div>
-<!-- Links Cluster -->
-<div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs font-body-base">
-<a class="text-on-surface-variant hover:text-forest-green-300 transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">Source Code</a>
-<a class="text-on-surface-variant hover:text-forest-green-300 transition-colors" href="https://github.com/carllosnc/nixo/releases" rel="noopener noreferrer" target="_blank">Releases</a>
-<a class="text-on-surface-variant hover:text-forest-green-300 transition-colors" href="#docs">Architecture Docs</a>
-<a class="text-on-surface-variant hover:text-forest-green-300 transition-colors" href="https://discord.gg" rel="noopener noreferrer" target="_blank">Discord Community</a>
-<a class="text-on-surface-variant hover:text-forest-green-300 transition-colors" href="#benchmarks">Benchmarks Methodology</a>
-<span class="text-on-surface-variant/60 font-mono-timestamp text-xs">Privacy &amp; Telemetry: None</span>
-</div>
-</div>
+<footer class="w-full bg-surface-base">
+  <div class="flex flex-col md:flex-row justify-between items-center w-full px-6 md:px-12 py-10 max-w-7xl mx-auto gap-6">
+    <!-- Left Branding & Copyright -->
+    <div class="flex flex-col items-center md:items-start gap-2">
+      <div class="flex items-center gap-2.5">
+        <img src="assets/icon.png" alt="Nixo Logo" class="w-6 h-6 rounded-md"/>
+        <span class="text-xl font-bold font-display-lg text-white">Nixo</span>
+        <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-card text-zinc-400">v1.2</span>
+      </div>
+      <p class="text-xs font-body-base text-zinc-500 text-center md:text-left">
+        © 2025 Nixo Media Engine. Released under MIT &amp; Apache 2.0. Built with Rust &amp; libmpv.
+      </p>
+      <p class="text-xs font-body-base text-zinc-500">
+        Criado e mantido por <a class="text-zinc-400 hover:text-white hover:underline transition-colors" href="https://github.com/carllosnc" rel="noopener noreferrer" target="_blank">@carllosnc</a>
+      </p>
+    </div>
+
+    <!-- Links Cluster -->
+    <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs font-body-base">
+      <a class="text-zinc-400 hover:text-white transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">Source Code</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/releases" rel="noopener noreferrer" target="_blank">Releases</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#docs">Architecture Docs</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="https://discord.gg" rel="noopener noreferrer" target="_blank">Discord Community</a>
+      <a class="text-zinc-400 hover:text-white transition-colors" href="#benchmarks">Benchmarks Methodology</a>
+      <span class="text-zinc-600 font-mono-timestamp text-xs">Privacy &amp; Telemetry: None</span>
+    </div>
+  </div>
 </footer>
+
 <!-- Inline Tab Switching & Copy Interaction Script -->
 <script>
-    let currentTab = 'win';
+  let currentTab = 'win';
 
-    function switchTab(os) {
-      currentTab = os;
-      
-      const tabs = ['win', 'linux', 'mac'];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`tab-${t}`);
-        const content = document.getElementById(`content-${t}`);
-        if (t === os) {
-          btn.className = "px-3 py-1 rounded-full bg-forest-green-500 text-forest-green-950 font-bold transition-all shadow-sm";
-          content.classList.remove('hidden');
-        } else {
-          btn.className = "px-3 py-1 rounded-full text-on-surface-variant hover:text-forest-green-300 transition-all";
-          content.classList.add('hidden');
-        }
-      });
-    }
-
-    function copySnippet() {
-      let textToCopy = "";
-      if (currentTab === 'win') {
-        textToCopy = "git clone https://github.com/carllosnc/nixo.git\ncd nixo\n.\\scripts\\setup-mpv.ps1\ncargo run --release -p nixo-app";
-      } else if (currentTab === 'linux') {
-        textToCopy = "sudo apt-get install libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev libmpv-dev\ngit clone https://github.com/carllosnc/nixo.git && cd nixo\ncargo run --release -p nixo-app";
+  function switchTab(os) {
+    currentTab = os;
+    
+    const tabs = ['win', 'linux', 'mac'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      const content = document.getElementById(`content-${t}`);
+      if (t === os) {
+        btn.className = "px-3 py-1 rounded bg-brand-500 text-black font-semibold transition-colors";
+        content.classList.remove('hidden');
       } else {
-        textToCopy = "brew install mpv\ngit clone https://github.com/carllosnc/nixo.git && cd nixo\ncargo run --release -p nixo-app";
+        btn.className = "px-3 py-1 rounded text-zinc-400 hover:text-white transition-colors";
+        content.classList.add('hidden');
       }
+    });
+  }
 
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        const copyText = document.getElementById('copy-text');
-        const copyIcon = document.getElementById('copy-icon');
-        copyText.textContent = "Copiado!";
-        copyIcon.textContent = "done";
-        copyIcon.className = "material-symbols-outlined text-sm text-forest-green-400";
-        setTimeout(() => {
-          copyText.textContent = "Copiar";
-          copyIcon.textContent = "content_copy";
-        }, 2000);
-      });
+  function copySnippet() {
+    let textToCopy = "";
+    if (currentTab === 'win') {
+      textToCopy = "git clone https://github.com/carllosnc/nixo.git\ncd nixo\n.\\scripts\\setup-mpv.ps1\ncargo run --release -p nixo-app";
+    } else if (currentTab === 'linux') {
+      textToCopy = "sudo apt-get install libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev libmpv-dev\ngit clone https://github.com/carllosnc/nixo.git && cd nixo\ncargo run --release -p nixo-app";
+    } else {
+      textToCopy = "brew install mpv\ngit clone https://github.com/carllosnc/nixo.git && cd nixo\ncargo run --release -p nixo-app";
     }
-  </script>
-</body></html>
 
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      const copyText = document.getElementById('copy-text');
+      const copyIcon = document.getElementById('copy-icon');
+      copyText.textContent = "Copiado!";
+      copyIcon.textContent = "done";
+      copyIcon.className = "material-symbols-outlined text-sm text-brand-400";
+      setTimeout(() => {
+        copyText.textContent = "Copiar";
+        copyIcon.textContent = "content_copy";
+        copyIcon.className = "material-symbols-outlined text-sm text-zinc-400";
+      }, 2000);
+    });
+  }
+</script>
 
-
-
-
-
+</body>
+</html>
