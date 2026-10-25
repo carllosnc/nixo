@@ -26,19 +26,17 @@ if ($cargoToml -match 'version\s*=\s*"([^"]+)"') {
     $version = "0.1.0"
 }
 
-# 3. Compile release binary if needed
+# 3. Always compile release binary to ensure latest changes are packaged
 $releaseExe = Join-Path $rootDir "target\release\nixo.exe"
-if (-not (Test-Path $releaseExe)) {
-    Write-Host "Compilando Nixo v$version em modo Release..."
-    Push-Location $rootDir
-    try {
-        cargo build --release -p nixo-app
-        if ($LASTEXITCODE -ne 0) {
-            throw "Falha ao compilar nixo-app em modo release."
-        }
-    } finally {
-        Pop-Location
+Write-Host "Compilando Nixo v$version em modo Release (opt-level=3, LTO)..."
+Push-Location $rootDir
+try {
+    cargo build --release -p nixo-app
+    if ($LASTEXITCODE -ne 0) {
+        throw "Falha ao compilar nixo-app em modo release."
     }
+} finally {
+    Pop-Location
 }
 
 # 4. Locate ISCC.exe (Inno Setup Compiler)
