@@ -13,7 +13,7 @@
   <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Stack+Sans+Notch:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Stack+Sans+Notch:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 
   <!-- Material Symbols Outlined -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -69,7 +69,7 @@
     }
     h1, h2, .font-display-lg {
       font-family: 'Stack Sans Notch', 'Plus Jakarta Sans', sans-serif;
-      font-weight: 400;
+      font-weight: 300;
       letter-spacing: -0.02em;
     }
     h3, .font-card-title {
@@ -145,64 +145,98 @@
       transform: translateY(-2px);
       color: #ffffff;
     }
-    .btn-glass-dark:active {
-      transform: translateY(0px);
-      box-shadow: 
-        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
-        inset 0 2px 4px 0 rgba(0, 0, 0, 0.6),
-        0 4px 16px -2px rgba(0, 0, 0, 0.4);
+
+    /* Scroll Reveal & Spotlight Hover Effect */
+    .reveal-card {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s ease,
+                  box-shadow 0.3s ease;
+      will-change: opacity, transform;
+      position: relative;
+    }
+    .reveal-card.revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .reveal-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+        rgba(47, 229, 11, 0.08),
+        transparent 40%
+      );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .reveal-card:hover::before {
+      opacity: 1;
+    }
+    .reveal-card > * {
+      position: relative;
+      z-index: 2;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-card {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 
 <body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-black">
 
-<!-- ==================== TOP NAVIGATION BAR ==================== -->
-<header class="fixed top-0 left-0 right-0 z-50 w-full bg-[#090b0a]/30 backdrop-blur-md border-b border-white/[0.06]">
-  <div class="flex items-center justify-between w-full h-16 max-w-7xl mx-auto px-6 md:px-12">
-    <!-- Brand Wordmark Logo -->
-    <a class="flex items-center text-white hover:text-zinc-300 transition-colors group" href="#" aria-label="Nixo Home">
-      <svg viewBox="0 0 1395 492" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-6 md:h-7 w-auto fill-current transition-transform group-hover:scale-[1.02]">
-        <path d="M230.06 217.2V105.06H348V491L117.9 273.79V354.06H0V0L230.06 217.2Z" fill="currentColor"/>
-        <path d="M1337.76 161.338C1319.75 143.433 1298.3 129.358 1274.72 119.96L1273.57 119.498C1249.49 109.875 1223.44 105.086 1195.42 105.131C1167.41 105.176 1141.34 110.151 1117.22 120.056L1116.07 120.528C1092.4 129.993 1070.83 144.038 1052.6 161.858C1034.94 179.534 1020.75 200.369 1010.78 223.28C1000.82 246.943 995.765 272.384 995.926 298.059C995.766 323.737 1000.82 349.18 1010.78 372.847L1011.74 375.022C1021.39 397.288 1035.26 417.475 1052.58 434.472L1054.27 436.117C1072.08 453.123 1092.84 466.74 1115.53 476.302H1115.57L1116.72 476.764C1140.8 486.387 1166.85 491.175 1194.87 491.131C1222.3 491.131 1248.04 486.188 1272.1 476.302C1295.78 466.827 1317.48 453.006 1336.09 435.549C1354.32 418.083 1368.9 397.178 1379.01 374.04C1389.47 350.657 1394.77 325.452 1394.92 298.424V297.135C1394.92 270.672 1389.79 245.903 1379.53 222.828C1369.83 199.757 1355.63 178.852 1337.76 161.338ZM1270.44 343.344C1263.53 356.985 1253.24 368.62 1240.54 377.129C1227.9 385.337 1212.95 389.533 1195.43 389.533C1178.66 389.533 1163.85 385.366 1150.81 377.11C1137.97 368.415 1127.52 356.624 1120.44 342.824C1113.57 329.11 1109.92 314.005 1109.78 298.665V297.145C1109.78 280.536 1113.33 265.495 1120.42 252.023C1127.13 238.577 1137.44 227.252 1150.19 219.306H1150.24C1162.9 211.078 1177.7 206.883 1194.87 206.883C1207.77 206.883 1219.2 209.452 1229.27 214.494L1229.37 214.542H1229.46C1239.84 219.202 1249.17 225.915 1256.88 234.279L1257.6 235.068C1265.02 243.32 1270.83 252.881 1274.74 263.263C1278.98 274.422 1281.11 286.267 1281.04 298.203C1281.18 313.884 1277.53 329.367 1270.43 343.344H1270.44Z" fill="currentColor"/>
-        <path d="M880.733 293.727L1007.67 105H876.524L813.1 204.951L750.185 105H616.388L743.287 294.787L611 491H742.148L810.93 383.503L879.203 491H1013L880.733 293.727Z" fill="currentColor"/>
-        <path d="M552 491H436V105H551.97L552 491Z" fill="currentColor"/>
-      </svg>
-    </a>
-
-    <!-- Clean Navigation Links -->
-    <nav class="hidden md:flex items-center gap-9 text-sm font-medium">
-      <a class="text-zinc-300 hover:text-white transition-colors" href="#showcase">Features</a>
-    </nav>
-
-    <!-- Actions: GitHub Icon only -->
-    <div class="flex items-center">
-      <a aria-label="View source code on GitHub" class="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank" title="GitHub">
-        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
-        </svg>
-      </a>
-    </div>
-  </div>
-</header>
+<!-- ==================== FLOATING GITHUB BUTTON (BOTTOM RIGHT) ==================== -->
+<a
+  href="https://github.com/carllosnc/nixo"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="View source code on GitHub"
+  class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-surface-card/90 hover:bg-surface-elevated backdrop-blur-md border border-white/10 hover:border-brand-500/40 text-zinc-300 hover:text-white shadow-2xl shadow-black/80 transition-all duration-300 hover:scale-105 group cursor-pointer"
+>
+  <svg class="w-5 h-5 fill-current text-zinc-300 group-hover:text-brand-400 transition-colors" viewBox="0 0 24 24">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
+  </svg>
+  <span class="text-xs sm:text-sm font-semibold font-mono-timestamp">GitHub</span>
+</a>
 
 <!-- ==================== HERO SECTION ==================== -->
 <section id="hero" class="relative w-full overflow-hidden">
-  <!-- Full Screen Stripe-like Gradient WebGL Canvas extending under topbar to top:0 -->
+  <!-- Full Screen Stripe-like Gradient WebGL Canvas extending to top:0 -->
   <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
     <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-100"></canvas>
   </div>
 
-  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full pt-32 sm:pt-36 md:pt-40 pb-16 md:pb-24">
+  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full pt-10 sm:pt-14 md:pt-16 pb-14 md:pb-20">
     <div class="text-center max-w-4xl mx-auto">
+      <!-- Brand Wordmark Logo -->
+      <div class="mb-5 sm:mb-6 flex justify-center">
+        <a class="flex items-center text-white hover:text-zinc-200 transition-transform hover:scale-105" href="#" aria-label="Nixo Home">
+          <svg viewBox="0 0 1395 492" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-7 sm:h-8 md:h-9 w-auto fill-current">
+            <path d="M230.06 217.2V105.06H348V491L117.9 273.79V354.06H0V0L230.06 217.2Z" fill="currentColor"/>
+            <path d="M1337.76 161.338C1319.75 143.433 1298.3 129.358 1274.72 119.96L1273.57 119.498C1249.49 109.875 1223.44 105.086 1195.42 105.131C1167.41 105.176 1141.34 110.151 1117.22 120.056L1116.07 120.528C1092.4 129.993 1070.83 144.038 1052.6 161.858C1034.94 179.534 1020.75 200.369 1010.78 223.28C1000.82 246.943 995.765 272.384 995.926 298.059C995.766 323.737 1000.82 349.18 1010.78 372.847L1011.74 375.022C1021.39 397.288 1035.26 417.475 1052.58 434.472L1054.27 436.117C1072.08 453.123 1092.84 466.74 1115.53 476.302H1115.57L1116.72 476.764C1140.8 486.387 1166.85 491.175 1194.87 491.131C1222.3 491.131 1248.04 486.188 1272.1 476.302C1295.78 466.827 1317.48 453.006 1336.09 435.549C1354.32 418.083 1368.9 397.178 1379.01 374.04C1389.47 350.657 1394.77 325.452 1394.92 298.424V297.135C1394.92 270.672 1389.79 245.903 1379.53 222.828C1369.83 199.757 1355.63 178.852 1337.76 161.338ZM1270.44 343.344C1263.53 356.985 1253.24 368.62 1240.54 377.129C1227.9 385.337 1212.95 389.533 1195.43 389.533C1178.66 389.533 1163.85 385.366 1150.81 377.11C1137.97 368.415 1127.52 356.624 1120.44 342.824C1113.57 329.11 1109.92 314.005 1109.78 298.665V297.145C1109.78 280.536 1113.33 265.495 1120.42 252.023C1127.13 238.577 1137.44 227.252 1150.19 219.306H1150.24C1162.9 211.078 1177.7 206.883 1194.87 206.883C1207.77 206.883 1219.2 209.452 1229.27 214.494L1229.37 214.542H1229.46C1239.84 219.202 1249.17 225.915 1256.88 234.279L1257.6 235.068C1265.02 243.32 1270.83 252.881 1274.74 263.263C1278.98 274.422 1281.11 286.267 1281.04 298.203C1281.18 313.884 1277.53 329.367 1270.43 343.344H1270.44Z" fill="currentColor"/>
+            <path d="M880.733 293.727L1007.67 105H876.524L813.1 204.951L750.185 105H616.388L743.287 294.787L611 491H742.148L810.93 383.503L879.203 491H1013L880.733 293.727Z" fill="currentColor"/>
+            <path d="M552 491H436V105H551.97L552 491Z" fill="currentColor"/>
+          </svg>
+        </a>
+      </div>
       <!-- Main Heading with High Contrast Shadow Drop -->
-      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-normal max-w-3xl mx-auto leading-[1.12] drop-shadow-md">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display-lg tracking-tight text-white font-light max-w-3xl mx-auto leading-[1.12] drop-shadow-md">
         A simple, beautifully minimal <span class="text-brand-400">media player</span>
       </h1>
 
       <!-- Clean Human-Centered Subtitle -->
-      <p class="mt-5 sm:mt-6 text-sm sm:text-base md:text-lg font-body-base text-zinc-100/90 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
-        Free and open source. Designed to stay completely out of your way so you can enjoy your movies, shows, and videos with zero clutter and no distractions.
+      <p class="mt-5 sm:mt-6 text-sm sm:text-base md:text-lg font-body-base text-zinc-100/90 max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
+        Free and open source. Designed to stay completely out of your way so you can enjoy<br class="hidden md:inline"/> your movies, shows, and videos with zero clutter and no distractions.
       </p>
 
       <!-- Primary CTA Action (Download Full Rounded with Liquid Dark Glass) -->
@@ -220,7 +254,7 @@
 
     <!-- HERO VIDEO SHOWCASE -->
     <div class="mt-12 sm:mt-14 md:mt-16 w-full">
-      <div class="relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/[0.1] bg-surface-deep shadow-2xl shadow-black/80 group">
+      <div class="relative overflow-hidden border border-white/[0.1] bg-surface-deep shadow-2xl shadow-black/80 group">
         <video
           id="hero-video"
           class="w-full h-auto block select-none cursor-pointer"
@@ -257,7 +291,7 @@
       <span class="text-xs font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
         Core Capabilities
       </span>
-      <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-normal">
+      <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-light">
         Engineered for Total Media Control
       </h2>
     </div>
@@ -270,7 +304,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
     <!-- Card 1: Picture-in-Picture (Mini Player) -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">picture_in_picture_alt</span>
@@ -307,7 +341,7 @@
     </div>
 
     <!-- Card 2: Virtualized Playlist Drawer O(1) -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">queue_music</span>
@@ -348,7 +382,7 @@
     </div>
 
     <!-- Card 3: Video Equalizer & Real-time Color Tuning -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">tune</span>
@@ -397,7 +431,7 @@
     </div>
 
     <!-- Card 4: Hardware-Accelerated Decoding -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">developer_board</span>
@@ -435,7 +469,7 @@
     </div>
 
     <!-- Card 5: Advanced Subtitles Drag & Drop -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">subtitles</span>
@@ -469,7 +503,7 @@
     </div>
 
     <!-- Card 6: 100% Native Rust GUI (Zero Webview) -->
-    <div class="p-6 rounded-2xl bg-surface-card border border-white/[0.07] hover:border-brand-500/30 transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
       <div>
         <div class="flex items-center justify-between mb-4">
           <span class="material-symbols-outlined text-2xl text-brand-400">speed</span>
@@ -513,35 +547,316 @@
   </div>
 </section>
 
-<!-- ==================== FOOTER ==================== -->
-<footer class="w-full bg-surface-base border-t border-white/[0.06]">
-  <div class="flex flex-col md:flex-row justify-between items-center w-full px-6 md:px-12 py-10 max-w-7xl mx-auto gap-6">
-    <!-- Left Branding & Copyright -->
-    <div class="flex flex-col items-center md:items-start gap-2">
-      <div class="flex items-center gap-3">
-        <svg viewBox="0 0 1395 492" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current text-white">
-          <path d="M230.06 217.2V105.06H348V491L117.9 273.79V354.06H0V0L230.06 217.2Z" fill="currentColor"/>
-          <path d="M1337.76 161.338C1319.75 143.433 1298.3 129.358 1274.72 119.96L1273.57 119.498C1249.49 109.875 1223.44 105.086 1195.42 105.131C1167.41 105.176 1141.34 110.151 1117.22 120.056L1116.07 120.528C1092.4 129.993 1070.83 144.038 1052.6 161.858C1034.94 179.534 1020.75 200.369 1010.78 223.28C1000.82 246.943 995.765 272.384 995.926 298.059C995.766 323.737 1000.82 349.18 1010.78 372.847L1011.74 375.022C1021.39 397.288 1035.26 417.475 1052.58 434.472L1054.27 436.117C1072.08 453.123 1092.84 466.74 1115.53 476.302H1115.57L1116.72 476.764C1140.8 486.387 1166.85 491.175 1194.87 491.131C1222.3 491.131 1248.04 486.188 1272.1 476.302C1295.78 466.827 1317.48 453.006 1336.09 435.549C1354.32 418.083 1368.9 397.178 1379.01 374.04C1389.47 350.657 1394.77 325.452 1394.92 298.424V297.135C1394.92 270.672 1389.79 245.903 1379.53 222.828C1369.83 199.757 1355.63 178.852 1337.76 161.338ZM1270.44 343.344C1263.53 356.985 1253.24 368.62 1240.54 377.129C1227.9 385.337 1212.95 389.533 1195.43 389.533C1178.66 389.533 1163.85 385.366 1150.81 377.11C1137.97 368.415 1127.52 356.624 1120.44 342.824C1113.57 329.11 1109.92 314.005 1109.78 298.665V297.145C1109.78 280.536 1113.33 265.495 1120.42 252.023C1127.13 238.577 1137.44 227.252 1150.19 219.306H1150.24C1162.9 211.078 1177.7 206.883 1194.87 206.883C1207.77 206.883 1219.2 209.452 1229.27 214.494L1229.37 214.542H1229.46C1239.84 219.202 1249.17 225.915 1256.88 234.279L1257.6 235.068C1265.02 243.32 1270.83 252.881 1274.74 263.263C1278.98 274.422 1281.11 286.267 1281.04 298.203C1281.18 313.884 1277.53 329.367 1270.43 343.344H1270.44Z" fill="currentColor"/>
-          <path d="M880.733 293.727L1007.67 105H876.524L813.1 204.951L750.185 105H616.388L743.287 294.787L611 491H742.148L810.93 383.503L879.203 491H1013L880.733 293.727Z" fill="currentColor"/>
-          <path d="M552 491H436V105H551.97L552 491Z" fill="currentColor"/>
-        </svg>
-        <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-card text-zinc-400">v1.2</span>
+<!-- ==================== ANIMATED WAVE SECTION DIVIDER ==================== -->
+<div id="wave-divider-container" class="relative w-full overflow-hidden py-3 select-none pointer-events-none" aria-hidden="true" style="mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);">
+  <!-- Subtle center baseline -->
+  <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-[#1b201d]"></div>
+
+  <!-- Real Undulating Dynamic SVG Wave (Fluid Wave Motion in #1b201d) -->
+  <svg class="w-full h-12 md:h-14 block" viewBox="0 0 1440 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wave-glow-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#1b201d" stop-opacity="0.3"/>
+        <stop offset="30%" stop-color="#1b201d" stop-opacity="0.95"/>
+        <stop offset="50%" stop-color="#242b27" stop-opacity="1"/>
+        <stop offset="70%" stop-color="#1b201d" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#1b201d" stop-opacity="0.3"/>
+      </linearGradient>
+      <filter id="wave-neon-glow" x="-5%" y="-40%" width="110%" height="180%">
+        <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#1b201d" flood-opacity="0.8"/>
+      </filter>
+    </defs>
+    <!-- Secondary Harmonic Echo Wave (Rippling Harmonics in #1b201d) -->
+    <path id="wave-path-secondary" stroke="#1b201d" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Primary Resonant Sine Wave (Undulating in #1b201d tone) -->
+    <path id="wave-path-primary" stroke="url(#wave-glow-grad)" stroke-width="2.5" stroke-linecap="round" filter="url(#wave-neon-glow)"/>
+  </svg>
+</div>
+
+<!-- ==================== SUPPORTED FORMATS & CODECS ==================== -->
+<section class="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full" id="formats">
+  <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+    <div>
+      <span class="text-xs sm:text-sm font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
+        Broad Compatibility
+      </span>
+      <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-light">
+        Supported Media &amp; Formats
+      </h2>
+    </div>
+    <p class="text-sm sm:text-base font-body-base text-zinc-400 max-w-md">
+      Backed by the industry-leading libmpv engine, Nixo plays virtually any media file with no external codec packs or third-party bloat required.
+    </p>
+  </div>
+
+  <!-- Format Categories Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Card 1: Video Formats -->
+    <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+      <div>
+        <!-- Card Header: Clean icon without wrapper, badge moved below -->
+        <div class="flex items-start gap-3.5 mb-4">
+          <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0 mt-0.5">movie</span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg md:text-xl font-card-title text-white font-bold group-hover:text-zinc-100 transition-colors leading-tight">
+              Video Containers
+            </h3>
+            <p class="text-sm font-body-base text-zinc-400 mt-1">
+              Ultra HD 4K, 8K &amp; HDR
+            </p>
+            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
+              15+ Formats
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm sm:text-[15px] font-body-base text-zinc-300 mt-3 leading-relaxed">
+          Full support for high-bitrate containers with multi-track audio, chapters, and hardware-accelerated decoding pipelines.
+        </p>
+
+        <!-- Extensions Pills -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp4</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mkv</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.webm</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.avi</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mov</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4v</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ts</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mts</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m2ts</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flv</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wmv</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vob</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogv</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.3gp</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.rmvb</span>
+        </div>
       </div>
-      <p class="text-xs font-body-base text-zinc-500 text-center md:text-left">
-        © 2025 Nixo Media Engine. Released under MIT &amp; Apache 2.0. Built with Rust &amp; libmpv.
-      </p>
-      <p class="text-xs font-body-base text-zinc-500">
-        Built and maintained by <a class="text-zinc-400 hover:text-white hover:underline transition-colors" href="https://github.com/carllosnc" rel="noopener noreferrer" target="_blank">@carllosnc</a>
-      </p>
+
+      <!-- Feature Chip -->
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
+        <span class="text-zinc-500">Video Codecs:</span>
+        <span class="text-zinc-200 font-medium">AV1, HEVC/H.265, H.264, VP9, ProRes</span>
+      </div>
     </div>
 
-    <!-- Links Cluster -->
-    <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs font-body-base">
-      <a class="text-zinc-400 hover:text-white transition-colors" href="https://github.com/carllosnc/nixo" rel="noopener noreferrer" target="_blank">Source Code</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/releases" rel="noopener noreferrer" target="_blank">Releases</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="#showcase">Features</a>
-      <a class="text-zinc-400 hover:text-white transition-colors" href="https://discord.gg" rel="noopener noreferrer" target="_blank">Discord Community</a>
-      <span class="text-zinc-600 font-mono-timestamp text-xs">Privacy &amp; Telemetry: None</span>
+    <!-- Card 2: Audio Formats -->
+    <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+      <div>
+        <!-- Card Header: Clean icon without wrapper, badge moved below -->
+        <div class="flex items-start gap-3.5 mb-4">
+          <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0 mt-0.5">graphic_eq</span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg md:text-xl font-card-title text-white font-bold group-hover:text-zinc-100 transition-colors leading-tight">
+              Audio &amp; Music
+            </h3>
+            <p class="text-sm font-body-base text-zinc-400 mt-1">
+              Hi-Res Lossless &amp; Compressed
+            </p>
+            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
+              Lossless Hi-Res
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm sm:text-[15px] font-body-base text-zinc-300 mt-3 leading-relaxed">
+          Pristine audiophile playback with bit-perfect stereo and spatial multi-channel audio stream decoding.
+        </p>
+
+        <!-- Extensions Pills -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flac</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp3</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wav</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4a</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aac</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.opus</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogg</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.alac</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aiff</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wma</span>
+        </div>
+      </div>
+
+      <!-- Feature Chip -->
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
+        <span class="text-zinc-500">Audio Features:</span>
+        <span class="text-zinc-200 font-medium">Gapless, 5.1 / 7.1 Surround, 192kHz/24-bit</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Subtitle Formats -->
+    <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+      <div>
+        <!-- Card Header: Clean icon without wrapper, badge moved below -->
+        <div class="flex items-start gap-3.5 mb-4">
+          <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0 mt-0.5">subtitles</span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg md:text-xl font-card-title text-white font-bold group-hover:text-zinc-100 transition-colors leading-tight">
+              Subtitles &amp; Captions
+            </h3>
+            <p class="text-sm font-body-base text-zinc-400 mt-1">
+              Embedded &amp; External Files
+            </p>
+            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
+              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
+              Styling &amp; Sync
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm sm:text-[15px] font-body-base text-zinc-300 mt-3 leading-relaxed">
+          Drop external subtitle tracks directly onto the player window with real-time delay synchronization and styled rendering.
+        </p>
+
+        <!-- Extensions Pills -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ass</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ssa</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.srt</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vtt</span>
+          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.sub</span>
+        </div>
+      </div>
+
+      <!-- Feature Chip -->
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
+        <span class="text-zinc-500">Subtitle Engine:</span>
+        <span class="text-zinc-200 font-medium">Custom Fonts, Delay Sync (Z / X), UTF-8 / Auto</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Banner: Instant Drag-and-Drop Capability -->
+  <div class="reveal-card mt-8 p-5 md:p-6 rounded-2xl bg-surface-card border border-surface-card flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3.5 text-center sm:text-left">
+      <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0">folder_open</span>
+      <div>
+        <p class="text-base sm:text-lg font-card-title text-white font-semibold">
+          Seamless Drag &amp; Drop Media Folders
+        </p>
+        <p class="text-sm font-body-base text-zinc-400 mt-0.5">
+          Drop entire folders or multi-file selections directly onto Nixo to queue playlists with instant alphanumeric sorting.
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="px-3.5 py-1.5 rounded-full bg-surface-deep border border-white/[0.06] font-mono-timestamp text-sm text-zinc-300 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-brand-400"></span>
+        Zero Configuration
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="w-full bg-[#050706] border-t border-white/[0.06] relative overflow-hidden">
+  <!-- Subtle ambient top glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-28 bg-brand-500/[0.03] blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-6 md:px-12 pt-16 pb-24 md:pb-16 relative z-10">
+    <!-- Top Grid: Brand & Link Columns -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-10 md:gap-8 mb-16">
+
+      <!-- Column 1: Brand & Tagline (2 cols wide on desktop) -->
+      <div class="sm:col-span-2 md:col-span-2 flex flex-col items-start gap-4">
+        <a href="#" class="flex items-center gap-3 text-white hover:text-zinc-200 transition-colors group" aria-label="Nixo Home">
+          <svg viewBox="0 0 1395 492" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-6 w-auto fill-current transition-transform group-hover:scale-105">
+            <path d="M230.06 217.2V105.06H348V491L117.9 273.79V354.06H0V0L230.06 217.2Z" fill="currentColor"/>
+            <path d="M1337.76 161.338C1319.75 143.433 1298.3 129.358 1274.72 119.96L1273.57 119.498C1249.49 109.875 1223.44 105.086 1195.42 105.131C1167.41 105.176 1141.34 110.151 1117.22 120.056L1116.07 120.528C1092.4 129.993 1070.83 144.038 1052.6 161.858C1034.94 179.534 1020.75 200.369 1010.78 223.28C1000.82 246.943 995.765 272.384 995.926 298.059C995.766 323.737 1000.82 349.18 1010.78 372.847L1011.74 375.022C1021.39 397.288 1035.26 417.475 1052.58 434.472L1054.27 436.117C1072.08 453.123 1092.84 466.74 1115.53 476.302H1115.57L1116.72 476.764C1140.8 486.387 1166.85 491.175 1194.87 491.131C1222.3 491.131 1248.04 486.188 1272.1 476.302C1295.78 466.827 1317.48 453.006 1336.09 435.549C1354.32 418.083 1368.9 397.178 1379.01 374.04C1389.47 350.657 1394.77 325.452 1394.92 298.424V297.135C1394.92 270.672 1389.79 245.903 1379.53 222.828C1369.83 199.757 1355.63 178.852 1337.76 161.338ZM1270.44 343.344C1263.53 356.985 1253.24 368.62 1240.54 377.129C1227.9 385.337 1212.95 389.533 1195.43 389.533C1178.66 389.533 1163.85 385.366 1150.81 377.11C1137.97 368.415 1127.52 356.624 1120.44 342.824C1113.57 329.11 1109.92 314.005 1109.78 298.665V297.145C1109.78 280.536 1113.33 265.495 1120.42 252.023C1127.13 238.577 1137.44 227.252 1150.19 219.306H1150.24C1162.9 211.078 1177.7 206.883 1194.87 206.883C1207.77 206.883 1219.2 209.452 1229.27 214.494L1229.37 214.542H1229.46C1239.84 219.202 1249.17 225.915 1256.88 234.279L1257.6 235.068C1265.02 243.32 1270.83 252.881 1274.74 263.263C1278.98 274.422 1281.11 286.267 1281.04 298.203C1281.18 313.884 1277.53 329.367 1270.43 343.344H1270.44Z" fill="currentColor"/>
+            <path d="M880.733 293.727L1007.67 105H876.524L813.1 204.951L750.185 105H616.388L743.287 294.787L611 491H742.148L810.93 383.503L879.203 491H1013L880.733 293.727Z" fill="currentColor"/>
+            <path d="M552 491H436V105H551.97L552 491Z" fill="currentColor"/>
+          </svg>
+          <span class="font-mono-timestamp text-xs px-2 py-0.5 rounded bg-surface-elevated text-brand-400 border border-brand-500/20 font-medium">v1.2</span>
+        </a>
+        <p class="text-sm font-body-base text-zinc-400 max-w-sm leading-relaxed">
+          A high-performance, minimalist desktop media player built natively in Rust. Zero webviews, hardware-accelerated video decoding, and surgical memory efficiency.
+        </p>
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-card border border-white/[0.06] text-xs font-mono-timestamp text-zinc-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> Rust 2024
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-card border border-white/[0.06] text-xs font-mono-timestamp text-zinc-300">
+            libmpv-2
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-card border border-white/[0.06] text-xs font-mono-timestamp text-zinc-300">
+            wgpu + egui
+          </span>
+        </div>
+      </div>
+
+      <!-- Column 2: Navigation / Product -->
+      <div class="flex flex-col gap-3">
+        <h4 class="text-xs font-mono-timestamp text-zinc-300 uppercase tracking-wider font-semibold">
+          Player
+        </h4>
+        <ul class="flex flex-col gap-2.5 text-sm font-body-base text-zinc-400">
+          <li><a class="hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/releases" target="_blank" rel="noopener noreferrer">Download Latest</a></li>
+          <li><a class="hover:text-white transition-colors" href="#showcase">Core Capabilities</a></li>
+          <li><a class="hover:text-white transition-colors" href="#formats">Supported Formats</a></li>
+          <li><a class="hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/releases" target="_blank" rel="noopener noreferrer">Release Notes</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Community & Source -->
+      <div class="flex flex-col gap-3">
+        <h4 class="text-xs font-mono-timestamp text-zinc-300 uppercase tracking-wider font-semibold">
+          Open Source
+        </h4>
+        <ul class="flex flex-col gap-2.5 text-sm font-body-base text-zinc-400">
+          <li><a class="hover:text-white transition-colors" href="https://github.com/carllosnc/nixo" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a class="hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+          <li><a class="hover:text-white transition-colors" href="https://github.com/carllosnc/nixo/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li>
+          <li><a class="hover:text-white transition-colors" href="https://discord.gg" target="_blank" rel="noopener noreferrer">Discord Community</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Architecture & Principles -->
+      <div class="flex flex-col gap-3">
+        <h4 class="text-xs font-mono-timestamp text-zinc-300 uppercase tracking-wider font-semibold">
+          Guarantees
+        </h4>
+        <ul class="flex flex-col gap-2.5 text-sm font-body-base text-zinc-400">
+          <li class="flex items-center gap-1.5 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">lock</span>
+            Zero Telemetry
+          </li>
+          <li class="flex items-center gap-1.5 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">wifi_off</span>
+            100% Offline &amp; Local
+          </li>
+          <li class="flex items-center gap-1.5 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">verified</span>
+            MIT &amp; Apache 2.0
+          </li>
+          <li class="flex items-center gap-1.5 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">bolt</span>
+            Instant GPU Startup
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar: Copyright, Author Credit & Back-to-Top -->
+    <div class="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-body-base text-zinc-500">
+      <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+        <p>© 2025–2026 Nixo Media Engine. Free &amp; Open Source.</p>
+        <span class="hidden sm:inline text-zinc-700">•</span>
+        <p>Crafted with care by <a class="text-zinc-400 hover:text-white hover:underline transition-colors font-medium" href="https://github.com/carllosnc" target="_blank" rel="noopener noreferrer">@carllosnc</a></p>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <a href="#hero" class="text-xs font-mono-timestamp text-zinc-400 hover:text-brand-400 transition-colors flex items-center gap-1">
+          <span>Back to top</span>
+          <span class="material-symbols-outlined text-sm">arrow_upward</span>
+        </a>
+      </div>
     </div>
   </div>
 </footer>
@@ -820,6 +1135,134 @@
       } else {
         delete video.dataset.userPaused;
       }
+    });
+  })();
+
+  // ==================== UNDULATING WAVE SVG ENGINE ====================
+  (function initUndulatingWave() {
+    var container = document.getElementById('wave-divider-container');
+    var pathPrimary = document.getElementById('wave-path-primary');
+    var pathSecondary = document.getElementById('wave-path-secondary');
+    if (!container || !pathPrimary) return;
+
+    var width = 1440;
+    var step = 32;
+    var centerY = 30;
+    var isVisible = true;
+    var rafId = null;
+    var startTime = performance.now();
+
+    function computeWave(time, amp1, freq1, speed1, amp2, freq2, speed2, phaseOffset) {
+      var points = [];
+      for (var x = 0; x <= width + step; x += step) {
+        var y = centerY
+          + amp1 * Math.sin(x * freq1 - time * speed1 + phaseOffset)
+          + amp2 * Math.cos(x * freq2 + time * speed2);
+        points.push({ x: x, y: y });
+      }
+
+      var d = 'M ' + points[0].x.toFixed(1) + ' ' + points[0].y.toFixed(1);
+      for (var i = 1; i < points.length - 1; i++) {
+        var xc = (points[i].x + points[i + 1].x) / 2;
+        var yc = (points[i].y + points[i + 1].y) / 2;
+        d += ' Q ' + points[i].x.toFixed(1) + ' ' + points[i].y.toFixed(1) + ', ' + xc.toFixed(1) + ' ' + yc.toFixed(1);
+      }
+      return d;
+    }
+
+    function render(now) {
+      if (!isVisible) {
+        rafId = null;
+        return;
+      }
+      var elapsed = (now - startTime) * 0.001;
+
+      // Primary wave: organic vertical undulation with harmonic wave propagation
+      var d1 = computeWave(elapsed, 13.5, 0.0125, 2.3, 3.5, 0.026, 1.4, 0);
+      pathPrimary.setAttribute('d', d1);
+
+      // Secondary wave: resonant counter-harmonic ripple
+      if (pathSecondary) {
+        var d2 = computeWave(elapsed, 8.5, 0.017, 1.8, 3.0, 0.009, -1.2, Math.PI * 0.65);
+        pathSecondary.setAttribute('d', d2);
+      }
+
+      rafId = requestAnimationFrame(render);
+    }
+
+    // Immediately render initial frame
+    render(startTime);
+
+    // Pause when scrolled out of view to preserve GPU/CPU cycles
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !rafId) {
+            startTime = performance.now();
+            rafId = requestAnimationFrame(render);
+          } else if (!isVisible && rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+        });
+      }, { threshold: 0.05 });
+      observer.observe(container);
+    }
+  })();
+
+  // ==================== INTERACTIVE REVEAL & MOUSE SPOTLIGHT ====================
+  (function initCardRevealAndSpotlight() {
+    var cards = document.querySelectorAll('.reveal-card');
+    if (!cards.length) return;
+
+    // Staggered reveal effect via IntersectionObserver
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            // Apply staggered transition delay based on grid sibling position
+            var card = entry.target;
+            var parent = card.parentElement;
+            var siblings = parent ? Array.prototype.slice.call(parent.children).filter(function(el) {
+              return el.classList && el.classList.contains('reveal-card');
+            }) : [];
+            var index = siblings.indexOf(card);
+            if (index >= 0) {
+              card.style.transitionDelay = (index * 80) + 'ms';
+            }
+            card.classList.add('revealed');
+            observer.unobserve(card);
+          }
+        });
+      }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+      });
+
+      cards.forEach(function(card) {
+        observer.observe(card);
+      });
+    } else {
+      // Fallback for browsers without IntersectionObserver
+      cards.forEach(function(card) {
+        card.classList.add('revealed');
+      });
+    }
+
+    // Dynamic radial spotlight tracking on mouse movement
+    cards.forEach(function(card) {
+      card.addEventListener('mousemove', function(e) {
+        var rect = card.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', x + 'px');
+        card.style.setProperty('--mouse-y', y + 'px');
+      });
+      card.addEventListener('mouseleave', function() {
+        card.style.removeProperty('--mouse-x');
+        card.style.removeProperty('--mouse-y');
+      });
     });
   })();
 </script>
