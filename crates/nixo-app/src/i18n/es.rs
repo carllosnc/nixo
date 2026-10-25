@@ -20,6 +20,8 @@ pub static ES: Translations = Translations {
     video_aspect_235_1: "2.35:1 Cine",
     video_summary_fit_auto: "Ajustar (Auto)",
     video_equalizer_title: "AJUSTES DE IMAGEN",
+    video_equalizer_default: "Normal",
+    video_equalizer_custom: "Personalizado",
     video_brightness: "BRILLO",
     video_contrast: "CONTRASTE",
     video_saturation: "SATURACIÓN",
@@ -126,7 +128,7 @@ pub static ES: Translations = Translations {
     empty_folder_desc: "No se encontraron archivos de medios ni subcarpetas aquí.",
     loading_folder: "Cargando contenido de la carpeta...",
     calculating: "calculando...",
-    watched_badge: "Visto ✓",
+    watched_badge: "Visto",
     dialog_open_video: "Abrir Video en Nixo",
     filter_video_files: "Archivos de Video",
 

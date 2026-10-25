@@ -11,8 +11,10 @@ impl NixoApp {
     pub(super) fn render_tab_video_equalizer(&self, ui: &mut Ui, actions: &mut super::MenuActions) {
         let t = self.t();
         if submenu_header(ui, t.video_equalizer_title) {
-            actions.navigate(SettingsTab::Video);
+            actions.navigate(SettingsTab::Main);
         }
+
+        ui.add_space(4.0);
 
         let mut current_eq = self.status.video_equalizer;
         let mut changed = false;
@@ -30,6 +32,8 @@ impl NixoApp {
             changed = true;
         }
 
+        ui.add_space(8.0);
+
         // Contraste (-100 a +100)
         if let Some(val) = menu_slider(
             ui,
@@ -43,6 +47,8 @@ impl NixoApp {
             changed = true;
         }
 
+        ui.add_space(8.0);
+
         // Saturação (-100 a +100)
         if let Some(val) = menu_slider(
             ui,
@@ -55,6 +61,8 @@ impl NixoApp {
             current_eq.saturation = val.round() as i32;
             changed = true;
         }
+
+        ui.add_space(8.0);
 
         // Gama (-100 a +100)
         if let Some(val) = menu_slider(
@@ -73,11 +81,11 @@ impl NixoApp {
             actions.send(PlayerCommand::SetVideoEqualizer(current_eq));
         }
 
-        if !current_eq.is_default() {
-            ui.add(MenuDivider);
-            if ui.add(MenuButton::new(t.video_reset_eq)).clicked() {
-                actions.send(PlayerCommand::SetVideoEqualizer(VideoEqualizer::default()));
-            }
+        ui.add_space(4.0);
+        ui.add(MenuDivider);
+        ui.add_space(4.0);
+        if ui.add(MenuButton::new(t.video_reset_eq)).clicked() && !current_eq.is_default() {
+            actions.send(PlayerCommand::SetVideoEqualizer(VideoEqualizer::default()));
         }
     }
 }

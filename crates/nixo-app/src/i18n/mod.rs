@@ -122,6 +122,8 @@ pub struct Translations {
     pub video_aspect_235_1: &'static str,
     pub video_summary_fit_auto: &'static str,
     pub video_equalizer_title: &'static str,
+    pub video_equalizer_default: &'static str,
+    pub video_equalizer_custom: &'static str,
     pub video_brightness: &'static str,
     pub video_contrast: &'static str,
     pub video_saturation: &'static str,
@@ -381,6 +383,8 @@ mod tests {
             assert!(!t.subfolders_count(3).is_empty());
             assert!(!t.folder_items_count(Some(&5)).is_empty());
             assert!(!t.resume_badge("01:23", 45).is_empty());
+            assert!(!t.video_equalizer_default.is_empty());
+            assert!(!t.video_equalizer_custom.is_empty());
             assert!(!t.screenshot_saved("shot.png").is_empty());
             assert_eq!(t.color_name("Branco"), t.color_white);
         }

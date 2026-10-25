@@ -30,7 +30,7 @@ fn main() -> eframe::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info,wgpu_hal=warn,wgpu_core=warn")),
+                .unwrap_or_else(|_| EnvFilter::new("info,wgpu_hal=error,wgpu_core=error")),
         )
         .init();
 

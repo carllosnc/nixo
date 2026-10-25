@@ -333,18 +333,22 @@ impl NixoApp {
             .id_salt("playlist_drawer_scroll_area")
             .auto_shrink([false, false]);
 
-        // Auto-scroll para a faixa atual ao abrir ou para a faixa focada por teclado
-        if let Some(target_idx) = self.playlist_scroll_to_index.take() {
+        // Auto-scroll inteligente: leva ao topo ou bottom conforme a navegação (sem travar no centro)
+        if let Some(target) = self.playlist_scroll_target.take() {
             let total_h = (items_len as f32 * row_total_h) - spacing_y;
             let max_scroll = (total_h - ui.available_height()).max(0.0);
-            let target_y =
-                (target_idx as f32 * row_total_h) - (ui.available_height() * 0.5) + (item_h * 0.5);
-            scroll = scroll.vertical_scroll_offset(target_y.clamp(0.0, max_scroll));
+            let target_y = target.compute_offset(
+                self.playlist_scroll_offset,
+                ui.available_height(),
+                row_total_h,
+                max_scroll,
+            );
+            scroll = scroll.vertical_scroll_offset(target_y);
         }
 
         ui.spacing_mut().item_spacing.y = spacing_y;
 
-        scroll.show_rows(ui, item_h, items_len, |ui, row_range| {
+        let output = scroll.show_rows(ui, item_h, items_len, |ui, row_range| {
             for idx in row_range {
                 let is_current = idx == cur_active_idx;
                 let is_focused = idx == focused_idx && kb_active;
@@ -464,6 +468,8 @@ impl NixoApp {
                 }
             }
         });
+
+        self.playlist_scroll_offset = output.state.offset.y;
 
         selected_idx
     }

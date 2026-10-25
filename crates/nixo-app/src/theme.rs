@@ -331,7 +331,7 @@ impl NixoApp {
         });
     }
 
-    /// Customiza a barra de título nativa no Windows para o cinza escuro elegante #222222 com texto branco.
+    /// Customiza a barra de título nativa no Windows para a tonalidade de barras da paleta (#18181b - Tailwind Zinc 900 / SURFACE_LOW).
     #[cfg(target_os = "windows")]
     pub(crate) fn apply_windows_titlebar_color() -> bool {
         type Hwnd = *mut std::ffi::c_void;
@@ -391,12 +391,16 @@ impl NixoApp {
                 let _ = set_attrib(hwnd, 20, (&raw const dark).cast::<std::ffi::c_void>(), 4);
                 let _ = set_attrib(hwnd, 19, (&raw const dark).cast::<std::ffi::c_void>(), 4);
 
-                // 2. DWMWA_CAPTION_COLOR (35) = 0x00222222 (Cinza Escuro #222222)
-                let dark_gray_caption: u32 = 0x00222222;
+                // 2. DWMWA_CAPTION_COLOR (35): Tailwind Zinc 900 (#18181b - SURFACE_LOW: barras e cabeçalhos).
+                // Converte Color32 (r=24, g=24, b=27) para formato Win32 COLORREF (0x00BBGGRR = 0x001B1818).
+                let caption_color = crate::components::tokens::SURFACE_LOW;
+                let bg_caption: u32 = (caption_color.r() as u32)
+                    | ((caption_color.g() as u32) << 8)
+                    | ((caption_color.b() as u32) << 16);
                 let _ = set_attrib(
                     hwnd,
                     35,
-                    (&raw const dark_gray_caption).cast::<std::ffi::c_void>(),
+                    (&raw const bg_caption).cast::<std::ffi::c_void>(),
                     4,
                 );
 
@@ -409,21 +413,21 @@ impl NixoApp {
                     4,
                 );
 
-                // 4. DWMWA_BORDER_COLOR (34) = 0x00222222 (#222222 para harmonia com a barra)
-                let dark_gray_border: u32 = 0x00222222;
+                // 4. DWMWA_BORDER_COLOR (34): Mesma tonalidade Zinc 900 (#18181b) para harmonia com a barra.
+                let bg_border: u32 = bg_caption;
                 let _ = set_attrib(
                     hwnd,
                     34,
-                    (&raw const dark_gray_border).cast::<std::ffi::c_void>(),
+                    (&raw const bg_border).cast::<std::ffi::c_void>(),
                     4,
                 );
 
-                // 5. DWMWA_SYSTEMBACKDROP_TYPE (38) = 3 (Acrylic blur nativo no Windows 11)
-                let acrylic_backdrop: u32 = 3;
+                // 5. DWMWA_SYSTEMBACKDROP_TYPE (38) = 1 (DWMSBT_NONE: cor sólida sem translucidez)
+                let none_backdrop: u32 = 1;
                 let _ = set_attrib(
                     hwnd,
                     38,
-                    (&raw const acrylic_backdrop).cast::<std::ffi::c_void>(),
+                    (&raw const none_backdrop).cast::<std::ffi::c_void>(),
                     4,
                 );
 

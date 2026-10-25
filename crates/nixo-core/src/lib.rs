@@ -1,3 +1,4 @@
+pub mod equalizer;
 pub mod playlist;
 pub mod subtitle;
 
@@ -6,6 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
 
+pub use equalizer::*;
 pub use playlist::*;
 pub use subtitle::*;
 
@@ -266,25 +268,6 @@ pub enum PlayerCommand {
     SetVideoFit(VideoFit),
     SetVideoEqualizer(VideoEqualizer),
     TakeScreenshot(PathBuf),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
-#[serde(default)]
-pub struct VideoEqualizer {
-    /// Ajuste de brilho (-100 a 100, padrão: 0).
-    pub brightness: i32,
-    /// Ajuste de contraste (-100 a 100, padrão: 0).
-    pub contrast: i32,
-    /// Ajuste de saturação (-100 a 100, padrão: 0).
-    pub saturation: i32,
-    /// Ajuste de gama (-100 a 100, padrão: 0).
-    pub gamma: i32,
-}
-
-impl VideoEqualizer {
-    pub fn is_default(&self) -> bool {
-        self.brightness == 0 && self.contrast == 0 && self.saturation == 0 && self.gamma == 0
-    }
 }
 
 #[derive(Debug, Clone)]

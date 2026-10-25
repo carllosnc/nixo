@@ -31,6 +31,11 @@ impl NixoApp {
 
         let rows = [
             (t.menu_video, self.video_summary(), SettingsTab::Video),
+            (
+                t.video_equalizer_title,
+                self.equalizer_summary(),
+                SettingsTab::VideoEqualizer,
+            ),
             (t.menu_speed, self.speed_summary(), SettingsTab::Speed),
             (t.menu_audio, self.audio_summary(), SettingsTab::Audio),
             (
@@ -102,19 +107,6 @@ impl NixoApp {
         });
         if let Some(aspect) = choice_list(ui, aspect_choices) {
             actions.send(PlayerCommand::SetAspectRatio(aspect));
-        }
-
-        ui.add(MenuDivider);
-        let eq_summary = if self.status.video_equalizer.is_default() {
-            t.speed_normal
-        } else {
-            "✓"
-        };
-        if ui
-            .add(NavRow::new(t.video_equalizer_title, eq_summary))
-            .clicked()
-        {
-            actions.navigate(SettingsTab::VideoEqualizer);
         }
     }
 
@@ -256,6 +248,15 @@ impl NixoApp {
                 nixo_core::VideoAspect::Ratio4_3 => t.video_aspect_4_3.to_string(),
                 nixo_core::VideoAspect::Ratio235_1 => t.video_aspect_235_1.to_string(),
             },
+        }
+    }
+
+    fn equalizer_summary(&self) -> String {
+        let t = self.t();
+        if self.status.video_equalizer.is_default() {
+            t.video_equalizer_default.to_string()
+        } else {
+            t.video_equalizer_custom.to_string()
         }
     }
 

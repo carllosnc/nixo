@@ -302,6 +302,7 @@ impl NixoApp {
             let total = self.playlist.len();
             if total > 0 {
                 let prev_focused = self.playlist_focused_index;
+                let mut align_top = false;
                 if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
                     self.playlist_focused_index = self.playlist_focused_index.saturating_sub(1);
                 }
@@ -312,6 +313,7 @@ impl NixoApp {
                 }
                 if ctx.input(|i| i.key_pressed(Key::Home)) {
                     self.playlist_focused_index = 0;
+                    align_top = true;
                 }
                 if ctx.input(|i| i.key_pressed(Key::End)) {
                     self.playlist_focused_index = total - 1;
@@ -324,7 +326,13 @@ impl NixoApp {
                 }
                 if self.playlist_focused_index != prev_focused {
                     self.playlist_keyboard_nav_active = true;
-                    self.playlist_scroll_to_index = Some(self.playlist_focused_index);
+                    self.playlist_scroll_target = Some(if align_top {
+                        crate::playlist::PlaylistScrollTarget::Top(self.playlist_focused_index)
+                    } else {
+                        crate::playlist::PlaylistScrollTarget::EnsureVisible(
+                            self.playlist_focused_index,
+                        )
+                    });
                 }
                 if ctx.input(|i| i.key_pressed(Key::Enter)) {
                     self.play_playlist_index(self.playlist_focused_index);

@@ -55,7 +55,8 @@ pub struct NixoApp {
     pub(crate) playlist_drawer_open: bool,
     pub(crate) playlist_focused_index: usize,
     pub(crate) playlist_keyboard_nav_active: bool,
-    pub(crate) playlist_scroll_to_index: Option<usize>,
+    pub(crate) playlist_scroll_target: Option<crate::playlist::PlaylistScrollTarget>,
+    pub(crate) playlist_scroll_offset: f32,
     pub(crate) is_mini_player: bool,
     pub(crate) saved_window_size: Option<Vec2>,
     pub(crate) saved_always_on_top: bool,
@@ -133,7 +134,8 @@ impl NixoApp {
             playlist_drawer_open: false,
             playlist_focused_index: 0,
             playlist_keyboard_nav_active: false,
-            playlist_scroll_to_index: None,
+            playlist_scroll_target: None,
+            playlist_scroll_offset: 0.0,
             is_mini_player: false,
             saved_window_size: None,
             saved_always_on_top: settings.window.always_on_top,
@@ -398,7 +400,7 @@ impl eframe::App for NixoApp {
         let panel_bg = if self.status.state != PlaybackState::Stopped {
             BG_OLED_BLACK
         } else {
-            crate::components::tokens::BG_BASE
+            crate::components::tokens::NEUTRAL_950
         };
         egui::CentralPanel::default()
             .frame(egui::Frame::NONE.fill(panel_bg))

@@ -123,30 +123,20 @@ impl MpvBackend {
     }
 
     pub(super) fn resolve_subtitle_fonts_dir() -> Option<std::path::PathBuf> {
-        let mut candidates = Vec::new();
+        let mut candidates = vec![
+            std::path::PathBuf::from("assets").join("fonts"),
+            std::path::PathBuf::from("fonts"),
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../assets/fonts"),
+        ];
         if let Ok(exe) = std::env::current_exe()
-            && let Some(exe_dir) = exe.parent()
+            && let Some(dir) = exe.parent()
         {
-            candidates.push(exe_dir.join("fonts"));
-            candidates.push(exe_dir.join("assets").join("fonts"));
-            if let Some(parent) = exe_dir.parent() {
-                candidates.push(parent.join("assets").join("fonts"));
-                if let Some(grandparent) = parent.parent() {
-                    candidates.push(grandparent.join("assets").join("fonts"));
-                }
+            candidates.extend([dir.join("fonts"), dir.join("assets/fonts")]);
+            if let Some(p) = dir.parent() {
+                candidates.extend([p.join("assets/fonts"), p.join("../assets/fonts")]);
             }
         }
-        candidates.push(std::path::PathBuf::from("assets").join("fonts"));
-        candidates.push(std::path::PathBuf::from("fonts"));
-        candidates.push(
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
-                .join("..")
-                .join("assets")
-                .join("fonts"),
-        );
-
-        candidates.into_iter().find(|dir| dir.is_dir())
+        candidates.into_iter().find(|d| d.is_dir())
     }
 
     pub(super) fn apply_subtitle_style(&mut self, style: SubtitleStyle) {
@@ -454,10 +444,7 @@ impl MpvBackend {
 
     pub(super) fn set_video_equalizer(&mut self, eq: nixo_core::VideoEqualizer) {
         self.video_equalizer = eq;
-        self.set_i64(c"brightness", eq.brightness as i64);
-        self.set_i64(c"contrast", eq.contrast as i64);
-        self.set_i64(c"saturation", eq.saturation as i64);
-        self.set_i64(c"gamma", eq.gamma as i64);
+        self.first_frame_pending = true;
     }
 
     pub(super) fn take_screenshot(&self, path: &Path) {

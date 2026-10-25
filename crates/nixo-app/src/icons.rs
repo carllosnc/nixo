@@ -64,17 +64,9 @@ impl NixoApp {
             let btn_rect = Rect::from_center_size(rect.center(), Vec2::splat(btn_size));
             let radius = CornerRadius::same(99);
 
-            // Botão com estado ativo em alto contraste (verde da marca Nixo) ou ghost sutil em repouso
+            // Fundo sutil para estados hover/press (ghost button minimalista sem preencher o wrapper no estado ativo)
             let bg_color = if !enabled {
                 Color32::TRANSPARENT
-            } else if is_active {
-                if pressed {
-                    Color32::from_rgb(45, 142, 26)
-                } else if hovered {
-                    Color32::from_rgb(65, 195, 40)
-                } else {
-                    ACCENT_COLOR
-                }
             } else if pressed {
                 Color32::from_rgba_unmultiplied(255, 255, 255, 42)
             } else if hovered {
@@ -87,9 +79,18 @@ impl NixoApp {
                 ui.painter().rect_filled(btn_rect, radius, bg_color);
             }
 
+            // O estado ativo destaca apenas o ícone com a cor de destaque (ACCENT_COLOR), sem colorir o wrapper
             let fg = if !enabled {
                 Color32::from_rgba_unmultiplied(255, 255, 255, 60)
-            } else if is_active || hovered || pressed {
+            } else if is_active {
+                if pressed {
+                    Color32::from_rgb(38, 195, 8)
+                } else if hovered {
+                    Color32::from_rgb(80, 245, 50)
+                } else {
+                    ACCENT_COLOR
+                }
+            } else if hovered || pressed {
                 Color32::WHITE
             } else {
                 Color32::from_gray(220)
@@ -140,12 +141,7 @@ impl NixoApp {
                     );
                 }
                 ControlIcon::Repeat { mode } => {
-                    let icon_color = if mode != RepeatMode::Off {
-                        Color32::WHITE
-                    } else {
-                        fg
-                    };
-                    let rep_stroke = Stroke::new(1.85_f32, icon_color);
+                    let rep_stroke = Stroke::new(1.85_f32, fg);
 
                     // Seta superior (indo para a direita)
                     painter.add(Shape::line(
@@ -169,7 +165,7 @@ impl NixoApp {
 
                     if mode == RepeatMode::One {
                         // Indicador '1' no centro do ícone de repetição
-                        let one_st = Stroke::new(2.0_f32, icon_color);
+                        let one_st = Stroke::new(2.0_f32, fg);
                         painter.line_segment([p(12.0, 9.5), p(12.0, 14.5)], one_st);
                         painter.line_segment([p(10.2, 11.2), p(12.0, 9.5)], one_st);
                     }
@@ -212,18 +208,13 @@ impl NixoApp {
                         }
                     }
                 }
-                ControlIcon::Subtitles { active } => {
+                ControlIcon::Subtitles { .. } => {
                     // Lucide 'captions': retângulo arredondado 18x14 com linhas de diálogo estilizadas
-                    let icon_color = if active || hovered || pressed {
-                        Color32::WHITE
-                    } else {
-                        Color32::from_gray(185)
-                    };
-                    let cc_st = Stroke::new(1.85_f32, icon_color);
+                    let cc_st = Stroke::new(1.85_f32, fg);
                     let frame = Rect::from_min_max(p(3.0, 5.0), p(21.0, 19.0));
                     painter.rect_stroke(frame, CornerRadius::same(2), cc_st, StrokeKind::Inside);
 
-                    let line_st = Stroke::new(1.65_f32, icon_color);
+                    let line_st = Stroke::new(1.65_f32, fg);
                     // Linha superior (y=10.5): curto + longo
                     painter.line_segment([p(6.8, 10.5), p(9.2, 10.5)], line_st);
                     painter.line_segment([p(12.5, 10.5), p(17.2, 10.5)], line_st);
@@ -296,14 +287,13 @@ impl NixoApp {
                 }
                 ControlIcon::AspectFit { active } => {
                     // Lucide frame + chevrons de expansão ou barras de proporção
-                    let icon_color = if active { Color32::WHITE } else { fg };
-                    let st = Stroke::new(1.85_f32, icon_color);
+                    let st = Stroke::new(1.85_f32, fg);
                     let frame = Rect::from_min_max(p(2.5, 5.0), p(21.5, 19.0));
                     painter.rect_stroke(frame, CornerRadius::same(2), st, StrokeKind::Inside);
 
                     if active {
-                        // Trava ativa: chevrons de expansão em branco puro de alto contraste sobre o fundo verde da marca
-                        let arrow_st = Stroke::new(1.85_f32, Color32::WHITE);
+                        // Trava ativa: chevrons de expansão na cor ativa (fg)
+                        let arrow_st = Stroke::new(1.85_f32, fg);
                         painter.line_segment([p(6.0, 12.0), p(18.0, 12.0)], arrow_st);
                         painter.add(Shape::line(
                             vec![p(8.5, 9.5), p(6.0, 12.0), p(8.5, 14.5)],
@@ -320,15 +310,13 @@ impl NixoApp {
                         painter.line_segment([p(17.5, 7.0), p(17.5, 17.0)], bar_st);
                     }
                 }
-                ControlIcon::Pip { active } => {
-                    let icon_color = if active { Color32::WHITE } else { fg };
-                    let st = Stroke::new(1.85_f32, icon_color);
+                ControlIcon::Pip { .. } => {
+                    let st = Stroke::new(1.85_f32, fg);
                     let outer = Rect::from_min_max(p(2.5, 4.5), p(21.5, 19.5));
                     painter.rect_stroke(outer, CornerRadius::same(2), st, StrokeKind::Inside);
 
                     let inner = Rect::from_min_max(p(11.5, 11.0), p(19.5, 17.5));
-                    let inner_fill = if active { Color32::WHITE } else { fg };
-                    painter.rect_filled(inner, CornerRadius::same(1), inner_fill);
+                    painter.rect_filled(inner, CornerRadius::same(1), fg);
                 }
                 ControlIcon::Screenshot => {
                     // Lucide 'camera': corpo canônico da câmera com visor superior e lente central

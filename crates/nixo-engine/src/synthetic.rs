@@ -150,6 +150,8 @@ impl SyntheticBackend {
             }
         }
 
+        self.video_equalizer.apply_to_rgba(&mut rgba);
+
         self.frame_counter += 1;
         VideoFrame {
             width,
@@ -336,6 +338,7 @@ impl MediaBackend for SyntheticBackend {
             }
             PlayerCommand::SetVideoEqualizer(eq) => {
                 self.video_equalizer = eq;
+                self.dirty_frame = true;
             }
             PlayerCommand::TakeScreenshot(path) => {
                 if let Some(parent) = path.parent() {

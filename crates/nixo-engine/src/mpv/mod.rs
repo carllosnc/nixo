@@ -478,7 +478,8 @@ impl MediaBackend for MpvBackend {
         self.first_frame_pending = self.pending_seek.is_some();
         self.frame_counter += 1;
 
-        let out_buffer = std::mem::take(&mut self.pixel_buffer);
+        let mut out_buffer = std::mem::take(&mut self.pixel_buffer);
+        self.video_equalizer.apply_to_rgba(&mut out_buffer);
         Some(VideoFrame {
             width,
             height,

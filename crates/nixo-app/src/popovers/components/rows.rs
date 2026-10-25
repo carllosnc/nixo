@@ -7,7 +7,7 @@
 //! - [`MenuDivider`]: separador horizontal.
 //! - [`MenuButton`]: botão de ação centralizado no quadro.
 
-use egui::{Align2, CursorIcon, FontId, Pos2, Rect, Response, Sense, Ui, Widget, vec2};
+use egui::{Align2, Color32, CursorIcon, FontId, Pos2, Rect, Response, Sense, Ui, Widget, vec2};
 
 use super::icons::LeadingIcon;
 use super::primitives::{
@@ -187,14 +187,34 @@ impl Widget for NavRow<'_> {
         );
 
         let value_right = chevron_tip.x - st.nav_value_gap;
+        let max_val_width = (value_right - title_rect.right() - st.nav_value_gap).max(0.0);
+
+        // Se o valor não couber no espaço disponível com o tamanho padrão,
+        // reduz a tipografia para caber mais conteúdo e dar acabamento refinado ao truncate.
+        let full_width = ui.fonts(|f| {
+            f.layout_no_wrap(
+                self.value.to_string(),
+                st.font_value.clone(),
+                Color32::WHITE,
+            )
+            .size()
+            .x
+        });
+
+        let font = if full_width > max_val_width {
+            st.font_value_small.clone()
+        } else {
+            st.font_value.clone()
+        };
+
         paint_text(
             ui,
             self.value,
-            st.font_value.clone(),
+            font,
             hover_color(hovered, st.text_nav_value),
             Pos2::new(value_right, cy),
             Align2::RIGHT_CENTER,
-            value_right - title_rect.right() - st.nav_value_gap,
+            max_val_width,
         );
 
         resp.on_hover_cursor(CursorIcon::PointingHand)

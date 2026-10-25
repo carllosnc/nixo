@@ -57,6 +57,7 @@ pub(crate) struct MenuStyle {
     pub font_option_emphasis: FontId,
     pub font_label: FontId,
     pub font_value: FontId,
+    pub font_value_small: FontId,
     pub font_muted: FontId,
 
     // ── Opção: marcador de seleção, ícone e texto ──
@@ -153,7 +154,8 @@ impl MenuStyle {
             font_option_selected: font_bold(14.0),
             font_option_emphasis: font_bold(13.5),
             font_label: font_bold(12.0),
-            font_value: FontId::proportional(13.5),
+            font_value: FontId::proportional(13.0),
+            font_value_small: FontId::proportional(11.5),
             font_muted: FontId::proportional(13.0),
 
             check_offset_x: 18.0,

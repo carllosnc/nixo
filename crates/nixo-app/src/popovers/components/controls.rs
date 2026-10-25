@@ -247,10 +247,10 @@ pub(crate) fn menu_slider(
     format_val: impl Fn(f64) -> String,
 ) -> Option<f64> {
     let st = menu_style();
-    let (rect, _) = allocate_row(ui, 54.0, Sense::hover());
+    let (rect, _) = allocate_row(ui, 58.0, Sense::hover());
 
     let top_y = rect.top() + 11.0;
-    let bottom_y = rect.top() + 38.0;
+    let bottom_y = rect.top() + 39.0;
 
     // Rótulo na esquerda
     paint_text(

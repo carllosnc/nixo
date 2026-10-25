@@ -68,8 +68,8 @@ pub fn render_hero_empty_state(
     ui.add_space(top_space);
 
     ui.vertical_centered(|ui| {
-        // 1. Ícone heróico ampliado diretamente sobre o fundo, sem wrapper
-        let icon_size = vec2(104.0, 92.0);
+        // 1. Ícone heróico diretamente sobre o fundo, sem wrapper
+        let icon_size = vec2(76.0, 68.0);
         let (icon_rect, _) = ui.allocate_exact_size(icon_size, Sense::hover());
 
         if let Some(tex) = folder_texture {
@@ -84,12 +84,12 @@ pub fn render_hero_empty_state(
                 icon_rect.center(),
                 Align2::CENTER_CENTER,
                 lucide::FOLDER_OPEN,
-                lucide::font_id(56.0),
+                lucide::font_id(44.0),
                 TEXT_SECONDARY,
             );
         }
 
-        ui.add_space(20.0);
+        ui.add_space(16.0);
 
         // 2. Título
         ui.label(
