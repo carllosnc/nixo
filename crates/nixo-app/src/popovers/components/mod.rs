@@ -13,6 +13,8 @@ mod rows;
 pub(crate) use blocks::{
     Choice, EmptyState, PopoverFrame, WarningBanner, choice_list, submenu_header,
 };
-pub(crate) use controls::{MenuToggle, delay_stepper, menu_slider};
+#[allow(unused_imports)]
+pub(crate) use controls::MenuToggle;
+pub(crate) use controls::{delay_stepper, menu_slider};
 pub(crate) use icons::LeadingIcon;
 pub(crate) use rows::{MenuButton, MenuDivider, MenuOption, NavRow, SectionTitle};

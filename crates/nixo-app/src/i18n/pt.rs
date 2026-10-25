@@ -8,7 +8,6 @@ pub static PT: Translations = Translations {
     menu_audio: "ÁUDIO",
     menu_subtitles: "LEGENDAS",
     menu_language: "IDIOMA",
-    menu_always_on_top: "SEMPRE NO TOPO",
 
     // Aba de Vídeo
     video_framing: "ENQUADRAMENTO",

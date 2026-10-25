@@ -9,10 +9,23 @@ use crate::app::{ACCENT_COLOR, BG_OLED_BLACK, NixoApp};
 const INTER_REGULAR: &[u8] = include_bytes!("../../../assets/fonts/Inter-Regular.ttf");
 const INTER_BOLD: &[u8] = include_bytes!("../../../assets/fonts/Inter-Bold.ttf");
 const LUCIDE: &[u8] = include_bytes!("../../../assets/fonts/lucide.ttf");
+const JETBRAINS_MONO_REGULAR: &[u8] =
+    include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf");
+const JETBRAINS_MONO_BOLD: &[u8] = include_bytes!("../../../assets/fonts/JetBrainsMono-Bold.ttf");
 
 #[inline]
 pub(crate) fn font_bold(size: f32) -> FontId {
     FontId::new(size, egui::FontFamily::Name("bold".into()))
+}
+
+#[inline]
+pub(crate) fn font_mono(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Name("mono".into()))
+}
+
+#[inline]
+pub(crate) fn font_mono_bold(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Name("mono_bold".into()))
 }
 
 impl NixoApp {
@@ -32,11 +45,36 @@ impl NixoApp {
             "lucide".to_owned(),
             std::sync::Arc::new(egui::FontData::from_static(LUCIDE)),
         );
+        fonts.font_data.insert(
+            "jetbrains_mono_regular".to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(JETBRAINS_MONO_REGULAR)),
+        );
+        fonts.font_data.insert(
+            "jetbrains_mono_bold".to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(JETBRAINS_MONO_BOLD)),
+        );
 
         fonts.families.insert(
             egui::FontFamily::Name("lucide".into()),
             vec!["lucide".to_owned(), "inter_regular".to_owned()],
         );
+        fonts.families.insert(
+            egui::FontFamily::Name("mono".into()),
+            vec![
+                "jetbrains_mono_regular".to_owned(),
+                "inter_regular".to_owned(),
+            ],
+        );
+        fonts.families.insert(
+            egui::FontFamily::Name("mono_bold".into()),
+            vec!["jetbrains_mono_bold".to_owned(), "inter_bold".to_owned()],
+        );
+
+        fonts
+            .families
+            .entry(egui::FontFamily::Monospace)
+            .or_default()
+            .insert(0, "jetbrains_mono_regular".to_owned());
 
         fonts
             .families
@@ -268,7 +306,9 @@ impl NixoApp {
         };
         visuals.menu_corner_radius = CornerRadius::same(12);
         visuals.extreme_bg_color = BG_OLED_BLACK;
-        visuals.selection.bg_fill = ACCENT_COLOR;
+        visuals.selection.bg_fill = Color32::from_rgba_unmultiplied(47, 229, 11, 70);
+        visuals.selection.stroke =
+            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(47, 229, 11, 160));
         visuals.widgets.active.bg_fill = ACCENT_COLOR;
         visuals.widgets.active.bg_stroke = Stroke::NONE;
         visuals.widgets.active.corner_radius = CornerRadius::same(99);

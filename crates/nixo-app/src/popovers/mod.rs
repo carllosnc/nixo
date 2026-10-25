@@ -43,7 +43,6 @@ pub enum SettingsTab {
 struct MenuActions {
     next_tab: SettingsTab,
     command: Option<PlayerCommand>,
-    toggle_always_on_top: bool,
     set_language: Option<crate::i18n::Language>,
     close: bool,
 }
@@ -53,7 +52,6 @@ impl MenuActions {
         Self {
             next_tab: current,
             command: None,
-            toggle_always_on_top: false,
             set_language: None,
             close: false,
         }
@@ -124,16 +122,6 @@ impl NixoApp {
         if let Some(lang) = actions.set_language {
             self.language = lang;
             self.settings_store.observe(self.current_settings());
-        }
-        if actions.toggle_always_on_top {
-            self.always_on_top = !self.always_on_top;
-            self.settings_store.observe(self.current_settings());
-            let level = if self.always_on_top {
-                egui::WindowLevel::AlwaysOnTop
-            } else {
-                egui::WindowLevel::Normal
-            };
-            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(level));
         }
         self.settings_tab = actions.next_tab;
 

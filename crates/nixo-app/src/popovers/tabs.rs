@@ -10,8 +10,8 @@ use nixo_core::PlayerCommand;
 
 use super::MenuActions;
 use super::components::{
-    Choice, EmptyState, LeadingIcon, MenuDivider, MenuOption, MenuToggle, NavRow, SectionTitle,
-    WarningBanner, choice_list, delay_stepper, submenu_header,
+    Choice, EmptyState, LeadingIcon, MenuDivider, MenuOption, NavRow, SectionTitle, WarningBanner,
+    choice_list, delay_stepper, submenu_header,
 };
 use super::style::menu_style;
 use crate::app::{NixoApp, SettingsTab};
@@ -48,14 +48,6 @@ impl NixoApp {
             if ui.add(NavRow::new(title, &value)).clicked() {
                 actions.navigate(tab);
             }
-        }
-
-        ui.add(MenuDivider);
-        if ui
-            .add(MenuToggle::new(t.menu_always_on_top, self.always_on_top))
-            .clicked()
-        {
-            actions.toggle_always_on_top = true;
         }
     }
 

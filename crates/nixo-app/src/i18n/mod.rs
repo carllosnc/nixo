@@ -110,7 +110,6 @@ pub struct Translations {
     pub menu_audio: &'static str,
     pub menu_subtitles: &'static str,
     pub menu_language: &'static str,
-    pub menu_always_on_top: &'static str,
 
     // Aba de Vídeo
     pub video_framing: &'static str,

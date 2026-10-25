@@ -17,12 +17,14 @@ use crate::theme::font_bold;
 // ────────────────────────────── MenuToggle ───────────────────────────────
 
 /// Linha com interruptor ligado/desligado (toggle switch) no padrão OLED com animação fluida.
+#[allow(dead_code)]
 pub(crate) struct MenuToggle<'a> {
     title: &'a str,
     active: bool,
 }
 
 impl<'a> MenuToggle<'a> {
+    #[allow(dead_code)]
     pub(crate) fn new(title: &'a str, active: bool) -> Self {
         Self { title, active }
     }

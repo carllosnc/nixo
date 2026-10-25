@@ -1,9 +1,8 @@
 use egui::{
-    Align2, Color32, Context, CornerRadius, FontId, Id, Margin, Pos2, Rect, Response, RichText,
-    Stroke,
+    Align2, Color32, Context, CornerRadius, Id, Margin, Pos2, Rect, Response, RichText, Stroke,
 };
 
-use crate::theme::font_bold;
+use crate::theme::{font_mono, font_mono_bold};
 
 /// Exibe o tooltip padronizado para uma `Response` de UI com animação suave de fade e posicionamento automático.
 pub fn show_tooltip(ctx: &Context, response: &Response, text: &str) {
@@ -22,9 +21,9 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
         return;
     }
 
-    let font_id = FontId::proportional(12.0);
+    let font_id = font_mono_bold(11.5);
     let text_w = ctx.fonts(|f| {
-        f.layout_no_wrap(text.to_string(), font_id.clone(), Color32::WHITE)
+        f.layout_no_wrap(text.to_string(), font_id, Color32::WHITE)
             .size()
             .x
     });
@@ -91,7 +90,7 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(title)
-                                        .font(font_bold(12.0))
+                                        .font(font_mono_bold(11.5))
                                         .color(Color32::WHITE),
                                 )
                                 .wrap_mode(egui::TextWrapMode::Extend),
@@ -99,7 +98,7 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(shortcut)
-                                        .font(FontId::proportional(11.5))
+                                        .font(font_mono(11.0))
                                         .color(Color32::from_rgb(165, 170, 180)),
                                 )
                                 .wrap_mode(egui::TextWrapMode::Extend),
@@ -110,7 +109,7 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(prefix)
-                                        .font(FontId::proportional(12.0))
+                                        .font(font_mono(11.0))
                                         .color(Color32::from_rgb(165, 170, 180)),
                                 )
                                 .wrap_mode(egui::TextWrapMode::Extend),
@@ -118,7 +117,7 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(val)
-                                        .font(font_bold(12.0))
+                                        .font(font_mono_bold(11.5))
                                         .color(Color32::WHITE),
                                 )
                                 .wrap_mode(egui::TextWrapMode::Extend),
@@ -127,7 +126,7 @@ pub fn render_tooltip(ctx: &Context, id: Id, anchor_rect: Rect, text: &str, alph
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(text)
-                                        .font(font_bold(12.0))
+                                        .font(font_mono_bold(11.5))
                                         .color(Color32::WHITE),
                                 )
                                 .wrap_mode(egui::TextWrapMode::Extend),

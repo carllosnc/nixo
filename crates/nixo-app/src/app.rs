@@ -15,7 +15,7 @@ use crate::settings::{
 };
 use crate::widgets::{youtube_bottom_scrim_mesh, youtube_top_scrim_mesh};
 
-pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(55, 167, 33); // Verde da marca Nixo (#37A721)
+pub(crate) const ACCENT_COLOR: Color32 = Color32::from_rgb(47, 229, 11); // Verde elétrico da marca Nixo (#2fe50b)
 pub(crate) const BG_OLED_BLACK: Color32 = Color32::from_rgb(0, 0, 0);
 /// Tempo para ocultar o OSD quando o mouse fica parado sobre o vídeo (estilo YouTube).
 const OSD_VIDEO_IDLE_TIMEOUT: Duration = Duration::from_millis(2000);

@@ -214,7 +214,7 @@ impl NixoApp {
             painter.rect_filled(
                 rep_rect,
                 CornerRadius::same(7),
-                Color32::from_rgba_unmultiplied(55, 167, 33, 26),
+                Color32::from_rgba_unmultiplied(47, 229, 11, 26),
             );
         }
 
