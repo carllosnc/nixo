@@ -24,6 +24,7 @@ LicenseFile=..\LICENSE
 OutputDir=..\dist
 OutputBaseFilename=nixo-v{#MyAppVersion}-windows-x86_64-setup
 SetupIconFile=..\assets\icon.ico
+WizardImageFile=..\assets\wizard_banner.bmp,..\assets\wizard_banner_2x.bmp
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
