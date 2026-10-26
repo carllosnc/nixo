@@ -13,6 +13,24 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](Cargo.toml)
 
+<br><br>
+
+<img src="assets/screenshots/playback.webp" alt="Nixo Media Player Video Playback" width="100%" />
+
+</div>
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| Video Playback & Responsive OSD | Media Folders & Watch Progress |
+| :---: | :---: |
+| <img src="assets/screenshots/playback.webp" alt="Video Playback & Responsive OSD" width="100%" /> | <img src="assets/screenshots/library.webp" alt="Media Folders & Watch Progress" width="100%" /> |
+| **Settings, Video Equalizer & Subtitles** | **Animated Virtualized Playlist Drawer ($O(1)$)** |
+| <img src="assets/screenshots/settings.webp" alt="Settings, Video Equalizer & Subtitles" width="100%" /> | <img src="assets/screenshots/playlist.webp" alt="Animated Virtualized Playlist Drawer" width="100%" /> |
+
 </div>
 
 ---
