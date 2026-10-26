@@ -68,7 +68,6 @@ pub enum HomeAction {
     GoRoot,
     OpenFile,
     PlayFile(PathBuf),
-    PlayTestSignal,
     SetLanguage(crate::i18n::Language),
 }
 
@@ -182,18 +181,6 @@ pub fn render_header(
         // Botões de ação rápida no cabeçalho (exibidos apenas na Home raiz)
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             if current_path.is_none() {
-                if icon_secondary(
-                    ui,
-                    lucide::FLASK_CONICAL,
-                    "Sinal de teste sintético (60 FPS)",
-                )
-                .clicked()
-                {
-                    action = HomeAction::PlayTestSignal;
-                }
-
-                ui.add_space(6.0);
-
                 if icon_secondary(ui, lucide::FILE, "Abrir arquivo de mídia").clicked() {
                     action = HomeAction::OpenFile;
                 }

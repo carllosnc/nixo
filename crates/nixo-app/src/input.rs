@@ -103,7 +103,6 @@ impl NixoApp {
             GoRoot => self.home_state.go_root(),
             OpenFile => self.open_file_dialog(),
             PlayFile(path) => self.dispatch(PlayerCommand::LoadFile(path)),
-            PlayTestSignal => self.dispatch(PlayerCommand::Play),
             SetLanguage(lang) => {
                 self.language = lang;
                 self.settings_store.observe(self.current_settings());
