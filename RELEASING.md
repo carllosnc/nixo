@@ -1,69 +1,69 @@
-# Procedimento de Lançamento (Release Guide) — Nixo
+# Release Guide & Procedure — Nixo
 
-Este documento descreve o fluxo passo a passo para gerar, testar e publicar uma nova versão oficial do **Nixo Media Player**.
+This document outlines the step-by-step workflow for generating, testing, and publishing an official release of **Nixo Media Player**.
 
 ---
 
-## 1. Visão Geral do Ciclo de Lançamento
+## 1. Release Lifecycle Overview
 
-O processo de publicação do Nixo segue quatro etapas sequenciais:
+The Nixo publishing process follows four sequential phases:
 
 ```text
-[1. Validação Técnica] ➔ [2. Bump de Versão] ➔ [3. Smoke Test Local] ➔ [4. Tag Git & CI/CD]
+[1. Technical Verification] ➔ [2. Version Bump] ➔ [3. Local Smoke Test] ➔ [4. Git Tag & CI/CD]
 ```
 
-O CI/CD no **GitHub Actions** (`.github/workflows/release.yml`) é acionado automaticamente a cada nova tag que inicia com `v*` (por exemplo, `v0.1.0`), gerando os artefatos para Windows e Linux com seus respectivos checksums SHA-256.
+CI/CD on **GitHub Actions** (`.github/workflows/release.yml`) triggers automatically on any tag starting with `v*` (e.g. `v0.1.0`), producing signed/checksummed binaries for Windows and Linux.
 
 ---
 
-## 2. Checklist Pré-Lançamento
+## 2. Pre-Release Checklist
 
-Execute todas as validações obrigatórias no terminal para garantir conformidade estrita com o CI:
+Run all mandatory checks in your terminal to ensure strict CI compliance:
 
-### 2.1 Testes Unitários e de Integração
+### 2.1 Unit and Integration Tests
 ```powershell
 cargo test --workspace
 ```
-*Critério:* Todos os testes devem passar com `0 failed`.
+*Criterion:* All tests must pass with `0 failed`.
 
-### 2.2 Verificação Estrita do Clippy
+### 2.2 Strict Clippy Lints
 ```powershell
 cargo clippy --workspace --all-targets -- -D warnings
 ```
-*Critério:* Zero advertências (warnings).
+*Criterion:* Zero warnings allowed.
 
-### 2.3 Formatação de Código
+### 2.3 Code Formatting
 ```powershell
 cargo fmt --all -- --check
 ```
-*Critério:* Formatação idêntica ao padrão Rustfmt.
+*Criterion:* Code must strictly match the Rustfmt standard.
 
 ---
 
-## 3. Bump de Versão e Documentação
+## 3. Version Bump & Documentation
 
-Ao definir a nova versão semântica (`vMAJOR.MINOR.PATCH`):
+When preparing a new semantic version (`vMAJOR.MINOR.PATCH`):
 
-1. **`Cargo.toml` (raiz do workspace)**:
-   Atualize o campo `version` em `[workspace.package]`:
+1. **`Cargo.toml` (Workspace root)**:
+   Update the `version` field under `[workspace.package]`:
    ```toml
    [workspace.package]
    version = "0.1.0"
    ```
 
 2. **`docs/index.html` (Landing Page)**:
-   Atualize o badge de versão no rodapé (`<footer>`):
+   Verify that the footer badge (`<footer>`) reflects the release:
    ```html
    <span class="font-mono-timestamp text-xs ...">v0.1</span>
    ```
 
 3. **`CHANGELOG.md`**:
-   Documente as novidades agrupadas pelas categorias recomendadas:
-   - `### Added`: Novos recursos implementados.
-   - `### Changed`: Melhorias de interface ou comportamentos ajustados.
-   - `### Fixed`: Bugs corrigidos.
+   Document changes grouped under standard *Keep a Changelog* sections:
+   - `### Added`: New capabilities and features.
+   - `### Changed`: UI/UX enhancements and modified behaviors.
+   - `### Fixed`: Bug fixes and stability improvements.
 
-4. **Commit de Atualização**:
+4. **Commit Version Bump**:
    ```bash
    git add Cargo.toml Cargo.lock docs/index.html CHANGELOG.md
    git commit -m "chore(release): bump version to vX.Y.Z"
@@ -72,63 +72,63 @@ Ao definir a nova versão semântica (`vMAJOR.MINOR.PATCH`):
 
 ---
 
-## 4. Teste de Empacotamento Local (Smoke Test no Windows)
+## 4. Local Packaging Verification (Smoke Test on Windows)
 
-Antes de criar a tag pública, gere os artefatos localmente para validação manual:
+Before pushing a public tag, generate and test release artifacts locally:
 
-### 4.1 Gerar o Pacote Portátil (.zip)
+### 4.1 Generate Portable Bundle (.zip)
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./scripts/package.ps1
 ```
-*Gera:* `dist/nixo-vX.Y.Z-windows-x86_64.zip` e `.sha256`.
+*Generates:* `dist/nixo-vX.Y.Z-windows-x86_64.zip` and `.sha256`.
 
-### 4.2 Gerar o Instalador Executável (.exe)
+### 4.2 Generate Windows Installer (.exe)
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./scripts/build-installer.ps1
 ```
-*Gera:* `dist/nixo-vX.Y.Z-windows-x86_64-setup.exe` e `.sha256`.
+*Generates:* `dist/nixo-vX.Y.Z-windows-x86_64-setup.exe` and `.sha256`.
 
-### 4.3 Checklist Manual do Instalador
-- [ ] O banner lateral verde do Nixo aparece corretamente no assistente.
-- [ ] A instalação conclui sem exigir privilégios de Administrador (`AppData\Local\Programs\Nixo`).
-- [ ] O atalho do Menu Iniciar e da Área de Trabalho abre o player.
-- [ ] Clicar com o botão direito em um arquivo `.mp4` exibe o Nixo no menu **"Abrir com..."**.
-- [ ] O desinstalador remove os arquivos e entradas do registro de forma limpa.
+### 4.3 Manual Installer Checklist
+- [ ] Green branding banner renders properly in the installer wizard.
+- [ ] Installation completes without requiring Administrator privileges (`AppData\Local\Programs\Nixo`).
+- [ ] Start Menu and Desktop shortcuts launch the application.
+- [ ] Right-clicking a `.mp4` / `.mkv` file displays Nixo in the Windows **"Open with..."** context menu.
+- [ ] Uninstaller cleanly removes all application files and Registry keys.
 
 ---
 
-## 5. Publicação Oficial (Git Tag & CI/CD)
+## 5. Official Publishing (Git Tag & CI/CD)
 
-Com a branch `main` sincronizada e testada:
+Once `main` is clean, tested, and pushed:
 
-### 5.1 Criar a Tag Anotada
+### 5.1 Create Annotated Git Tag
 ```bash
 git tag -a v0.1.0 -m "Nixo v0.1.0 — Initial Release"
 ```
 
-### 5.2 Enviar a Tag ao GitHub
+### 5.2 Push Tag to GitHub
 ```bash
 git push origin v0.1.0
 ```
 
 ---
 
-## 6. Pós-Lançamento no GitHub Actions
+## 6. Post-Release on GitHub Actions
 
-Assim que a tag for enviada, o workflow **Release** iniciará automaticamente:
+Pushing the tag triggers the **Release** workflow automatically:
 
-1. **Acompanhar o Build**:
-   Acesse `https://github.com/carllosnc/nixo/actions` e acompanhe os jobs:
-   - `release-windows`: Compila em Release com LTO, gera o `.zip` portátil e o instalador Inno Setup `.exe`.
-   - `release-linux`: Compila para Linux x86_64 e gera o `.tar.gz`.
+1. **Monitor Pipeline**:
+   Visit `https://github.com/carllosnc/nixo/actions` and verify:
+   - `release-windows`: Builds optimized release with LTO, creates portable `.zip` and Inno Setup `.exe`.
+   - `release-linux`: Builds for Linux x86_64 and creates `.tar.gz`.
 
-2. **Revisar a Release no GitHub**:
-   Acesse `https://github.com/carllosnc/nixo/releases/tag/v0.1.0`:
-   - Verifique se os 6 artefatos estão anexados:
+2. **Verify Release Assets on GitHub**:
+   Navigate to `https://github.com/carllosnc/nixo/releases/tag/v0.1.0`:
+   - Confirm all 6 assets are attached:
      - `nixo-vX.Y.Z-windows-x86_64-setup.exe`
      - `nixo-vX.Y.Z-windows-x86_64-setup.exe.sha256`
      - `nixo-vX.Y.Z-windows-x86_64.zip`
      - `nixo-vX.Y.Z-windows-x86_64.zip.sha256`
      - `nixo-vX.Y.Z-linux-x86_64.tar.gz`
      - `nixo-vX.Y.Z-linux-x86_64.tar.gz.sha256`
-   - Clique em **Edit release** para adicionar a descrição formatada e publicar oficialmente.
+   - Click **Edit release** to paste curated release notes and publish.
