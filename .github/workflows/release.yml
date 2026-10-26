@@ -68,6 +68,8 @@ jobs:
       - name: Download libmpv
         shell: pwsh
         run: ./scripts/setup-mpv.ps1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Windows ZIP
         shell: pwsh
