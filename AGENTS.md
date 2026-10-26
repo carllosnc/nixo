@@ -23,6 +23,8 @@ The project is structured as a modular Cargo Workspace:
 ```text
 nixo/
 ├── Cargo.toml                 # Root workspace manifest & release profiles
+├── CHANGELOG.md               # Version history following Keep a Changelog standard
+├── RELEASING.md               # Standardized release workflow, SemVer & CI/CD guide
 ├── assets/                    # Application icons (ICO, PNG)
 ├── crates/
 │   ├── nixo-core/             # Pure domain models, playback states, commands, and MediaBackend trait
@@ -152,3 +154,15 @@ When extending the player, follow this layered approach:
 2. **Engine (`nixo-engine`)**: Implement the logic in both `MpvBackend` (real playback) and `SyntheticBackend` (mock/fallback behavior).
 3. **App (`nixo-app`)**: Wire the command into the UI controls (OSD bar, contextual menus, or keyboard shortcuts).
 4. **Validation**: Run `cargo test --workspace` and `cargo clippy --workspace --all-targets -- -D warnings`.
+
+---
+
+## 6. Release Workflow & Operational Standards
+
+When preparing, testing, or publishing new releases, agents must strictly follow the procedures in [RELEASING.md](RELEASING.md):
+- **Branch & PR Strategy**: All release preparations and version bumps must be submitted via Pull Request and merged into `main` before tagging. Never create release tags on unmerged development branches.
+- **Semantic Versioning & Tag Syntax**: Tags must strictly follow the `v<MAJOR>.<MINOR>.<PATCH>` format (e.g. `v0.1.0`). Never use shorthand or irregular tags (`v0.1`, `v.01`, `0.1.0`).
+- **Changelog Maintenance**: Every user-facing release must be documented in [CHANGELOG.md](CHANGELOG.md) following the [Keep a Changelog](https://keepachangelog.com/) standard.
+- **Web Media Standardization**: Demo and showcase video assets under `docs/assets/` must be optimized with dual-source encoding (WebM VP9 + MP4 H.264 faststart + WebP poster) as specified in `RELEASING.md`.
+- **Pre-Release Quality Gate**: Ensure `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo fmt --all -- --check` pass with zero errors and zero warnings prior to tagging.
+
