@@ -71,10 +71,12 @@
       font-family: 'Stack Sans Notch', 'Plus Jakarta Sans', sans-serif;
       font-weight: 300;
       letter-spacing: -0.02em;
+      text-wrap: balance;
     }
     h3, .font-card-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
       letter-spacing: -0.02em;
+      text-wrap: balance;
     }
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -286,16 +288,16 @@
 
 <!-- ==================== CORE FEATURES BENTO GRID ==================== -->
 <section class="py-20 px-6 md:px-12 max-w-7xl mx-auto w-full" id="showcase">
-  <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-    <div>
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-10 md:mb-12 gap-4 lg:gap-8">
+    <div class="max-w-2xl">
       <span class="text-xs font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
         Core Capabilities
       </span>
-      <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-light">
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-display-lg text-white tracking-tight mt-1 font-light text-balance">
         Engineered for Total Media Control
       </h2>
     </div>
-    <p class="text-sm font-body-base text-zinc-400 max-w-md">
+    <p class="text-sm sm:text-base font-body-base text-zinc-400 max-w-2xl lg:max-w-md leading-relaxed">
       Every detail of Nixo is crafted for audio and video enthusiasts who demand zero lag, instant startup, and millisecond precision.
     </p>
   </div>
@@ -575,22 +577,22 @@
 
 <!-- ==================== SUPPORTED FORMATS & CODECS ==================== -->
 <section class="py-16 px-6 md:px-12 max-w-7xl mx-auto w-full" id="formats">
-  <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-    <div>
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-10 md:mb-12 gap-4 lg:gap-8">
+    <div class="max-w-2xl">
       <span class="text-xs sm:text-sm font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
         Broad Compatibility
       </span>
-      <h2 class="text-3xl md:text-4xl font-display-lg text-white tracking-tight mt-1 font-light">
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-display-lg text-white tracking-tight mt-1 font-light text-balance">
         Supported Media &amp; Formats
       </h2>
     </div>
-    <p class="text-sm sm:text-base font-body-base text-zinc-400 max-w-md">
+    <p class="text-sm sm:text-base font-body-base text-zinc-400 max-w-2xl lg:max-w-md leading-relaxed">
       Backed by the industry-leading libmpv engine, Nixo plays virtually any media file with no external codec packs or third-party bloat required.
     </p>
   </div>
 
   <!-- Format Categories Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
     <!-- Card 1: Video Formats -->
     <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
@@ -605,9 +607,9 @@
             <p class="text-sm font-body-base text-zinc-400 mt-1">
               Ultra HD 4K, 8K &amp; HDR
             </p>
-            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
-              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
-              15+ Formats
+            <div class="mt-2.5 inline-flex items-center gap-2 text-xs sm:text-sm font-mono-timestamp text-brand-400 font-medium whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-brand-400 shrink-0"></span>
+              <span>15+ Formats</span>
             </div>
           </div>
         </div>
@@ -618,28 +620,28 @@
 
         <!-- Extensions Pills -->
         <div class="mt-6 flex flex-wrap gap-2">
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp4</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mkv</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.webm</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.avi</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mov</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4v</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ts</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mts</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m2ts</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flv</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wmv</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vob</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogv</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.3gp</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.rmvb</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp4</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mkv</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.webm</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.avi</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mov</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4v</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ts</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mts</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m2ts</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flv</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wmv</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vob</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogv</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.3gp</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.rmvb</span>
         </div>
       </div>
 
       <!-- Feature Chip -->
-      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
-        <span class="text-zinc-500">Video Codecs:</span>
-        <span class="text-zinc-200 font-medium">AV1, HEVC/H.265, H.264, VP9, ProRes</span>
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-baseline justify-between text-xs sm:text-[13px] text-zinc-400 font-mono-timestamp gap-1 sm:gap-2">
+        <span class="text-zinc-500 shrink-0">Video Codecs:</span>
+        <span class="text-zinc-200 font-medium sm:text-right">AV1, HEVC/H.265, H.264, VP9, ProRes</span>
       </div>
     </div>
 
@@ -656,9 +658,9 @@
             <p class="text-sm font-body-base text-zinc-400 mt-1">
               Hi-Res Lossless &amp; Compressed
             </p>
-            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
-              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
-              Lossless Hi-Res
+            <div class="mt-2.5 inline-flex items-center gap-2 text-xs sm:text-sm font-mono-timestamp text-brand-400 font-medium whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-brand-400 shrink-0"></span>
+              <span>Lossless Hi-Res</span>
             </div>
           </div>
         </div>
@@ -669,28 +671,28 @@
 
         <!-- Extensions Pills -->
         <div class="mt-6 flex flex-wrap gap-2">
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flac</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp3</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wav</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4a</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aac</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.opus</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogg</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.alac</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aiff</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wma</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.flac</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.mp3</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wav</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.m4a</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aac</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.opus</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ogg</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.alac</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.aiff</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.wma</span>
         </div>
       </div>
 
       <!-- Feature Chip -->
-      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
-        <span class="text-zinc-500">Audio Features:</span>
-        <span class="text-zinc-200 font-medium">Gapless, 5.1 / 7.1 Surround, 192kHz/24-bit</span>
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-baseline justify-between text-xs sm:text-[13px] text-zinc-400 font-mono-timestamp gap-1 sm:gap-2">
+        <span class="text-zinc-500 shrink-0">Audio Features:</span>
+        <span class="text-zinc-200 font-medium sm:text-right">Gapless, 5.1 / 7.1 Surround, 192kHz/24-bit</span>
       </div>
     </div>
 
     <!-- Card 3: Subtitle Formats -->
-    <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50">
+    <div class="reveal-card p-6 md:p-7 rounded-2xl bg-surface-card border border-surface-card transition-all duration-300 flex flex-col justify-between group hover:shadow-xl hover:shadow-black/50 md:col-span-2 lg:col-span-1">
       <div>
         <!-- Card Header: Clean icon without wrapper, badge moved below -->
         <div class="flex items-start gap-3.5 mb-4">
@@ -702,9 +704,9 @@
             <p class="text-sm font-body-base text-zinc-400 mt-1">
               Embedded &amp; External Files
             </p>
-            <div class="mt-2.5 flex items-center gap-2 text-sm font-mono-timestamp text-brand-400 font-medium">
-              <span class="w-2 h-2 rounded-full bg-brand-400"></span>
-              Styling &amp; Sync
+            <div class="mt-2.5 inline-flex items-center gap-2 text-xs sm:text-sm font-mono-timestamp text-brand-400 font-medium whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-brand-400 shrink-0"></span>
+              <span>Styling &amp; Sync</span>
             </div>
           </div>
         </div>
@@ -715,27 +717,27 @@
 
         <!-- Extensions Pills -->
         <div class="mt-6 flex flex-wrap gap-2">
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ass</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ssa</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.srt</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vtt</span>
-          <span class="px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-[13px] sm:text-sm font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.sub</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ass</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.ssa</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.srt</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.vtt</span>
+          <span class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-surface-elevated border border-white/[0.08] text-xs sm:text-[13px] font-mono-timestamp text-zinc-200 font-semibold group-hover:border-brand-500/20 transition-colors">.sub</span>
         </div>
       </div>
 
       <!-- Feature Chip -->
-      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between text-[13px] sm:text-sm text-zinc-400 font-mono-timestamp gap-1">
-        <span class="text-zinc-500">Subtitle Engine:</span>
-        <span class="text-zinc-200 font-medium">Custom Fonts, Delay Sync (Z / X), UTF-8 / Auto</span>
+      <div class="mt-6 pt-4 border-t border-white/[0.05] flex flex-col sm:flex-row sm:items-baseline justify-between text-xs sm:text-[13px] text-zinc-400 font-mono-timestamp gap-1 sm:gap-2">
+        <span class="text-zinc-500 shrink-0">Subtitle Engine:</span>
+        <span class="text-zinc-200 font-medium sm:text-right">Custom Fonts, Delay Sync (Z / X), UTF-8 / Auto</span>
       </div>
     </div>
 
   </div>
 
   <!-- Bottom Banner: Instant Drag-and-Drop Capability -->
-  <div class="reveal-card mt-8 p-5 md:p-6 rounded-2xl bg-surface-card border border-surface-card flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-3.5 text-center sm:text-left">
-      <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0">folder_open</span>
+  <div class="reveal-card mt-8 p-5 md:p-6 rounded-2xl bg-surface-card border border-surface-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex items-start sm:items-center gap-3.5 text-left">
+      <span class="material-symbols-outlined text-2xl md:text-3xl text-brand-400 shrink-0 mt-0.5 sm:mt-0">folder_open</span>
       <div>
         <p class="text-base sm:text-lg font-card-title text-white font-semibold">
           Seamless Drag &amp; Drop Media Folders
@@ -745,7 +747,7 @@
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
       <span class="px-3.5 py-1.5 rounded-full bg-surface-deep border border-white/[0.06] font-mono-timestamp text-sm text-zinc-300 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-brand-400"></span>
         Zero Configuration
