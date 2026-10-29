@@ -13,13 +13,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](Cargo.toml)
 
-<br><br>
-
 <img src="assets/screenshots/playback.webp" alt="Nixo Media Player Video Playback" width="100%" />
 
 </div>
-
----
 
 ## Screenshots
 
@@ -32,8 +28,6 @@
 | <img src="assets/screenshots/settings.webp" alt="Settings, Video Equalizer & Subtitles" width="100%" /> | <img src="assets/screenshots/playlist.webp" alt="Animated Virtualized Playlist Drawer" width="100%" /> |
 
 </div>
-
----
 
 ## Features
 
@@ -51,8 +45,6 @@
 - **Lossless Screenshots**: One-click frame capture saved as PNG and automatically copied to the system clipboard (`P` or `Ctrl + S`).
 - **Internationalization (i18n)**: Built-in support for English, Portuguese, and Spanish with procedural GPU vector flags and system locale auto-detection.
 - **Fallback Synthetic Engine**: Ships with a built-in 60 FPS GPU test signal generator (`SyntheticBackend`), allowing UI and pipeline development without external dependencies.
-
----
 
 ## Project Architecture
 
@@ -88,8 +80,6 @@ nixo/
     └── generate-icon.ps1      # Procedural icon asset generator
 ```
 
----
-
 ## Getting Started
 
 ### 1. Prerequisites & libmpv Setup
@@ -116,8 +106,6 @@ Nixo dynamically links to `libmpv` at runtime, meaning **no C development header
   brew install mpv
   ```
 
----
-
 ### 2. Running the Player
 
 To run the application:
@@ -132,8 +120,6 @@ Or pass a media file directly via the command line:
 cargo run -p nixo-app -- path/to/video.mkv
 ```
 
----
-
 ### 3. Packaging & Distribution
 
 To build a standalone, optimized redistributable bundle (LTO, strip, embedded DLL):
@@ -145,8 +131,6 @@ To build a standalone, optimized redistributable bundle (LTO, strip, embedded DL
 The output zip file and its SHA256 checksum will be generated inside the `dist/` directory:
 - `dist/nixo-v<version>-windows-x86_64.zip`
 - `dist/nixo-v<version>-windows-x86_64.zip.sha256`
-
----
 
 ## Keyboard Shortcuts
 
@@ -184,8 +168,6 @@ The output zip file and its SHA256 checksum will be generated inside the `dist/`
 | `Shift + A` | Snap & Lock window to Video Aspect Ratio |
 | `P` / `Ctrl + S` | Take Lossless Screenshot (PNG to clipboard & disk) |
 | `Delete` | Remove selected folder or watch history entry (on Home) |
-
----
 
 ## License
 
