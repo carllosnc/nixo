@@ -5,15 +5,15 @@
 # Nixo Media Player
 
 <p>
-  <strong>High-performance cross-platform media player written in Rust</strong><br>
+  <strong>High-performance cross-platform media player written in Rust</strong>
+</p>
+<p>
   100% native GPU-accelerated interface powered by <code>wgpu</code> + <code>egui</code> and hardware-accelerated playback via <code>libmpv</code>.
 </p>
 
 [![CI](https://github.com/carllosnc/nixo/actions/workflows/ci.yml/badge.svg)](https://github.com/carllosnc/nixo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](Cargo.toml)
-
-<br><br>
 
 <img src="assets/screenshots/playback.webp" alt="Nixo Media Player Video Playback" width="100%" />
 
