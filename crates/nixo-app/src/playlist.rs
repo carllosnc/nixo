@@ -148,7 +148,6 @@ impl NixoApp {
                     self.play_next();
                 } else {
                     self.record_current_playback();
-                    self.go_home();
                 }
             }
         }

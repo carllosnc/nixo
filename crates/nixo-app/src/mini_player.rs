@@ -182,8 +182,11 @@ impl NixoApp {
                     .on_hover_cursor(CursorIcon::PointingHand);
 
                 let is_playing = self.status.state == PlaybackState::Playing;
+                let is_ended = self.status.state == PlaybackState::Ended;
                 let play_tooltip = if is_playing {
                     self.t().pause_tooltip
+                } else if is_ended {
+                    self.t().replay_tooltip
                 } else {
                     self.t().play_tooltip
                 };

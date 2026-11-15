@@ -60,6 +60,7 @@ pub struct NixoApp {
     pub(crate) is_mini_player: bool,
     pub(crate) saved_window_size: Option<Vec2>,
     pub(crate) saved_always_on_top: bool,
+    pub(crate) ended_handled: bool,
 }
 
 impl NixoApp {
@@ -139,6 +140,7 @@ impl NixoApp {
             is_mini_player: false,
             saved_window_size: None,
             saved_always_on_top: settings.window.always_on_top,
+            ended_handled: false,
         }
     }
 
@@ -317,8 +319,14 @@ impl eframe::App for NixoApp {
         if self.status.state == PlaybackState::Stopped {
             self.aspect_ratio_fit = false;
             self.saved_aspect_ratio_fit = false;
+            self.ended_handled = false;
         } else if self.status.state == PlaybackState::Ended {
-            self.handle_playback_ended();
+            if !self.ended_handled {
+                self.ended_handled = true;
+                self.handle_playback_ended();
+            }
+        } else {
+            self.ended_handled = false;
         }
 
         if let Some(target) = self.pending_resume

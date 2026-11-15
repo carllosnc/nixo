@@ -192,6 +192,7 @@ pub struct Translations {
     // OSD / Controles inferiores
     pub play_tooltip: &'static str,
     pub pause_tooltip: &'static str,
+    pub replay_tooltip: &'static str,
     pub previous_track_tooltip: &'static str,
     pub next_track_tooltip: &'static str,
     pub repeat_off_tooltip: &'static str,
@@ -369,6 +370,7 @@ mod tests {
             let t = lang.t();
             assert!(!t.settings_title.is_empty());
             assert!(!t.play_tooltip.is_empty());
+            assert!(!t.replay_tooltip.is_empty());
             assert!(!t.menu_video.is_empty());
         }
     }

@@ -7,6 +7,7 @@ use crate::app::{ACCENT_COLOR, NixoApp};
 pub(crate) enum ControlIcon {
     Play,
     Pause,
+    Replay,
     PreviousTrack,
     NextTrack,
     Repeat { mode: RepeatMode },
@@ -119,6 +120,9 @@ impl NixoApp {
                     let r2 = Rect::from_min_max(p(14.0, 3.2), p(19.0, 20.8));
                     painter.rect_filled(r1, CornerRadius::same(1), fg);
                     painter.rect_filled(r2, CornerRadius::same(1), fg);
+                }
+                ControlIcon::Replay => {
+                    draw_replay_icon(painter, c, scale, fg);
                 }
                 ControlIcon::PreviousTrack => {
                     // Lucide 'skip-back': barra vertical de parada + triângulo apontando para a esquerda
@@ -352,4 +356,37 @@ impl NixoApp {
 
         response
     }
+}
+
+/// Desenha o ícone vetorial `rotate-ccw` (Replay) no grid 24x24 centralizado em `center`.
+pub(crate) fn draw_replay_icon(painter: &egui::Painter, center: Pos2, scale: f32, fg: Color32) {
+    let p =
+        |x: f32, y: f32| Pos2::new(center.x + (x - 12.0) * scale, center.y + (y - 12.0) * scale);
+    let stroke = Stroke::new(1.95_f32 * scale.max(1.0), fg);
+    let radius = 7.6_f32;
+    let start_angle = -std::f32::consts::FRAC_PI_4 * 3.0; // -135° (topo esquerdo)
+    let end_angle = std::f32::consts::PI * 0.85; // ~153° (inferior esquerdo)
+    let steps = 22;
+    let arc: Vec<Pos2> = (0..=steps)
+        .map(|i| {
+            let t = i as f32 / steps as f32;
+            let a = start_angle + (end_angle - start_angle) * t;
+            p(12.0 + radius * a.cos(), 12.0 + radius * a.sin())
+        })
+        .collect();
+    painter.add(Shape::line(arc, stroke));
+
+    // Ponta de seta no início do arco apontando no sentido anti-horário (baixo-esquerda)
+    let tip = p(
+        12.0 + radius * start_angle.cos(),
+        12.0 + radius * start_angle.sin(),
+    );
+    painter.add(Shape::line(
+        vec![
+            Pos2::new(tip.x, tip.y - 4.4 * scale),
+            tip,
+            Pos2::new(tip.x + 4.4 * scale, tip.y),
+        ],
+        stroke,
+    ));
 }
