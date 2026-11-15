@@ -199,8 +199,11 @@ impl NixoApp {
         }
 
         let is_playing = self.status.state == PlaybackState::Playing;
+        let is_ended = self.status.state == PlaybackState::Ended;
         let (play_icon, play_tooltip) = if is_playing {
             (ControlIcon::Pause, self.t().pause_tooltip)
+        } else if is_ended {
+            (ControlIcon::Replay, self.t().replay_tooltip)
         } else {
             (ControlIcon::Play, self.t().play_tooltip)
         };

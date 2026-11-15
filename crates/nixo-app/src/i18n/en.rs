@@ -90,6 +90,7 @@ pub static EN: Translations = Translations {
     // OSD / Bottom controls
     play_tooltip: "Play (Space)",
     pause_tooltip: "Pause (Space)",
+    replay_tooltip: "Replay (Space)",
     previous_track_tooltip: "Previous video (Shift+P / PageUp)",
     next_track_tooltip: "Next video (Shift+N / PageDown)",
     repeat_off_tooltip: "Repeat: Off (R)",

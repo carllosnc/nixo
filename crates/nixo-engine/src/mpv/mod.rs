@@ -252,6 +252,8 @@ impl MediaBackend for MpvBackend {
                     if self.get_flag(c"eof-reached").unwrap_or(false) {
                         self.set_double(c"time-pos", 0.0);
                         self.pending_seek = Some((0.0, Instant::now()));
+                        self.cached_status.position = Duration::ZERO;
+                        self.first_frame_pending = true;
                     }
                     self.set_flag(c"pause", false);
                 }
@@ -263,6 +265,8 @@ impl MediaBackend for MpvBackend {
                 } else if self.get_flag(c"eof-reached").unwrap_or(false) {
                     self.set_double(c"time-pos", 0.0);
                     self.pending_seek = Some((0.0, Instant::now()));
+                    self.cached_status.position = Duration::ZERO;
+                    self.first_frame_pending = true;
                     self.set_flag(c"pause", false);
                 } else {
                     let paused = self.get_flag(c"pause").unwrap_or(false);

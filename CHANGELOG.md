@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1] - 2026-11-15
+
+### Added
+- **End-of-Playback Replay**: Media now remains on the final frame when playback finishes (`PlaybackState::Ended`) instead of returning immediately to the folders screen, with a centered neutral Replay overlay button and a Replay icon/tooltip in the OSD bar and Mini-Player.
+
+### Fixed
+- **libmpv Replay State Sync**: Immediately reset cached playback position and request the first frame when restarting playback from `eof-reached`.
+- **Landing Page Font & Icon Flicker**: Subset `Material Symbols Outlined` to the exact icons used with `display=block`, reserved icon bounding boxes to prevent layout shift, and gated initial reveal on `document.fonts.ready` (with a 350ms fallback) to eliminate FOUT/FOUC.
+
 ## [0.1.0] - 2026-10-26
 
 ### Added

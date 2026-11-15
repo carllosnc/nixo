@@ -90,6 +90,7 @@ pub static PT: Translations = Translations {
     // OSD / Controles inferiores
     play_tooltip: "Reproduzir (Espaço)",
     pause_tooltip: "Pausar (Espaço)",
+    replay_tooltip: "Assistir novamente (Espaço)",
     previous_track_tooltip: "Vídeo anterior (Shift+P / PageUp)",
     next_track_tooltip: "Próximo vídeo (Shift+N / PageDown)",
     repeat_off_tooltip: "Repetição: Desativada (R)",
